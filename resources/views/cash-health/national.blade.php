@@ -169,49 +169,98 @@
     min-height:100vh;
 ">
 
-    @php
+@php
 
-        $financials =
-            $nationalHealth['financials'] ?? [];
+    /*
+    |--------------------------------------------------------------------------
+    | NATIONAL CASH HEALTH DATA
+    |--------------------------------------------------------------------------
+    */
 
-        $scores =
-            $nationalHealth['scores'] ?? [];
-$status = match (strtolower($scores['status'] ?? 'red')) {
-    'red'   => 'At Risk',
-    'amber' => 'Needs Attention',
-    'green' => 'Healthy',
-    default => 'At Risk',
-};
+    $financials =
+        $nationalHealth['financials'] ?? [];
 
+    $scores =
+        $nationalHealth['scores'] ?? [];
 
-        /*
-        |--------------------------------------------------------------------------
-        | STATUS COLORS
-        |--------------------------------------------------------------------------
-        */
+    /*
+    |--------------------------------------------------------------------------
+    | NEW MANAGEMENT SUMMARY
+    |--------------------------------------------------------------------------
+    */
 
-        $statusColor = match($status) {
+    $classification =
+        $nationalHealth['classification'] ?? [];
 
-            'GREEN' => '#15803d',
+    $issues =
+        $nationalHealth['issues'] ?? [];
 
-            'AMBER' => '#b45309',
+    $contribution =
+        $nationalHealth['contribution'] ?? [];
 
-            default => '#dc2626'
+    $contributors =
+        $nationalHealth['contributors'] ?? [];
 
-        };
+    /*
+    |--------------------------------------------------------------------------
+    | STATUS
+    |--------------------------------------------------------------------------
+    */
 
+    $status = match (
+        strtolower($scores['status'] ?? 'red')
+    ) {
+        'red'   => 'At Risk',
+        'amber' => 'Needs Attention',
+        'green' => 'Healthy',
+        default => 'At Risk',
+    };
 
-        $statusBackground = match($status) {
+    /*
+    |--------------------------------------------------------------------------
+    | STATUS COLORS
+    |--------------------------------------------------------------------------
+    */
 
-            'GREEN' => '#dcfce7',
+    $statusColor = match($status) {
 
-            'AMBER' => '#fef3c7',
+        'Healthy' =>
+            '#15803d',
 
-            default => '#fee2e2'
+        'Needs Attention' =>
+            '#b45309',
 
-        };
+        default =>
+            '#dc2626'
+    };
 
-    @endphp
+    $statusBackground = match($status) {
+
+        'Healthy' =>
+            '#dcfce7',
+
+        'Needs Attention' =>
+            '#fef3c7',
+
+        default =>
+            '#fee2e2'
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | INSTITUTION TYPE
+    |--------------------------------------------------------------------------
+    */
+
+    $institutionType =
+        $classification['label']
+        ?? 'Not classified';
+
+    $institutionTypeReason =
+        $classification['reason']
+        ?? '';
+
+@endphp
 
 
 
@@ -522,56 +571,60 @@ $status = match (strtolower($scores['status'] ?? 'red')) {
 
 
 {{-- ========================================================= --}}
-{{-- SUMMARY CARDS --}}
+{{-- NATIONAL MANAGEMENT SUMMARY --}}
 {{-- ========================================================= --}}
 
 <style>
 
-    .cash-summary-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 18px;
-        margin-bottom: 24px;
+    .national-management-grid {
+        display:grid;
+        grid-template-columns:repeat(3, 1fr);
+        gap:18px;
+        margin-bottom:24px;
     }
 
-    .cash-summary-card {
-        background: #fff;
-        border: 1px solid #e6e9ef;
-        border-radius: 14px;
-        padding: 22px;
+    .national-management-card {
+        background:#fff;
+        border:1px solid #e6e9ef;
+        border-radius:14px;
+        padding:22px;
     }
 
-    .cash-summary-description {
-        margin-top: 10px;
-        font-size: 12px;
-        line-height: 1.6;
-        font-weight: 600;
-        color: #4b5563;
+    .management-label {
+        font-size:10px;
+        font-weight:700;
+        color:#8a93a3;
+        letter-spacing:1px;
+        text-transform:uppercase;
     }
 
-
-    /* Tablet */
-
-    @media (max-width: 900px) {
-
-        .cash-summary-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
+    .management-value {
+        font-size:28px;
+        font-weight:700;
+        margin-top:10px;
+        color:#202633;
     }
 
+    .management-description {
+        margin-top:10px;
+        font-size:12px;
+        line-height:1.6;
+        color:#697386;
+    }
 
-    /* Mobile */
+    .management-badge {
+        display:inline-block;
+        margin-top:8px;
+        padding:5px 9px;
+        border-radius:20px;
+        font-size:10px;
+        font-weight:700;
+    }
 
-    @media (max-width: 600px) {
+    @media(max-width:900px) {
 
-        .cash-summary-grid {
-            grid-template-columns: 1fr;
-            gap: 14px;
-        }
-
-        .cash-summary-card {
-            padding: 18px;
+        .national-management-grid {
+            grid-template-columns:1fr;
         }
 
     }
@@ -579,140 +632,129 @@ $status = match (strtolower($scores['status'] ?? 'red')) {
 </style>
 
 
-<div class="cash-summary-grid">
+<div class="national-management-grid">
 
 
     {{-- ===================================================== --}}
-    {{-- OVERALL SCORE --}}
+    {{-- CASH HEALTH --}}
     {{-- ===================================================== --}}
 
-    <div class="cash-summary-card">
+    <div class="national-management-card">
 
-        <div style="
-            font-size:11px;
-            font-weight:700;
-            color:#8a93a3;
-            letter-spacing:1px;
-        ">
-            INSTITUTION CASH HEALTH SCORE
+        <div class="management-label">
+            Institution Cash Health
         </div>
 
-
-        <div style="
-            font-size:38px;
-            font-weight:700;
-            margin-top:8px;
-            color:#202633;
-        ">
-
+        <div class="management-value">
             {{ number_format(
                 $scores['overall'] ?? 0,
                 0
             ) }}
-
+            <span style="
+                font-size:13px;
+                color:#9aa2af;
+                font-weight:500;
+            ">
+                / 100
+            </span>
         </div>
 
-
-        <span style="
-            display:inline-block;
-            margin-top:8px;
-            padding:5px 10px;
-            border-radius:20px;
-            background:{{ $statusBackground }};
-            color:{{ $statusColor }};
-            font-size:10px;
-            font-weight:700;
-        ">
-
+        <span
+            class="management-badge"
+            style="
+                background:{{ $statusBackground }};
+                color:{{ $statusColor }};
+            "
+        >
             {{ $status }}
-
         </span>
 
-
-        <div class="cash-summary-description">
-            A score from <strong>0–100</strong> showing the
-            institution's overall cash health. Higher scores
-            indicate better cash health.
+        <div class="management-description">
+            Overall institutional cash health based on
+            disbursement, collection and residual cash performance.
         </div>
 
     </div>
 
 
-
     {{-- ===================================================== --}}
-    {{-- RESIDUAL CASH --}}
+    {{-- INSTITUTION TYPE --}}
     {{-- ===================================================== --}}
 
-    <div class="cash-summary-card">
+    <div class="national-management-card">
 
-        <div style="
-            font-size:11px;
-            font-weight:700;
-            color:#8a93a3;
-            letter-spacing:1px;
-        ">
-            RESIDUAL CASH
+        <div class="management-label">
+            Institution Type
         </div>
 
+        <div class="management-value"
+             style="font-size:22px;">
 
-        <div style="
-            font-size:27px;
-            font-weight:700;
-            margin-top:12px;
-            color:{{ ($financials['residual_cash'] ?? 0) < 0 ? '#dc2626' : '#202633' }};
-        ">
-
-            K{{ number_format(
-                $financials['residual_cash'] ?? 0,
-                2
-            ) }}
+            {{ $institutionType }}
 
         </div>
 
+        @if(!empty($institutionTypeReason))
 
-        <div class="cash-summary-description">
-            The amount of cash remaining after expected costs,
-            reserves and other financial obligations are accounted for.
-        </div>
+            <div class="management-description">
+
+                {{ $institutionTypeReason }}
+
+            </div>
+
+        @endif
 
     </div>
 
 
-
     {{-- ===================================================== --}}
-    {{-- NET CASH POSITION --}}
+    {{-- NET CONTRIBUTION --}}
     {{-- ===================================================== --}}
 
-    <div class="cash-summary-card">
+    @php
 
-        <div style="
-            font-size:11px;
-            font-weight:700;
-            color:#8a93a3;
-            letter-spacing:1px;
-        ">
-            NET CASH POSITION
+        $thisMonthContribution =
+            $contribution['this_month'] ?? 0;
+
+        $contributionColor =
+            $thisMonthContribution >= 0
+                ? '#15803d'
+                : '#dc2626';
+
+    @endphp
+
+
+    <div class="national-management-card">
+
+        <div class="management-label">
+            Net Contribution
         </div>
 
+        <div
+            class="management-value"
+            style="color:{{ $contributionColor }};"
+        >
 
-        <div style="
-            font-size:27px;
-            font-weight:700;
-            margin-top:12px;
-            color:{{ ($financials['net_cash_position'] ?? 0) < 0 ? '#dc2626' : '#202633' }};
-        ">
-
+            {{ $thisMonthContribution >= 0 ? '+' : '' }}
             K{{ number_format(
-                $financials['net_cash_position'] ?? 0,
+                abs($thisMonthContribution),
                 2
             ) }}
 
         </div>
 
+        <div style="
+            margin-top:5px;
+            font-size:11px;
+            color:#8a93a3;
+        ">
+            This month
+        </div>
 
-        <div class="cash-summary-description">
-            The net cash value generated after collections,
-            disbursements and operating costs are accounted for.
+        <div class="management-description">
+
+            Collections − Disbursements − Operating Costs.
+
         </div>
 
     </div>

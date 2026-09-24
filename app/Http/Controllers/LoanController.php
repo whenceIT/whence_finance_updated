@@ -1061,6 +1061,25 @@ if (!empty($loan['office_name'])) {
 
     }
 
+    public function delete_client_application($id)
+{
+    $application = ClientAppLoanApplications::find($id);
+
+    if (!$application) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Application not found.'
+        ], 404);
+    }
+
+    $application->delete();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Application deleted successfully.'
+    ]);
+}
+
 
 
 public function client_app_dashboard(Request $request)
@@ -3107,42 +3126,42 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
 
             // 1. Withinhere Payment Processing
             if($loan->loan_product->id == 1 || $loan->loan_product->id == 2) {
-                $paymentType = $request->payment_type;
-                if ($paymentType == 'mobile_money') {
-                    $url = 'https://withinheremobileapi.com/api/v1/transfer/withdraw-to/mobile';
-                    $payload = [
-                        'amount' => $request->amount,
-                        'phone' => $request->phone,
-                        'reason' => 'new loan disbursement',
-                        'user_id' => $request->user_id,
-                        'operator'=> $request->hidden_operator,
-                        'payout_type' => 'withinhere_to_mno',
-                        'totalDeducted' => $request->total_deducted
-                    ];
-                } else {
-                    $url = 'https://withinheremobileapi.com/api/v1/transfer/transfer-to/bank';
-                    $payload = [
-                        'amount' => $request->amount,
-                        'user_id' => $request->user_id,
-                        'bankId' => $request->bank_id,
-                        'accountNumber' => $request->account_number,
-                        'reason' => 'new loan disbursement',
-                        'payout_type' => 'withinhere_to_bank',
-                        'totalDeducted' => $request->total_deducted
-                    ];
-                }
+                // $paymentType = $request->payment_type;
+                // if ($paymentType == 'mobile_money') {
+                //     $url = 'https://withinheremobileapi.com/api/v1/transfer/withdraw-to/mobile';
+                //     $payload = [
+                //         'amount' => $request->amount,
+                //         'phone' => $request->phone,
+                //         'reason' => 'new loan disbursement',
+                //         'user_id' => $request->user_id,
+                //         'operator'=> $request->hidden_operator,
+                //         'payout_type' => 'withinhere_to_mno',
+                //         'totalDeducted' => $request->total_deducted
+                //     ];
+                // } else {
+                //     $url = 'https://withinheremobileapi.com/api/v1/transfer/transfer-to/bank';
+                //     $payload = [
+                //         'amount' => $request->amount,
+                //         'user_id' => $request->user_id,
+                //         'bankId' => $request->bank_id,
+                //         'accountNumber' => $request->account_number,
+                //         'reason' => 'new loan disbursement',
+                //         'payout_type' => 'withinhere_to_bank',
+                //         'totalDeducted' => $request->total_deducted
+                //     ];
+                // }
 
-                try {
-                    $response = Http::post($url, $payload);
-                    if (!$response->successful()) {
-                        $body = $response->body();
-                        Flash::success('API Error: ' . $body);
-                    }
-                    $result = $response->json();
-                } catch (\Exception $e) {
-                    Flash::success('Could not connect to payment service.');
-                    return redirect()->back();
-                }
+                // try {
+                //     $response = Http::post($url, $payload);
+                //     if (!$response->successful()) {
+                //         $body = $response->body();
+                //         Flash::success('API Error: ' . $body);
+                //     }
+                //     $result = $response->json();
+                // } catch (\Exception $e) {
+                //     Flash::success('Could not connect to payment service.');
+                //     return redirect()->back();
+                // }
             }
 
 
