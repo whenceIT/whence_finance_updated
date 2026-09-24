@@ -1061,6 +1061,25 @@ if (!empty($loan['office_name'])) {
 
     }
 
+    public function delete_client_application($id)
+{
+    $application = ClientAppLoanApplications::find($id);
+
+    if (!$application) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Application not found.'
+        ], 404);
+    }
+
+    $application->delete();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Application deleted successfully.'
+    ]);
+}
+
 
 
 public function client_app_dashboard(Request $request)

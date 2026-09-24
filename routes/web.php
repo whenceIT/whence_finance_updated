@@ -1011,6 +1011,8 @@ Route::group(['prefix' => 'loan'], function () {
         'as'   => 'client_app_dashboard',
         'uses' => 'LoanController@client_app_dashboard'
     ]);
+
+Route::post('delete_client_application/{id}', 'LoanController@delete_client_application');
     //waiver changes
     Route::get('/waiver_approvals', 'LoanController@showWaiver')->name('loan.waiver_approvals');
     Route::get('loan/waiver-approvals', 'LoanController@showWaiver')->name('waiver.approvals');

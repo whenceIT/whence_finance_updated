@@ -54,12 +54,12 @@
                 
                         <td>
 
- <a href="javascript:void(0)"
+<a href="javascript:void(0)"
    class="label label-success approve-btn"
+   data-id="{{ $key->id }}"
    data-client-id="{{ $key->client_id }}"
-   data-amount="{{$key->amount}}"
-   data-number="{{$key->payment_id}}"
-   onclick="return confirm('Are you sure?')">
+   data-amount="{{ $key->amount }}"
+   data-number="{{ $key->payment_id }}">
    Approve
 </a>
 
@@ -136,29 +136,58 @@
         });
 
 
-        $(document).on('click', '.approve-btn', function (e) {
+$(document).on('click', '.approve-btn', function (e) {
     e.preventDefault();
 
-    if (!confirm('Are you sure?')) return;
+    if (!confirm('Are you sure you want to approve this application?')) {
+        return;
+    }
 
+    let application_id = $(this).data('id');
     let client_id = $(this).data('client-id');
-    let loan_product_id = 2; // fixed as requested
+    let loan_product_id = 2;
     let amount = $(this).data('amount');
     let number = $(this).data('number');
 
-    const params = new URLSearchParams({
-    number,
-    amount,
+    $.ajax({
+        url: "{{ url('loan/delete_client_application') }}/" + application_id,
+        type: "POST",
+        data: {
+            _token: "{{ csrf_token() }}"
+        },
+        success: function (response) {
+
+            console.log(response);
+
+            if (response.success) {
+
+                const params = new URLSearchParams({
+                    number: number,
+                    amount: amount
+                });
+
+                window.location.href =
+                    "{{ url('loan/create_client_loan') }}/" +
+                    client_id + "/" +
+                    loan_product_id + "?" +
+                    params.toString();
+
+            } else {
+                alert(response.message || 'Unable to delete application.');
+            }
+        },
+        error: function (xhr) {
+
+            console.log('Delete error:', xhr.status);
+            console.log('Delete response:', xhr.responseText);
+
+            alert(
+                'Unable to delete the pending application.\n\n' +
+                'Status: ' + xhr.status
+            );
+        }
+    });
 });
-
-    
-
-    if (client_id !== "" && loan_product_id !== "") {
-        document.location = "{{ url('loan/create_client_loan') }}/" + client_id + "/" + loan_product_id + "?" +
-    params.toString();
-    }
-});
-
         // function log_console() {
         //     console.log
         //         ("GeeksforGeeks is a portal for geeks.");
