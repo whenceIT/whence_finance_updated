@@ -2028,7 +2028,7 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
                 }
 
                 document.addEventListener('DOMContentLoaded', function() {
-                    setInterval(runAutolock, 1 * 60 * 1000);
+                    // setInterval(runAutolock, 1 * 60 * 1000);
                 });
             })();
         </script>
