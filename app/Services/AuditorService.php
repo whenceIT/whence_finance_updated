@@ -1025,4 +1025,35 @@ class AuditorService
             'waiver_transaction_entry'
         );
     }
+
+    /**
+     * Get fund movements for offices that are currently in the blockages table.
+     *
+     * Optionally scope to a specific blockage's office by passing the blockage id.
+     *
+     * @param  int|null  $blockageId  When provided, returns movements only for that blockage's office.
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getFundMovementsByBlockedOffice(?int $blockageId = null)
+    {
+        // Collect the office IDs that are currently blocked
+        $blockedOfficeIds = \App\Models\Blockage::pluck('office_id');
+
+        $query = \App\Models\FundMovements::with(['office', 'user'])
+            ->whereIn('office_id', $blockedOfficeIds)
+            ->orderBy('transaction_date', 'desc')
+            ->orderBy('created_at', 'desc');
+
+        // Narrow to a single office when a blockage id is supplied,
+        // and only return movements created on or after the blockage was raised.
+        if ($blockageId !== null) {
+            $blockage = \App\Models\Blockage::find($blockageId);
+            if ($blockage) {
+                $query->where('office_id', $blockage->office_id)
+                      ->where('created_at', '>=', $blockage->created_at);
+            }
+        }
+
+        return $query->get();
+    }
 }

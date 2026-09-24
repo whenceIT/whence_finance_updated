@@ -115,6 +115,11 @@
                             <td>{{ $blockage->reason }}</td>
                             <td>{{ $blockage->created_at?->format('Y-m-d H:i:s') }}</td>
                             <td>
+                                <button type="button" class="btn btn-info btn-sm view-movements-btn"
+                                    data-id="{{ $blockage->id }}"
+                                    data-office="{{ $blockage->office?->name ?? 'N/A' }}">
+                                    <i class="fa fa-list"></i> Track Movements
+                                </button>
                                 <button type="button" class="btn btn-danger btn-sm unblock-btn" data-id="{{ $blockage->id }}">
                                     <i class="fa fa-unlock"></i> Unblock
                                 </button>
@@ -123,6 +128,59 @@
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fund Movements Modal -->
+<div class="modal fade" id="fundMovementsModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">
+                    Fund Movements &mdash; <span id="fm-office-name"></span>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <!-- Blockage context -->
+                <div id="fm-blockage-info" class="alert alert-warning" style="display:none;"></div>
+
+                <!-- Loading spinner -->
+                <div id="fm-loading" class="text-center" style="padding: 30px; display:none;">
+                    <i class="fa fa-spinner fa-spin fa-2x"></i>
+                    <p>Loading movements&hellip;</p>
+                </div>
+
+                <!-- Empty state -->
+                <div id="fm-empty" class="text-center" style="padding: 30px; display:none;">
+                    <i class="fa fa-inbox fa-2x" style="color:#ccc;"></i>
+                    <p style="margin-top:10px; color:#888;">No fund movements found for this office.</p>
+                </div>
+
+                <!-- Movements table -->
+                <div id="fm-table-wrap" style="display:none; overflow-x:auto;">
+                    <table class="table table-bordered table-striped table-condensed" id="fm-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Title</th>
+                                <th>Payee</th>
+                                <th>Amount</th>
+                                <th>Method</th>
+                                <th>Status</th>
+                                <th>Created By</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fm-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -385,6 +443,72 @@ $(document).ready(function() {
             },
             complete: function() {
                 $('#deadlineSaveBtn').prop('disabled', false).text('Add Deadline');
+            }
+        });
+    });
+
+    // Handle view fund movements button
+    $(document).on('click', '.view-movements-btn', function () {
+        var blockageId  = $(this).data('id');
+        var officeName  = $(this).data('office');
+
+        // Reset modal state
+        $('#fm-office-name').text(officeName);
+        $('#fm-blockage-info').hide().empty();
+        $('#fm-loading').show();
+        $('#fm-empty').hide();
+        $('#fm-table-wrap').hide();
+        $('#fm-tbody').empty();
+
+        $('#fundMovementsModal').modal('show');
+
+        $.ajax({
+            url: '/api/fund-movements/blocked/' + blockageId,
+            type: 'GET',
+            success: function (response) {
+                $('#fm-loading').hide();
+
+                if (response.blockage) {
+                    $('#fm-blockage-info')
+                        .html('<strong>Blocked reason:</strong> ' + response.blockage.reason +
+                              (response.blockage.blocked_at ? ' &mdash; <strong>Blocked since:</strong> ' + response.blockage.blocked_at : ''))
+                        .show();
+                }
+
+                if (!response.success || !response.data || response.data.length === 0) {
+                    $('#fm-empty').show();
+                    return;
+                }
+
+                var rows = '';
+                $.each(response.data, function (i, m) {
+                    var createdBy = (m.user)
+                        ? (m.user.first_name + ' ' + m.user.last_name)
+                        : (m.created_by || 'N/A');
+
+                    rows += '<tr>' +
+                        '<td>' + (i + 1) + '</td>' +
+                        '<td>' + (m.transaction_date || 'N/A') + '</td>' +
+                        '<td>' + (m.movement_type || 'N/A') + '</td>' +
+                        '<td>' + (m.title || 'N/A') + '</td>' +
+                        '<td>' + (m.payee_name || 'N/A') + '</td>' +
+                        '<td>' + (m.amount !== null ? parseFloat(m.amount).toLocaleString('en-US', {minimumFractionDigits: 2}) : 'N/A') + '</td>' +
+                        '<td>' + (m.payment_method || 'N/A') + '</td>' +
+                        '<td><span class="label label-' + (m.status === 'approved' ? 'success' : (m.status === 'pending' ? 'warning' : 'default')) + '">' + (m.status || 'N/A') + '</span></td>' +
+                        '<td>' + createdBy + '</td>' +
+                    '</tr>';
+                });
+
+                $('#fm-tbody').html(rows);
+                $('#fm-table-wrap').show();
+            },
+            error: function (xhr) {
+                $('#fm-loading').hide();
+                var msg = (xhr.responseJSON && xhr.responseJSON.message)
+                    ? xhr.responseJSON.message
+                    : 'Failed to load fund movements.';
+                toastr.error(msg);
+                $('#fundMovementsModal').modal('hide');
             }
         });
     });

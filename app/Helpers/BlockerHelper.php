@@ -243,7 +243,8 @@ class BlockerHelper
         $name = $expired->name;
 
         // a. Get the deposit type id where name matches $name
-        $depositType = \App\Models\DepositType::where('name', 'like', '%' . $name . '%')->first();
+        $depositType = \App\Models\DepositType::where('name', 'like', '%' . $name . '%')
+            ->whereNotIn('id', [4, 6, 2])->first();
 
         if (!$depositType) {
             return [
