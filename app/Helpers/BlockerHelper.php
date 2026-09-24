@@ -272,17 +272,17 @@ class BlockerHelper
         $allOfficeIds = \App\Models\Office::pluck('id')->toArray();
         $lockedIds = array_diff($allOfficeIds, $paidIds, $exemptedIds);
 
-        foreach ($lockedIds as $officeId) {
-            if($officeId != 67){
-                Blockage::firstOrCreate([
-                    'office_id' => $officeId,
-                ], [
-                    'reason' => 'Auto-locked: expired deadline "' . $name . '" - office has not deposited for current month.',
-                ]);
-            }
-        }
+        // foreach ($lockedIds as $officeId) {
+        //     if($officeId != 67){
+        //         Blockage::firstOrCreate([
+        //             'office_id' => $officeId,
+        //         ], [
+        //             'reason' => 'Auto-locked: expired deadline "' . $name . '" - office has not deposited for current month.',
+        //         ]);
+        //     }
+        // }
 
-        self::cleanupExpiredDeadlines();
+        // self::cleanupExpiredDeadlines();
         return [
             'status' => !empty($lockedIds),
             'message' => !empty($lockedIds)
