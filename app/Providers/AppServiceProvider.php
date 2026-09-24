@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\View;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -47,6 +48,12 @@ class AppServiceProvider extends ServiceProvider
             $merged = \App\Helpers\GeneralHelper::mergedRoleIds(...$keys);
             return in_array((string) $user->id, $merged, true);
         });
+
+        // Inject branch vacancy alert data for branch managers — BM dashboard only
+        View::composer('user.bmdashboard', \App\Http\ViewComposers\BranchVacancyComposer::class);
+
+        // Inject expired vehicle insurance alert for branch managers — BM dashboard only
+        View::composer('user.bmdashboard', \App\Http\ViewComposers\BranchInsuranceAlertComposer::class);
     }
 
     /**

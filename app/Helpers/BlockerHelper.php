@@ -2,6 +2,7 @@
 
 namespace App\Helpers;
 
+use App\Models\Blockage;
 use App\Models\Loan;
 use App\Models\DebtBalances;
 use App\Models\Deposit;
@@ -222,22 +223,76 @@ class BlockerHelper
     }
 
 
-    public static function autolock($name){
-        if($name == 'Administration Department fee deposit'){
-            
+    public static function autolock(){
+
+        //Get the latest expired deadline
+        $expired = Deadline::where('countdown_date', '<', Carbon::now())->first();
+
+        if (!$expired) {
+            return [
+                'status' => false,
+                'message' => 'No expired deadlines found',
+                'deposit_type_id' => null,
+                'exempted_offices' => [],
+                'paid_offices' => [],
+                'locked_offices' => [],
+            ];
         }
-        if($name == 'Managers Housing deposit'){
-            
+
+        // Get the deposit name = $name
+        $name = $expired->name;
+
+        // a. Get the deposit type id where name matches $name
+        $depositType = \App\Models\DepositType::where('name', 'like', '%' . $name . '%')
+            ->whereNotIn('id', [4, 6, 2])->first();
+
+        if (!$depositType) {
+            return [
+                'status' => false,
+                'message' => 'No deposit type found matching deadline: ' . $name,
+                'deposit_type_id' => null,
+                'exempted_offices' => [],
+                'paid_offices' => [],
+                'locked_offices' => [],
+            ];
         }
-        if($name == 'Building & Infrastructure fee deposits'){
-            
-        }
-        if($name == 'Statutory payments deposits'){
-            
-        }
-        if($name == 'Debt Setup Cost'){
-            
-        }
+
+        $depositTypeId = $depositType->id;
+
+        // b. Get offices that are exempted in the current month for this deposit type
+        $exemptedOffices = \App\Models\DepositMonthExemption::getExemptedOfficesCurrentMonth($depositTypeId);
+        $exemptedIds = $exemptedOffices->pluck('id')->toArray();
+
+        // c. Get offices that have paid for this deposit type for the current month
+        $paidOffices = \App\Models\Deposit::getOfficesWithDepositCurrentMonth($depositTypeId);
+        $paidIds = $paidOffices->pluck('id')->toArray();
+
+        //d. lock offices that are not paid and not exempted
+        // by creating records for them in the Blockages model
+        $allOfficeIds = \App\Models\Office::pluck('id')->toArray();
+        $lockedIds = array_diff($allOfficeIds, $paidIds, $exemptedIds);
+
+        // foreach ($lockedIds as $officeId) {
+        //     if($officeId != 67){
+        //         Blockage::firstOrCreate([
+        //             'office_id' => $officeId,
+        //         ], [
+        //             'reason' => 'Auto-locked: expired deadline "' . $name . '" - office has not deposited for current month.',
+        //         ]);
+        //     }
+        // }
+
+        // self::cleanupExpiredDeadlines();
+        return [
+            'status' => !empty($lockedIds),
+            'message' => !empty($lockedIds)
+                ? 'Deadline "' . $name . '" expired. ' . count($lockedIds) . ' office(s) locked (not paid, not exempted).'
+                : 'Deadline "' . $name . '" expired. No offices need to be locked.',
+            'deposit_type_id' => $depositTypeId,
+            'exempted_offices' => $exemptedIds,
+            'paid_offices' => $paidIds,
+            'locked_offices' => array_values($lockedIds),
+        ];
     }
 
 }

@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use App\Models\BankDepositLog;
 use App\Models\SetupDebtTransaction;
 use App\Models\Deadline;
 use App\Models\Deposit;
 use App\Models\Expense;
+use App\Models\Office;
 
 class RiskDashboardController extends Controller
 {
@@ -69,5 +71,61 @@ class RiskDashboardController extends Controller
             'statutoryDeadline',
             'debtSetupDeadline'
         ));
+    }
+
+    /**
+     * Return cash balances for every branch that has a withinhere_wallet_id,
+     * fetched live from the WithinHere branch_ledger API.
+     */
+    public function branchCashBalances(Request $request)
+    {
+        $offices = Office::select('id', 'name', 'withinhere_wallet_id')
+            ->whereNotNull('withinhere_wallet_id')
+            ->where('withinhere_wallet_id', '!=', '')
+            ->get();
+
+        $startDate = '2025-01-01';
+        $endDate   = now()->format('Y-m-d');
+
+        $results = [];
+
+        foreach ($offices as $office) {
+            $cashBalance = null;
+            $error       = null;
+
+            try {
+                $response = Http::timeout(60)
+                    ->post(
+                        'https://withinheremobileapi.com/api/v1/lmsuser/branch_ledger',
+                        [
+                            'wallet_id'  => $office->withinhere_wallet_id,
+                            'start_date' => $startDate,
+                            'end_date'   => $endDate,
+                        ]
+                    );
+
+                if ($response->successful()) {
+                    $data        = $response->json();
+                    $cashBalance = $data['user']['cash_balance'] ?? null;
+                } else {
+                    $error = 'API error (' . $response->status() . ')';
+                }
+            } catch (\Throwable $e) {
+                $error = $e->getMessage();
+            }
+
+            $results[] = [
+                'office_id'   => $office->id,
+                'office_name' => $office->name,
+                'wallet_id'   => $office->withinhere_wallet_id,
+                'balance'     => $cashBalance,
+                'error'       => $error,
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'offices' => $results,
+        ]);
     }
 }

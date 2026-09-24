@@ -632,7 +632,7 @@
     <!-- Header Section -->
     <div class="dashboard-header">
         <div class="header-content">
-            <h1 class="dashboard-title">GOA Fleet Management</h1>
+            <h1 class="dashboard-title">Overview</h1>
             <div class="header-stats">
                 <div class="header-stat">
                     <span class="header-stat-value">{{ $totalVehicles }}</span>
@@ -672,16 +672,32 @@
                 <div class="status-content">
                     <div class="metrics-grid">
                         <div class="metric-item">
-                            <span class="metric-value">{{ $filledPositions }}</span>
+                            <span class="metric-value">{{ number_format($personnelTotal) }}</span>
                             <span class="metric-label">Filled</span>
                         </div>
                         <div class="metric-item">
-                            <span class="metric-value">{{ $vacantPositions }}</span>
+                            <span class="metric-value">{{ number_format(max($approvedTotal - $personnelTotal, 0)) }}</span>
                             <span class="metric-label">Vacant</span>
                         </div>
                         <div class="metric-item">
                             <span class="metric-value">{{ $fillRate }}%</span>
                             <span class="metric-label">Fill Rate</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-value">{{ number_format($pipelineTotalVacancies) }}</span>
+                            <span class="metric-label">Open Vacancies</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-value">{{ number_format($pipelineTotalApplicants) }}</span>
+                            <span class="metric-label">Applicants</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-value">{{ number_format($pipelineTotalOffersIssued) }}</span>
+                            <span class="metric-label">Offers Issued</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-value">{{ number_format($pipelineTotalReported) }}</span>
+                            <span class="metric-label">Reported</span>
                         </div>
                     </div>
                 </div>
@@ -1082,7 +1098,7 @@ fleetChart.render();
 
 // Staffing Overview Pie Chart
 var staffingOptions = {
-    series: [{{ $filledPositions }}, {{ $vacantPositions }}],
+    series: [{{ $personnelTotal }}, {{ max($approvedTotal - $personnelTotal, 0) }}],
     chart: {
         type: 'pie',
         height: 300,

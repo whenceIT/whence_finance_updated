@@ -19,6 +19,7 @@ class Position extends Model
         'is_vacant',
         'num_of_vacancies',
         'num_of_active',
+        'approved',
         'department_id',
         'posted_date'
     ];
@@ -27,6 +28,7 @@ class Position extends Model
         'is_vacant' => 'boolean',
         'num_of_vacancies' => 'integer',
         'num_of_active' => 'integer',
+        'approved' => 'integer',
         'department_id' => 'integer',
         'posted_date' => 'date',
         'date_added' => 'date',
@@ -43,5 +45,10 @@ class Position extends Model
         return $this->belongsToMany(GeneralUpload::class, 'general_upload_position')
                     ->withPivot(['created_at', 'updated_at'])
                     ->withTimestamps();
+    }
+
+    public function vacancies()
+    {
+        return $this->hasMany(Vacancy::class, 'position_id');
     }
 }

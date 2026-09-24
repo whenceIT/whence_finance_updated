@@ -13,11 +13,21 @@ class Blockage extends Model
 
     protected $fillable = [
         'office_id',
-        'reason'
+        'reason',
+        'time_to_unlock'
+    ];
+
+    protected $casts = [
+        'time_to_unlock' => 'datetime',
     ];
 
     public function office()
     {
         return $this->belongsTo(Office::class, 'office_id', 'id');
+    }
+
+    public function isUnlocked(): bool
+    {
+        return $this->time_to_unlock && now()->gte($this->time_to_unlock);
     }
 }
