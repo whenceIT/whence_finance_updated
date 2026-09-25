@@ -3171,7 +3171,7 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
             $loan->disbursed_by_id = Sentinel::getUser()->id;
             $loan->disbursed_notes = $request->disbursed_notes;
             $todaysDate = date('Y-m-d');
-            $loan->disbursement_date = $todaysDate;
+            $loan->disbursement_date = now();
             $loan->first_repayment_date = date('Y-m-d', strtotime($todaysDate . '+ 1 month'));
             $loan->expected_maturity_date = date_format(
                 date_add(

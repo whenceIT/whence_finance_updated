@@ -435,6 +435,27 @@ Route::group(['prefix' => 'goa_dashboard'], function () {
     Route::post('vacancy/{id}/fill', 'GOAController@fillPosition')->name('goa.position.fill');
     Route::get('position/{id}', 'GOAController@showPosition')->name('goa.position.show');
     Route::patch('personnel/{user}/assign-position', 'GOAController@assignPosition')->name('goa.personnel.assign-position');
+
+    // ── Asset Manager routes ───────────────────────────────────────────────
+    Route::get('asset-manager',                                    'BranchAssetController@dashboard')->name('goa.asset-manager.dashboard');
+    Route::get('asset-manager/inventory',                          'BranchAssetController@inventory')->name('goa.asset-manager.inventory');
+    Route::post('asset-manager/inventory',                         'BranchAssetController@storeInventory')->name('goa.asset-manager.inventory.store');
+    Route::put('asset-manager/inventory/{id}',                     'BranchAssetController@updateInventory')->name('goa.asset-manager.inventory.update');
+    Route::get('asset-manager/damage-reports',                     'BranchAssetController@damageReports')->name('goa.asset-manager.damage-reports');
+    Route::post('asset-manager/damage-reports',                    'BranchAssetController@storeDamageReport')->name('goa.asset-manager.damage-reports.store');
+    Route::put('asset-manager/damage-reports/{id}',                'BranchAssetController@updateDamageReport')->name('goa.asset-manager.damage-reports.update');
+    Route::get('asset-manager/repairs',                            'BranchAssetController@repairs')->name('goa.asset-manager.repairs');
+    Route::post('asset-manager/repairs',                           'BranchAssetController@storeRepair')->name('goa.asset-manager.repairs.store');
+    Route::put('asset-manager/repairs/{id}',                       'BranchAssetController@updateRepair')->name('goa.asset-manager.repairs.update');
+    Route::get('asset-manager/verification',                       'BranchAssetController@verification')->name('goa.asset-manager.verification');
+    Route::post('asset-manager/verification',                      'BranchAssetController@requestVerification')->name('goa.asset-manager.verification.request');
+    Route::post('asset-manager/verification/{id}/submit',          'BranchAssetController@submitVerification')->name('goa.asset-manager.verification.submit');
+    Route::get('asset-manager/categories',                         'BranchAssetController@categories')->name('goa.asset-manager.categories');
+    Route::post('asset-manager/categories',                        'BranchAssetController@storeCategory')->name('goa.asset-manager.categories.store');
+    Route::put('asset-manager/categories/{id}',                    'BranchAssetController@updateCategory')->name('goa.asset-manager.categories.update');
+    Route::patch('asset-manager/categories/{id}/toggle',           'BranchAssetController@toggleCategory')->name('goa.asset-manager.categories.toggle');
+    Route::post('asset-manager/inventory/{inventoryId}/items',     'BranchAssetController@storeIndividualItem')->name('goa.asset-manager.items.store');
+    Route::delete('asset-manager/items/{id}',                      'BranchAssetController@destroyIndividualItem')->name('goa.asset-manager.items.destroy');
 });
 
 Route::group(['prefix' => 'vehicles'], function () {
@@ -645,6 +666,7 @@ Route::group(['prefix' => 'audits'], function () {
 Route::group(['prefix' => 'risk'], function () {
     Route::get('dashboard', [RiskDashboardController::class, 'index'])->name('risk.dashboard');
     Route::get('dashboard/branch-cash-balances', [RiskDashboardController::class, 'branchCashBalances'])->name('risk.dashboard.branch-cash-balances');
+    Route::get('dashboard/late-disbursements', [RiskDashboardController::class, 'lateDisbursementsDetail'])->name('risk.dashboard.late-disbursements');
     Route::get('overview', [RiskController::class, 'overview'])->name('risk.overview');
     Route::get('audit-trail', [RiskController::class, 'auditTrail']);
     Route::get('heat-map', [RiskController::class, 'heatMap'])->name('risk.heat-map');

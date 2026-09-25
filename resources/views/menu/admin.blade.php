@@ -186,6 +186,21 @@ if (!Sentinel::check()) {
                 <ul class="treeview-menu">
                     <li><a href="{{ route('goa.index') }}"><i class="fa fa-circle-o"></i> Dashboard</a></li>
                     <li><a href="{{ route('goa.fleet-management') }}"><i class="fa fa-circle-o"></i> Fleet Management</a></li>
+                    <li class="treeview @if(Request::is('goa_dashboard/asset-manager*')) active menu-open @endif">
+                        <a href="#">
+                            <i class="fa fa-circle-o"></i> Asset Manager
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="{{ route('goa.asset-manager.dashboard') }}"><i class="fa fa-circle-o"></i> Dashboard</a></li>
+                            <li><a href="{{ route('goa.asset-manager.inventory') }}"><i class="fa fa-circle-o"></i> Branch Inventory</a></li>
+                            <li><a href="{{ route('goa.asset-manager.damage-reports') }}"><i class="fa fa-circle-o"></i> Damage Reports</a></li>
+                            <li><a href="{{ route('goa.asset-manager.repairs') }}"><i class="fa fa-circle-o"></i> Repair Tracking</a></li>
+                            <li><a href="{{ route('goa.asset-manager.verification') }}"><i class="fa fa-circle-o"></i> Periodic Verification</a></li>
+                        </ul>
+                    </li>
                     <li class="treeview">
                         <a href="#">
                             <i class="fa fa-circle-o"></i> Vacancies & Staffing
@@ -194,7 +209,7 @@ if (!Sentinel::check()) {
                             </span>
                         </a>
                         <ul class="treeview-menu">
-                            <li><a href="{{ route('goa.vacancies-and-staffing') }}"><i class="fa fa-circle-o"></i> Manage Vacancy</a></li>
+                            <li><a href="{{ route('goa.vacancies-and-staffing') }}"><i class="fa fa-circle-o"></i> Positions & Departments</a></li>
                             <li><a href="{{ route('goa.branch-staffing-capacity') }}"><i class="fa fa-circle-o"></i> Branch Staffing Capacity</a></li>
                             <li><a href="{{ route('goa.recruitment-pipeline') }}"><i class="fa fa-circle-o"></i> Recruitment Pipeline</a></li>
                         </ul>

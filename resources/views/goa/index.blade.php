@@ -806,6 +806,67 @@
                     <div id="staffing-chart" class="chart-container"></div>
                 </div>
             </div>
+
+            <!-- Asset Manager Summary Card -->
+            <a href="{{ route('goa.asset-manager.dashboard') }}" style="display:block;text-decoration:none;color:inherit;">
+            <div class="chart-card" style="background:linear-gradient(135deg,#fff 0%,#f0fdf4 100%);border-left:4px solid #16a34a;">
+                <div class="chart-header">
+                    <h3 class="chart-title"><i class="fa fa-cubes" style="color:#16a34a;margin-right:6px;"></i> Asset Manager</h3>
+                    <span style="font-size:.8rem;color:#64748b;">Branch Equipment Inventory</span>
+                </div>
+                <div class="chart-content" style="padding:10px 0 0;">
+                    @php
+                        $assetTotals = \App\Models\BranchAssetInventory::selectRaw('
+                            SUM(total)        as t,
+                            SUM(working)      as w,
+                            SUM(damaged)      as d,
+                            SUM(under_repair) as ur,
+                            SUM(missing)      as m
+                        ')->first();
+                        $aTotal   = (int)($assetTotals->t ?? 0);
+                        $aWorking = (int)($assetTotals->w ?? 0);
+                        $aDamaged = (int)($assetTotals->d ?? 0);
+                        $aRepair  = (int)($assetTotals->ur ?? 0);
+                        $aMissing = (int)($assetTotals->m ?? 0);
+                        $aCond    = $aTotal > 0 ? round(($aWorking/$aTotal)*100,1) : 0;
+                        $aAttention = \App\Models\BranchAssetDamageReport::whereNotIn('status',['Repaired','Closed'])->count();
+                        $aPending   = \App\Models\BranchAssetVerification::where('status','Pending')->count();
+                    @endphp
+                    <div style="display:flex;gap:12px;flex-wrap:wrap;padding:0 10px 10px;">
+                        <div style="text-align:center;flex:1;">
+                            <div style="font-size:1.5rem;font-weight:800;color:#16a34a;">{{ number_format($aTotal) }}</div>
+                            <div style="font-size:.75rem;color:#64748b;">Total Items</div>
+                        </div>
+                        <div style="text-align:center;flex:1;">
+                            <div style="font-size:1.5rem;font-weight:800;color:{{ $aCond >= 90 ? '#16a34a' : ($aCond >= 70 ? '#d97706' : '#dc2626') }};">{{ $aCond }}%</div>
+                            <div style="font-size:.75rem;color:#64748b;">Condition</div>
+                        </div>
+                        <div style="text-align:center;flex:1;">
+                            <div style="font-size:1.5rem;font-weight:800;color:#dc2626;">{{ $aDamaged }}</div>
+                            <div style="font-size:.75rem;color:#64748b;">Damaged</div>
+                        </div>
+                        <div style="text-align:center;flex:1;">
+                            <div style="font-size:1.5rem;font-weight:800;color:#d97706;">{{ $aRepair }}</div>
+                            <div style="font-size:.75rem;color:#64748b;">In Repair</div>
+                        </div>
+                        <div style="text-align:center;flex:1;">
+                            <div style="font-size:1.5rem;font-weight:800;color:#7c3aed;">{{ $aMissing }}</div>
+                            <div style="font-size:.75rem;color:#64748b;">Missing</div>
+                        </div>
+                    </div>
+                    @if($aAttention > 0 || $aPending > 0)
+                    <div style="background:#fef2f2;border-top:1px solid #fee2e2;padding:6px 12px;font-size:.82rem;">
+                        @if($aAttention > 0)
+                            <span style="color:#dc2626;"><i class="fa fa-exclamation-circle"></i> {{ $aAttention }} open damage report(s)</span>
+                        @endif
+                        @if($aPending > 0)
+                            <span style="color:#d97706;margin-left:10px;"><i class="fa fa-clock-o"></i> {{ $aPending }} pending verification(s)</span>
+                        @endif
+                    </div>
+                    @endif
+                </div>
+            </div>
+            </a>
         </div>
         </div>    
 

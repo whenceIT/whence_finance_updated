@@ -35,6 +35,7 @@ class Loan extends Model
     protected $casts = [
         'dormant_recovery' => 'integer',
         'shared'           => 'integer',
+        'disbursement_date' => 'datetime',
         'final_due_date'   => 'date',
     ];
 

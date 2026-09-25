@@ -30,5 +30,8 @@ class DatabaseSeeder extends Seeder
         $this->call(ExpenseCategorySeeder::class);
         $this->call(DepositAndBankDepositLogSeeder::class);
         $this->call(PayrollLoanOldScheduleSeeder::class);
+        $this->call(AssetLocationSeeder::class);
+        $this->call(BranchAssetCategorySeeder::class);
+        $this->call(BranchAssetInventorySeeder::class);
     }
 }

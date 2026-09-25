@@ -95,19 +95,17 @@
                     </div>
                 </a>
 
-                <!-- <div class="bento-card small outline-card"
-                     style="{{ ($pendingExpenseApprovals ?? 0) > 0 ? 'border-color:#f5a623;background:linear-gradient(135deg,#fff8ec 0%,#fffdf9 100%);' : '' }}">
+                <div class="bento-card small outline-card late-disbursements-card"
+                     style="border-color:#f5a623;background:linear-gradient(135deg,#fff8ec 0%,#fffdf9 100%);cursor:pointer;"
+                     data-bs-toggle="modal" data-bs-target="#lateDisbursementsModal">
                     <div class="card-top">
                         <div class="icon-wrap icon-wrap-light"><i class="fa fa-file-text-o" style="color:#f5a623;"></i></div>
-                        @if(($pendingExpenseApprovals ?? 0) > 0)
-                            <span class="badge-pill">Needs review</span>
-                        @endif
                     </div>
                     <div class="card-bottom">
-                        <div class="title" style="color:#555;">Pending Expenses Approvals</div>
-                        <div class="value" style="color:#222;">{{ $pendingExpenseApprovals ?? 0 }}</div>
+                        <div class="title" style="color:#555;">Late Disbursements This Week</div>
+                        <div class="value" style="color:#222;">{{ $lateDisbursementsThisWeek ?? 0 }}</div>
                     </div>
-                </div> -->
+                </div>
 
             </div>
 
@@ -184,6 +182,7 @@
 
             <div class="section-divider">
                 <span>Branch Cash Balances</span>
+                <small style="font-size:11px;color:#8a8fa3;margin-left:10px;">Province ▸ District ▸ Office — click to drill down</small>
             </div>
 
             {{-- Shimmer skeleton while offices load --}}
@@ -281,6 +280,127 @@
                    '</div>';
         }
 
+        function groupOffices(offices) {
+            var tree = {};
+            offices.forEach(function(o) {
+                var pid = o.province_id || 0;
+                var did = o.district_id || 0;
+                if (!tree[pid]) {
+                    tree[pid] = {
+                        id: pid,
+                        name: o.province_name || ('Province ' + pid),
+                        districts: {},
+                        total: 0,
+                        valid: 0
+                    };
+                }
+                if (!tree[pid].districts[did]) {
+                    tree[pid].districts[did] = {
+                        id: did,
+                        name: o.district_name || ('District ' + did),
+                        offices: [],
+                        total: 0,
+                        valid: 0
+                    };
+                }
+                tree[pid].districts[did].offices.push(o);
+            });
+            return tree;
+        }
+
+        function districtTotals(district) {
+            var total = 0, valid = 0;
+            district.offices.forEach(function(o) {
+                if (typeof o.balance === 'number' && !isNaN(o.balance)) {
+                    total += o.balance;
+                    valid++;
+                }
+            });
+            district.total = total;
+            district.valid = valid;
+        }
+
+        function provinceTotals(province) {
+            var total = 0, valid = 0;
+            Object.keys(province.districts).forEach(function(did) {
+                districtTotals(province.districts[did]);
+                total += province.districts[did].total;
+                valid += province.districts[did].valid;
+            });
+            province.total = total;
+            province.valid = valid;
+        }
+
+        function bbToggleProvince(pid) {
+            var $container = $('#bb_province_' + pid);
+            var $arrow = $('#bb_arrow_province_' + pid);
+            $container.toggle();
+            $arrow.toggleClass('open').text($arrow.hasClass('open') ? '▼' : '▶');
+        }
+
+        function bbToggleDistrict(pid, did) {
+            var $container = $('#bb_district_' + pid + '_' + did);
+            var $arrow = $('#bb_arrow_district_' + pid + '_' + did);
+            $container.toggle();
+            $arrow.toggleClass('open').text($arrow.hasClass('open') ? '▼' : '▶');
+        }
+
+        function renderBalancesTree(offices) {
+            var tree = groupOffices(offices);
+
+            Object.keys(tree).forEach(function(pid) {
+                provinceTotals(tree[pid]);
+            });
+
+            var html = '';            Object.keys(tree).sort(function(a, b) {
+                var na = tree[a].name.toLowerCase(), nb = tree[b].name.toLowerCase();
+                return na < nb ? -1 : na > nb ? 1 : 0;
+            }).forEach(function(pid) {
+                var p = tree[pid];
+                html += '<div class="bento-card branch-balance-card province-card">';
+                html += '  <div class="bb-group-header bb-province-header" data-province="' + pid + '">';
+                html += '    <div class="bb-group-name">' + p.name + '</div>';
+                html += '    <span class="bb-badge">' + p.valid + ' offices</span>';
+                html += '    <div class="bb-group-total">' + formatBalance(p.total) + '</div>';
+                html += '    <span class="bb-arrow" id="bb_arrow_province_' + pid + '">' + (p.valid ? '▼' : '▶') + '</span>';
+                html += '  </div>';
+                html += '  <div class="bb-districts" id="bb_province_' + pid + '" style="display:none;">';
+                Object.keys(p.districts).sort(function(a, b) {
+                    var na = p.districts[a].name.toLowerCase(), nb = p.districts[b].name.toLowerCase();
+                    return na < nb ? -1 : na > nb ? 1 : 0;
+                }).forEach(function(did) {
+                    var d = p.districts[did];
+                    html += '<div class="bento-card branch-balance-card district-card">';
+                    html += '  <div class="bb-group-header bb-district-header" data-province="' + pid + '" data-district="' + did + '">';
+                    html += '    <div class="bb-group-name">' + d.name + '</div>';
+                    html += '    <span class="bb-badge">' + d.valid + ' offices</span>';
+                    html += '    <div class="bb-group-total">' + formatBalance(d.total) + '</div>';
+                    html += '    <span class="bb-arrow" id="bb_arrow_district_' + pid + '_' + did + '">' + (d.valid ? '▼' : '▶') + '</span>';
+                    html += '  </div>';
+                    html += '  <div class="bb-offices" id="bb_district_' + pid + '_' + did + '" style="display:none;">';
+                    d.offices.forEach(function(o) {
+                        html += buildCard(o, o.balance, o.error);
+                    });
+                    html += '  </div>';
+                    html += '</div>';
+                });
+                html += '  </div>';
+                html += '</div>';
+            });
+
+            $('#branchBalancesShimmer').hide();
+            $('#branchBalancesGrid').html(html).show();
+        }
+
+        $('#branchBalancesGrid').on('click', '.bb-province-header', function(e) {
+            e.preventDefault();
+            bbToggleProvince($(this).data('province'));
+        });
+        $('#branchBalancesGrid').on('click', '.bb-district-header', function(e) {
+            e.preventDefault();
+            bbToggleDistrict($(this).data('province'), $(this).data('district'));
+        });
+
         $.ajax({
             url: '/cash_health/national/balances',
             type: 'GET',
@@ -293,30 +413,16 @@
                     return;
                 }
 
-                var offices   = res.offices;
-                var total     = offices.length;
+                var offices  = res.offices;
+                var total    = offices.length;
                 var completed = 0;
-                var cards     = new Array(total);
-
-                // Placeholder cards in DOM order so they fill in as each resolves
-                offices.forEach(function(office, idx) {
-                    cards[idx] = null; // will be set when response arrives
-                });
-
-                function tryRender() {
-                    // Only reveal the grid once all requests are done
-                    if (completed < total) return;
-                    var html = '';
-                    cards.forEach(function(c) { html += c; });
-                    $('#branchBalancesShimmer').hide();
-                    $('#branchBalancesGrid').html(html).show();
-                }
 
                 offices.forEach(function(office, idx) {
                     if (!office.wallet_id) {
-                        cards[idx] = buildCard(office, null, 'No wallet linked');
+                        office.balance = null;
+                        office.error = 'No wallet linked';
                         completed++;
-                        tryRender();
+                        maybeRender();
                         return;
                     }
 
@@ -324,19 +430,26 @@
                         url: '/cash_health/national/balance/' + office.office_id,
                         type: 'GET',
                         success: function(data) {
-                            var balance = (data.success && data.balance !== undefined) ? data.balance : null;
-                            var errMsg  = (!data.success && data.message) ? data.message : null;
-                            cards[idx]  = buildCard(office, balance, errMsg);
+                            office.balance = (data.success && data.balance !== undefined && data.balance !== null)
+                                ? Number(data.balance)
+                                : null;
+                            office.error = (!data.success && data.message) ? data.message : null;
                         },
                         error: function() {
-                            cards[idx] = buildCard(office, null, 'Failed to load');
+                            office.balance = null;
+                            office.error = 'Failed to load';
                         },
                         complete: function() {
                             completed++;
-                            tryRender();
+                            maybeRender();
                         }
                     });
                 });
+
+                function maybeRender() {
+                    if (completed < total) return;
+                    renderBalancesTree(offices);
+                }
             },
             error: function() {
                 $('#branchBalancesShimmer').hide();
@@ -345,6 +458,121 @@
                     .show();
             }
         });
+
+        // ── Late Disbursements Modal ───────────────────────────────────────
+        let lateDisbursementsLoaded = false;
+        $('#lateDisbursementsModal').on('show.bs.modal', function () {
+            if (lateDisbursementsLoaded) return;
+            lateDisbursementsLoaded = true;
+
+            $.ajax({
+                url: '{{ route("risk.dashboard.late-disbursements") }}',
+                type: 'GET',
+                success: function(res) {
+                    if (!res.success || !res.data) {
+                        $('#lateDisbursementsContent').html('<div class="ld-empty">No late disbursements found.</div>');
+                        $('#lateDisbursementsSummary').text('');
+                        return;
+                    }
+                    renderLateDisbursements(res.data);
+                },
+                error: function() {
+                    $('#lateDisbursementsContent').html('<div class="ld-empty text-danger">Failed to load late disbursements.</div>');
+                }
+            });
+        });
+
+        function renderLateDisbursements(data) {
+            let totalLoans = 0;
+            let totalAmount = 0;
+            let html = '';
+
+            Object.keys(data).sort().forEach(function(provinceName) {
+                const provinceData = data[provinceName];
+                let provinceCount = 0;
+                let provinceAmount = 0;
+
+                html += '<div class="ld-province">';
+                html += '  <div class="ld-province-header">';
+                html += '    <span>' + provinceName + '</span>';
+
+                Object.keys(provinceData).forEach(function(officeName) {
+                    const loans = provinceData[officeName];
+                    provinceCount += loans.length;
+                    loans.forEach(function(l) {
+                        provinceAmount += parseFloat(l.principal || 0);
+                    });
+                });
+
+                html += '    <span class="badge bg-secondary ms-2">' + provinceCount + ' loans</span>';
+                html += '    <span class="badge bg-info ms-1">K ' + Number(provinceAmount).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</span>';
+                html += '  </div>';
+
+                Object.keys(provinceData).sort().forEach(function(officeName) {
+                    const loans = provinceData[officeName];
+                    let officeCount = loans.length;
+                    let officeAmount = loans.reduce((sum, l) => sum + parseFloat(l.principal || 0), 0);
+
+                    html += '  <div class="ld-office">';
+                    html += '    <div class="ld-office-header">';
+                    html += '      <span>' + officeName + '</span>';
+                    html += '      <span class="badge bg-light text-dark ms-2">' + officeCount + ' loans</span>';
+                    html += '      <span class="badge bg-light text-info ms-1">K ' + Number(officeAmount).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</span>';
+                    html += '    </div>';
+                    html += '    <table class="ld-table">';
+                    html += '      <thead>';
+                    html += '        <tr>';
+                    html += '          <th style="width:10%">Loan ID</th>';
+                    html += '          <th style="width:10%">Ext. ID</th>';
+                    html += '          <th style="width:12%">Amount</th>';
+                    html += '          <th style="width:10%">Status</th>';
+                    html += '          <th style="width:15%">Created</th>';
+                    html += '          <th style="width:18%">Client</th>';
+                    html += '          <th style="width:18%">Loan Officer</th>';
+                    html += '        </tr>';
+                    html += '      </thead>';
+                    html += '      <tbody>';
+
+                    loans.forEach(function(loan) {
+                        totalLoans++;
+                        totalAmount += parseFloat(loan.principal || 0);
+
+                        const statusClass = 'ld-badge-' + (loan.status || 'new').toLowerCase();
+                        const client = loan.client || {};
+                        const officer = loan.loan_officer || {};
+
+                        html += '        <tr>';
+                        html += '          <td class="ld-loan-id">' + (loan.account_number || loan.external_id || loan.id) + '</td>';
+                        html += '          <td>' + (loan.external_id || '—') + '</td>';
+                        html += '          <td class="ld-amount">K ' + Number(loan.principal || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</td>';
+                        html += '          <td><span class="ld-badge ' + statusClass + '">' + (loan.status || 'new') + '</span></td>';
+                        html += '          <td class="ld-date">' + (loan.created_at || '—') + '</td>';
+                        html += '          <td>';
+                        html += '            <div class="ld-client-name">' + (client.name || '—') + '</div>';
+                        html += '            <div class="ld-client-phone"><i class="fa fa-phone me-1"></i>' + (client.phone || '—') + '</div>';
+                        html += '          </td>';
+                        html += '          <td>';
+                        html += '            <div class="ld-officer-name">' + (officer.name || '—') + '</div>';
+                        html += '            <div class="ld-officer-phone"><i class="fa fa-phone me-1"></i>' + (officer.phone || '—') + ' <small>(' + (officer.email || '') + ')</small></div>';
+                        html += '          </td>';
+                        html += '        </tr>';
+                    });
+
+                    html += '      </tbody>';
+                    html += '    </table>';
+                    html += '  </div>';
+                });
+
+                html += '</div>';
+            });
+
+            if (totalLoans === 0) {
+                html = '<div class="ld-empty">No late disbursements found.</div>';
+            }
+
+            $('#lateDisbursementsContent').html(html);
+            $('#lateDisbursementsSummary').text(totalLoans + ' loans • K ' + Number(totalAmount).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+        }
 
     });
     </script>
@@ -604,7 +832,128 @@
         0%   { background-position: 200% 0; }
         100% { background-position: -200% 0; }
     }
+
+    /* ── Branch cash balances drill-down (province > district > offices) ── */
+    .province-card { grid-column: 1 / -1; }
+    .district-card {
+        grid-column: 1 / -1;
+        background: linear-gradient(135deg, #3b4a6b 0%, #5a7fa1 100%);
+    }
+    .bb-group-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px;
+        cursor: pointer;
+        min-height: 50px;
+    }
+    .bb-group-header:active { opacity: 0.9; }
+    .bb-group-name {
+        flex: 1;
+        font-weight: 600;
+        color: #c7d2ff;
+        font-size: 14px;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .bb-badge {
+        font-size: 10px;
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+        border-radius: 999px;
+        padding: 3px 8px;
+    }
+    .bb-group-total {
+        font-weight: 700;
+        color: #fff;
+        min-width: 110px;
+        text-align: right;
+        font-size: 15px;
+    }
+    .bb-arrow {
+        display: inline-block;
+        transition: transform .2s ease, color .2s;
+        color: #c7d2ff;
+    }
+    .bb-arrow.open { transform: rotate(90deg); color: #fff; }
+    .bb-districts { padding: 0 0 0 18px; }
+    .bb-offices {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+        padding: 14px 0 14px 30px;
+    }
+    @media (max-width: 992px) {
+        .bb-offices { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 576px) {
+        .bb-offices { grid-template-columns: 1fr; }
+    }
+
+    /* ── Late Disbursements Modal ─────────────────────────────────────── */
+    .ld-modal-body { max-height: 65vh; overflow-y: auto; padding-right: 8px; }
+    .ld-province { margin-bottom: 18px; }
+    .ld-province-header {
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 12px; background: #f5f7fa; border-radius: 8px;
+        font-weight: 700; color: #1f2430; font-size: 14px;
+    }
+    .ld-province-header .badge { font-size: 11px; }
+    .ld-office { margin: 10px 0 10px 18px; padding-left: 12px; border-left: 3px solid #e8ecf1; }
+    .ld-office-header {
+        display: flex; align-items: center; gap: 10px;
+        font-weight: 600; color: #343b48; font-size: 13px;
+    }
+    .ld-office-header .badge { font-size: 10px; }
+    .ld-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 6px; }
+    .ld-table th, .ld-table td { padding: 6px 8px; text-align: left; border-bottom: 1px solid #eef0f3; }
+    .ld-table th { color: #697386; font-weight: 600; font-size: 11px; text-transform: uppercase; background: #fafbfc; }
+    .ld-table tr:hover td { background: #f9fbfe; }
+    .ld-loan-id { font-family: monospace; color: #3a78eb; }
+    .ld-amount { font-weight: 600; color: #1f2430; text-align: right; }
+    .ld-status { text-transform: capitalize; }
+    .ld-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+    .ld-badge-pending { background: #fff3cd; color: #856404; }
+    .ld-badge-approved { background: #d1ecf1; color: #0c5460; }
+    .ld-badge-new { background: #e2e3e5; color: #383d41; }
+    .ld-badge-declined { background: #f8d7da; color: #721c24; }
+    .ld-badge-rejected { background: #f8d7da; color: #721c24; }
+    .ld-badge-withdrawn { background: #e2e3e5; color: #383d41; }
+    .ld-client-name { font-weight: 500; }
+    .ld-client-phone { color: #697386; font-size: 11px; }
+    .ld-officer-name { font-weight: 500; }
+    .ld-officer-phone { color: #697386; font-size: 11px; }
+    .ld-date { color: #697386; white-space: nowrap; }
+    .ld-empty { text-align: center; color: #8a8fa3; padding: 30px; font-size: 13px; }
     </style>
+
+<!-- Late Disbursements Modal -->
+<div class="modal fade" id="lateDisbursementsModal" tabindex="-1" aria-labelledby="lateDisbursementsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="lateDisbursementsModalLabel">
+                    <i class="fa fa-file-text-o me-2"></i>Late Disbursements This Week
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body ld-modal-body">
+                <div id="lateDisbursementsContent">
+                    <div class="text-center text-muted py-5">
+                        <i class="fa fa-spinner fa-spin fa-2x mb-3"></i>
+                        <p>Loading late disbursements...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span class="text-muted small" id="lateDisbursementsSummary"></span>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 </div>
 
