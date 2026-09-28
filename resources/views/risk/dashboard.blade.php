@@ -562,11 +562,10 @@
                     html += '    <table class="ld-table">';
                     html += '      <thead>';
                     html += '        <tr>';
-                    html += '          <th style="width:10%">Loan ID</th>';
-                    html += '          <th style="width:10%">Ext. ID</th>';
                     html += '          <th style="width:12%">Amount</th>';
                     html += '          <th style="width:10%">Status</th>';
                     html += '          <th style="width:15%">Created</th>';
+                    html += '          <th style="width:15%">Time Elapsed</th>';
                     html += '          <th style="width:18%">Client</th>';
                     html += '          <th style="width:18%">Loan Officer</th>';
                     html += '        </tr>';
@@ -581,12 +580,27 @@
                         const client = loan.client || {};
                         const officer = loan.loan_officer || {};
 
+                        // Calculate time elapsed from created_at to now
+                        let timeElapsed = '—';
+                        if (loan.created_at) {
+                            const created = new Date(loan.created_at.replace(' ', 'T'));
+                            const now = new Date();
+                            const diffMs = now - created;
+                            const diffMins = Math.floor(diffMs / 60000);
+                            const diffHours = Math.floor(diffMins / 60);
+                            const remainingMins = diffMins % 60;
+                            if (diffHours > 0) {
+                                timeElapsed = diffHours + 'h ' + remainingMins + 'm';
+                            } else {
+                                timeElapsed = diffMins + 'm';
+                            }
+                        }
+
                         html += '        <tr>';
-                        html += '          <td class="ld-loan-id">' + (loan.account_number || loan.external_id || loan.id) + '</td>';
-                        html += '          <td>' + (loan.external_id || '—') + '</td>';
                         html += '          <td class="ld-amount">K ' + Number(loan.principal || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</td>';
                         html += '          <td><span class="ld-badge ' + statusClass + '">' + (loan.status || 'new') + '</span></td>';
                         html += '          <td class="ld-date">' + (loan.created_at || '—') + '</td>';
+                        html += '          <td class="ld-elapsed">' + timeElapsed + '</td>';
                         html += '          <td>';
                         html += '            <div class="ld-client-name">' + (client.name || '—') + '</div>';
                         html += '            <div class="ld-client-phone"><i class="fa fa-phone me-1"></i>' + (client.phone || '—') + '</div>';
