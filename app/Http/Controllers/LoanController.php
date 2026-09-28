@@ -66,6 +66,7 @@ use App\Models\ClientAppLoanApplications;
 use App\Models\ClientAppUsers;
 use App\Models\Vehicle;
 use App\Models\ComplianceScreening;
+use App\Models\LoanTransferRequest;
 use App\Models\VehicleOwnershipRecord;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
@@ -1008,6 +1009,40 @@ if (!empty($loan['office_name'])) {
         $this->auditorService->logTransactionApprovalsPage(Sentinel::getUser(), request());
         return view('loan.transactions', compact('data'));
     }
+
+
+  public function approve_loan_transfer($id)
+    {
+        $loan_transfer_request = LoanTransferRequest::where('id', $id)->first();
+        $loan = Loan::find($loan_transfer_request->loan_id);
+        $loan->loan_officer_id = $loan_transfer_request->new_consultant_id;
+        $loan->save();
+        $loan_transfer_request->delete();
+        Flash::success(trans('general.successfully_saved'));
+        return redirect()->back();
+    }
+
+
+
+public function delete_loan_transfer($id)
+{
+    $loan_transfer_request = LoanTransferRequest::findOrFail($id);
+    $loan_transfer_request->delete();
+    Flash::success(trans('general.successfully_saved'));
+    return redirect()->back();
+}
+
+
+
+
+
+
+public function loan_transfer_approvals()
+{
+    $data = LoanTransferRequest::get();
+
+    return view('loan.transfer_approvals',compact('data'));
+}
 
 
     public function pending_client_app_applications()
@@ -2995,32 +3030,35 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
         }
     }
 
+
+    
+
+
+
+
+
+
     public function change_loan_officer(Request $request, $id)
     {
         if (!Sentinel::hasAccess('loans.update')) {
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
-        $rules = array(
-            'loan_officer_id' => 'required',
-        );
-        $validator = Validator::make($request->all(), $rules);
-        if ($validator->fails()) {
-            return redirect()->back()->withInput()->withErrors($validator);
-        } else {
-            $loan = Loan::find($id);
-            $loan->loan_officer_id = $request->loan_officer_id;
-            $loan->save();
-            GeneralHelper::audit_trail("Update", "Loans", $id);
-            
-            // Log audit for changing the client's loan officer
-            $user = Sentinel::getUser();
-        
-            $this->auditorService->logChangedLoanOfficer($user, request(), $loan);
-            Flash::success(trans('general.successfully_saved'));
-            return redirect()->back();
-        }
 
+        $done_by = Sentinel::getUser();
+        $loan = Loan::find($id);
+        
+        $loan_transfer_request = new LoanTransferRequest();
+        $loan_transfer_request->new_consultant_id = $request->loan_officer_id;
+        $loan_transfer_request->done_by = $done_by->id;
+        $loan_transfer_request->loan_id = $loan->id;
+        $loan_transfer_request->old_consultant_id = $loan->loan_officer_id;
+        $loan_transfer_request->reason = $request->transfer_reason;
+        $loan_transfer_request->office_id = $done_by->office_id;
+        $loan_transfer_request->save();
+        Flash::success(trans('general.successfully_saved'));
+        return redirect()->back();
+        
     }
 
     public function change_branch(Request $request, $id)

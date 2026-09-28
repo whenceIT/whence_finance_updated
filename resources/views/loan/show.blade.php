@@ -3984,48 +3984,96 @@ CURRENT BALANCE DASHBOARD
         </div>
     </div>
 
-    <div class="modal fade" id="change_loan_officer_modal">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title">{{trans_choice('general.change',1)}} {{trans_choice('general.loan',1)}} {{trans_choice('general.officer',1)}}</h4>
-                </div>
-                <form method="post" action="{{url('loan/'.$loan->id.'/change_loan_officer')}}"
-                      class="form-horizontal "
-                      enctype="multipart/form-data" id="change_loan_officer_form">
-                    {{csrf_field()}}
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label for="loan_officer_id"
-                                   class="control-label col-md-3">
-                                {{trans_choice('general.loan',1)}} {{trans_choice('general.officer',1)}}
-                            </label>
-                            <div class="col-md-9">
-                                <select name="loan_officer_id" class="form-control select2"
-                                        id="loan_officer_id" required>
-                                    <option></option>
-                                    @foreach(\App\Models\User::all() as $key)
-                                        @if(!Sentinel::findUserById($key->id)->inRole('client'))
-                                            <option value="{{$key->id}}"
-                                                    @if($loan->loan_officer_id==$key->id) selected @endif>{{$key->first_name}} {{$key->last_name}}</option>
-                                        @endif
-                                    @endforeach
-                                </select>
-                            </div>
+   <div class="modal fade" id="change_loan_officer_modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+
+                <h4 class="modal-title">
+                    {{trans_choice('general.change',1)}}
+                    {{trans_choice('general.loan',1)}}
+                    {{trans_choice('general.officer',1)}}
+                </h4>
+            </div>
+
+            <form method="post"
+                  action="{{url('loan/'.$loan->id.'/change_loan_officer')}}"
+                  class="form-horizontal"
+                  enctype="multipart/form-data"
+                  id="change_loan_officer_form">
+
+                {{csrf_field()}}
+
+                <div class="modal-body">
+
+                    <div class="form-group">
+                        <label for="loan_officer_id"
+                               class="control-label col-md-3">
+                            {{trans_choice('general.loan',1)}}
+                            {{trans_choice('general.officer',1)}}
+                        </label>
+
+                        <div class="col-md-9">
+                            <select name="loan_officer_id"
+                                    class="form-control select2"
+                                    id="loan_officer_id"
+                                    required>
+                                <option></option>
+
+                                @foreach(\App\Models\User::all() as $key)
+                                    @if(!Sentinel::findUserById($key->id)->inRole('client'))
+                                        <option value="{{$key->id}}"
+                                                @if($loan->loan_officer_id==$key->id) selected @endif>
+                                            {{$key->first_name}} {{$key->last_name}}
+                                        </option>
+                                    @endif
+                                @endforeach
+                            </select>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default pull-left"
-                                data-dismiss="modal">{{trans_choice('general.close',1)}}</button>
-                        <button type="submit"
-                                class="btn btn-primary">{{trans_choice('general.save',1)}}</button>
+
+                    <!-- Reason for Transfer -->
+                    <div class="form-group">
+                        <label for="transfer_reason"
+                               class="control-label col-md-3">
+                            Reason for Transfer
+                        </label>
+
+                        <div class="col-md-9">
+                            <textarea name="transfer_reason"
+                                      id="transfer_reason"
+                                      class="form-control"
+                                      rows="4"
+                                      placeholder="Enter reason for transferring this loan..."
+                                      required></textarea>
+                        </div>
                     </div>
-                </form>
-            </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button"
+                            class="btn btn-default pull-left"
+                            data-dismiss="modal">
+                        {{trans_choice('general.close',1)}}
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-primary">
+                        {{trans_choice('general.save',1)}}
+                    </button>
+                </div>
+
+            </form>
         </div>
     </div>
+</div>
+
+
     <div class="modal fade" id="add_document_modal">
         <div class="modal-dialog">
             <div class="modal-content">
