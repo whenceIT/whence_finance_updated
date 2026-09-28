@@ -47,6 +47,9 @@ class RedirectHelper
         if (in_array($user, (array) config('role.risk', [])) || $user->email == 'brightenockphiri@gmail.com' ) {
             return redirect()->route('risk.dashboard')->send();
         }
+        if ($user->role->role_id == 13 ) {
+            return redirect()->route('collateral.index', ['key' => 'admin'])->send();
+        }
 
         return null;
     }

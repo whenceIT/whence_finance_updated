@@ -27,7 +27,7 @@ $userPosition = Sentinel::getUser()->position_name;
             @endif
             @if(request('key') === 'admin')
                 <div style="margin-top: 10px;">
-                    <h4 style="margin: 0; font-weight: 600; color: #fff;">Manage Institution Disposal Assets</h4>
+                    <h4 style="margin: 0; font-weight: 600; color: #fff;">Manage Institution Disposal Collateral</h4>
                     <p style="margin: 0; font-size: 12px; color: #e0e0e0;">collateral loans that are currently seized by the institution from defaulted loans and ran away clients</p>
                 </div>
             @elseif(request('key') === 'sales')

@@ -11,6 +11,7 @@ use App\Models\Deposit;
 use App\Models\Expense;
 use App\Models\Office;
 use App\Models\Loan;
+use App\Models\Blockage;
 
 class RiskDashboardController extends Controller
 {
@@ -49,6 +50,8 @@ class RiskDashboardController extends Controller
             ->where('created_at', '<=', now()->subHour())
             ->whereNotIn('status', ['disbursed', 'closed'])
             ->count();
+
+        $totalBlocked = Blockage::count();
             
         // Get deadlines for countdown
         $buildingDeadline = Deadline::where('name', 'Building & Infrastructure fee deposits')->first();
@@ -73,6 +76,7 @@ class RiskDashboardController extends Controller
             'pendingDepositApprovals',
             'pendingExpenseApprovals',
             'lateDisbursementsThisWeek',
+            'totalBlocked',
             'buildingDeadline',
             'adminDeadline',
             'statutoryDeadline',
@@ -189,6 +193,33 @@ class RiskDashboardController extends Controller
         return response()->json([
             'success' => true,
             'data' => $grouped,
+        ]);
+    }
+
+    /**
+     * Return blockages for modal display
+     */
+    public function blockagesDetail(Request $request)
+    {
+        $blockages = Blockage::with(['office' => fn($q) => $q->select('id', 'name')])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($blockage) {
+                return [
+                    'id' => $blockage->id,
+                    'office' => $blockage->office ? [
+                        'id' => $blockage->office->id,
+                        'name' => $blockage->office->name,
+                    ] : null,
+                    'reason' => $blockage->reason,
+                    'created_at' => $blockage->created_at?->toDateTimeString(),
+                    'time_to_unlock' => $blockage->time_to_unlock?->toDateTimeString(),
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'data' => $blockages,
         ]);
     }
 }

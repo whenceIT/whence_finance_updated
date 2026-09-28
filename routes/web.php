@@ -668,6 +668,7 @@ Route::group(['prefix' => 'risk'], function () {
     Route::get('dashboard', [RiskDashboardController::class, 'index'])->name('risk.dashboard');
     Route::get('dashboard/branch-cash-balances', [RiskDashboardController::class, 'branchCashBalances'])->name('risk.dashboard.branch-cash-balances');
     Route::get('dashboard/late-disbursements', [RiskDashboardController::class, 'lateDisbursementsDetail'])->name('risk.dashboard.late-disbursements');
+    Route::get('dashboard/blockages-detail', [RiskDashboardController::class, 'blockagesDetail'])->name('risk.dashboard.blockages-detail');
     Route::get('overview', [RiskController::class, 'overview'])->name('risk.overview');
     Route::get('audit-trail', [RiskController::class, 'auditTrail']);
     Route::get('heat-map', [RiskController::class, 'heatMap'])->name('risk.heat-map');
@@ -2161,6 +2162,7 @@ Route::get('collateral/analytics/executive', 'CollateralController@analyticsExec
 Route::get('collateral/analytics/provincial', 'CollateralController@analyticsProvincial')->name('collateral.analytics.provincial');
 Route::get('collateral/analytics/district', 'CollateralController@analyticsDistrict')->name('collateral.analytics.district');
 Route::get('collateral/analytics/branch', 'CollateralController@analyticsBranch')->name('collateral.analytics.branch');
+Route::get('collateral/sales', 'CollateralController@sales')->name('collateral.sales');
 Route::get('collateral/report', 'CollateralController@report')->name('collateral.report');
 Route::post('collateral/report/export', 'CollateralController@exportCsv')->name('collateral.export');
 Route::get('collateral/approvals', 'CollateralApprovalController@queue')->name('collateral.approvals.queue');
