@@ -97,13 +97,25 @@
 
                 <div class="bento-card small outline-card late-disbursements-card"
                      style="border-color:#f5a623;background:linear-gradient(135deg,#fff8ec 0%,#fffdf9 100%);cursor:pointer;"
-                     data-bs-toggle="modal" data-bs-target="#lateDisbursementsModal">
+                     data-toggle="modal" data-target="#lateDisbursementsModal">
                     <div class="card-top">
                         <div class="icon-wrap icon-wrap-light"><i class="fa fa-file-text-o" style="color:#f5a623;"></i></div>
                     </div>
                     <div class="card-bottom">
                         <div class="title" style="color:#555;">Late Disbursements This Week</div>
                         <div class="value" style="color:#222;">{{ $lateDisbursementsThisWeek ?? 0 }}</div>
+                    </div>
+                </div>
+
+                <div class="bento-card small outline-card blocked-card"
+                     style="border-color:#e74c3c;background:linear-gradient(135deg,#fdf0ed 0%,#fefaf9 100%);cursor:pointer;"
+                     data-toggle="modal" data-target="#blockagesModal">
+                    <div class="card-top">
+                        <div class="icon-wrap icon-wrap-light"><i class="fa fa-ban" style="color:#e74c3c;"></i></div>
+                    </div>
+                    <div class="card-bottom">
+                        <div class="title" style="color:#555;">Total Blocked</div>
+                        <div class="value" style="color:#222;">{{ $totalBlocked ?? 0 }}</div>
                     </div>
                 </div>
 
@@ -170,12 +182,40 @@
                                     <div class="countdown-unit"><span class="countdown-hours">--</span><small>hrs</small></div>
                                     <div class="countdown-unit"><span class="countdown-mins">--</span><small>min</small></div>
                                 </div>
-                            </div>
-                        </div>
+</div>
 
+    </div>
+</div>
+
+<!-- Blockages Modal -->
+<div class="modal fade" id="blockagesModal" tabindex="-1" role="dialog" aria-labelledby="blockagesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-danger">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="blockagesModalLabel">
+                    <i class="fa fa-ban me-2"></i>Blocked Offices
+                </h4>
+            </div>
+            <div class="modal-body bd-modal-body">
+                <div id="blockagesContent">
+                    <div class="text-center text-muted py-5">
+                        <i class="fa fa-spinner fa-spin fa-2x mb-3"></i>
+                        <p>Loading blocked offices...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span class="text-muted small" id="blockagesSummary"></span>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
         </div>
     </div>
+</div>
 
+</div>
     {{-- ─── Branch Cash Balances ─────────────────────────────────────── --}}
     <div class="row" style="margin-top: 10px;">
         <div class="col-lg-12">
@@ -574,6 +614,135 @@
             $('#lateDisbursementsSummary').text(totalLoans + ' loans • K ' + Number(totalAmount).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
         }
 
+        // ── Blockages Modal ───────────────────────────────────────────────
+        let blockagesLoaded = false;
+        $('#blockagesModal').on('show.bs.modal', function () {
+            if (blockagesLoaded) return;
+            blockagesLoaded = true;
+
+            $.ajax({
+                url: '{{ route("risk.dashboard.blockages-detail") }}',
+                type: 'GET',
+                success: function(res) {
+                    if (!res.success || !res.data) {
+                        $('#blockagesContent').html('<div class="bd-empty">No blocked offices found.</div>');
+                        $('#blockagesSummary').text('');
+                        return;
+                    }
+                    renderBlockages(res.data);
+                },
+                error: function() {
+                    $('#blockagesContent').html('<div class="bd-empty text-danger">Failed to load blocked offices.</div>');
+                }
+            });
+        });
+
+        function renderBlockages(data) {
+            let totalBlockages = 0;
+            let html = '';
+
+            if (!data || data.length === 0) {
+                html = '<div class="bd-empty">No blocked offices found.</div>';
+            } else {
+                html += '<table class="bd-table">';
+                html += '  <thead>';
+                html += '    <tr>';
+                html += '      <th style="width:5%">#</th>';
+                html += '      <th style="width:25%">Office</th>';
+                html += '      <th style="width:30%">Reason</th>';
+                html += '      <th style="width:20%">Blocked At</th>';
+                html += '      <th style="width:20%">Unlock Countdown</th>';
+                html += '    </tr>';
+                html += '  </thead>';
+                html += '  <tbody>';
+
+                data.forEach(function(blockage) {
+                    totalBlockages++;
+                    const unlockTime = blockage.time_to_unlock ? new Date(blockage.time_to_unlock) : null;
+                    const now = new Date();
+                    let countdownHtml = '';
+                    let countdownClass = '';
+
+                    if (unlockTime) {
+                        const diffMs = unlockTime - now;
+                        if (diffMs <= 0) {
+                            countdownHtml = 'Unlocked';
+                            countdownClass = 'unlocked';
+                        } else {
+                            const hours = Math.floor(diffMs / (1000 * 60 * 60));
+                            const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                            const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+                            countdownHtml = hours + 'h ' + minutes + 'm ' + seconds + 's';
+                            countdownClass = diffMs < 3600000 ? 'warning' : 'locked'; // warning if < 1 hour
+                        }
+                    } else {
+                        countdownHtml = 'No unlock time set';
+                        countdownClass = 'locked';
+                    }
+
+                    const isUnlocked = blockage.time_to_unlock && now >= new Date(blockage.time_to_unlock);
+                    const badgeClass = isUnlocked ? 'bd-badge-expired' : 'bd-badge-active';
+                    const badgeText = isUnlocked ? 'UNLOCKED' : 'ACTIVE';
+
+                    html += '    <tr>';
+                    html += '      <td>' + blockage.id + '</td>';
+                    html += '      <td>';
+                    html += '        <div class="bd-office">' + (blockage.office?.name || 'Unknown Office') + '</div>';
+                    html += '        <div class="bd-reason">' + (blockage.reason || '—') + '</div>';
+                    html += '      </td>';
+                    html += '      <td>' + (blockage.reason || '—') + '</td>';
+                    html += '      <td class="bd-created">' + (blockage.created_at ? new Date(blockage.created_at).toLocaleString() : '—') + '</td>';
+                    html += '      <td><span class="bd-countdown ' + countdownClass + '" data-unlock="' + (blockage.time_to_unlock || '') + '">' + countdownHtml + '</span>';
+                    html += '        <span class="bd-badge ' + badgeClass + ' ms-2">' + badgeText + '</span></td>';
+                    html += '    </tr>';
+                });
+
+                html += '  </tbody>';
+                html += '</table>';
+            }
+
+            $('#blockagesContent').html(html);
+            $('#blockagesSummary').text(totalBlockages + ' blocked office(s)');
+
+            // Start countdown timers
+            startBlockageCountdowns();
+        }
+
+        function startBlockageCountdowns() {
+            $('.bd-countdown[data-unlock]').each(function() {
+                const $el = $(this);
+                const unlockStr = $el.data('unlock');
+                if (!unlockStr) return;
+
+                const unlockTime = new Date(unlockStr);
+
+                function updateCountdown() {
+                    const now = new Date();
+                    const diffMs = unlockTime - now;
+
+                    if (diffMs <= 0) {
+                        $el.text('Unlocked').removeClass('locked warning').addClass('unlocked');
+                        $el.next('.bd-badge').text('UNLOCKED').removeClass('bd-badge-active').addClass('bd-badge-expired');
+                        return;
+                    }
+
+                    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+                    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+                    $el.text(hours + 'h ' + minutes + 'm ' + seconds + 's');
+
+                    if (diffMs < 3600000) { // < 1 hour
+                        $el.removeClass('locked').addClass('warning');
+                    }
+                }
+
+                updateCountdown();
+                const interval = setInterval(updateCountdown, 1000);
+                $el.data('countdown-interval', interval);
+            });
+        }
+
     });
     </script>
 
@@ -927,17 +1096,37 @@
     .ld-officer-phone { color: #697386; font-size: 11px; }
     .ld-date { color: #697386; white-space: nowrap; }
     .ld-empty { text-align: center; color: #8a8fa3; padding: 30px; font-size: 13px; }
+
+    /* ── Blockages Modal ───────────────────────────────────────────────── */
+    .bd-modal-body { max-height: 65vh; overflow-y: auto; padding-right: 8px; }
+    .bd-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .bd-table th, .bd-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #eef0f3; }
+    .bd-table th { color: #697386; font-weight: 600; font-size: 11px; text-transform: uppercase; background: #fafbfc; }
+    .bd-table tr:hover td { background: #f9fbfe; }
+    .bd-office { font-weight: 500; }
+    .bd-reason { color: #697386; font-size: 11px; }
+    .bd-created { color: #697386; white-space: nowrap; font-size: 11px; }
+    .bd-countdown { font-family: monospace; font-weight: 700; }
+    .bd-countdown.unlocked { color: #27ae60; }
+    .bd-countdown.locked { color: #e74c3c; }
+    .bd-countdown.warning { color: #f39c12; }
+    .bd-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+    .bd-badge-active { background: #e8f5e9; color: #2e7d32; }
+    .bd-badge-expired { background: #fce4ec; color: #c62828; }
+    .bd-empty { text-align: center; color: #8a8fa3; padding: 30px; font-size: 13px; }
     </style>
 
 <!-- Late Disbursements Modal -->
-<div class="modal fade" id="lateDisbursementsModal" tabindex="-1" aria-labelledby="lateDisbursementsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+<div class="modal fade" id="lateDisbursementsModal" tabindex="-1" role="dialog" aria-labelledby="lateDisbursementsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header bg-warning text-dark">
-                <h5 class="modal-title" id="lateDisbursementsModalLabel">
+            <div class="modal-header bg-warning">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="lateDisbursementsModalLabel">
                     <i class="fa fa-file-text-o me-2"></i>Late Disbursements This Week
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </h4>
             </div>
             <div class="modal-body ld-modal-body">
                 <div id="lateDisbursementsContent">
@@ -949,7 +1138,7 @@
             </div>
             <div class="modal-footer">
                 <span class="text-muted small" id="lateDisbursementsSummary"></span>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>

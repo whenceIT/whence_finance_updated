@@ -238,13 +238,15 @@ if (!Sentinel::check()) {
                         </span>
                     </a>
                     <ul class="treeview-menu">
+                        <li><a href="{{ route('collateral.index', ['key' => 'admin']) }}"><i class="fa fa-circle-o"></i>Collateral Dashboard</a></li>
+                        <li><a href="{{ route('collateral.sales', ['key' => 'admin']) }}"><i class="fa fa-circle-o"></i>Sales</a></li>
                         <!-- Temporarily added BM -->
                         @if(Sentinel::getUser()->isCollateralValuator() || $role == 4)
                         <li><a href="{{ route('collateral.approvals.queue') }}"><i class="fa fa-circle-o"></i> Seizure Pending</a></li>
                         @endif       
                         <!-- Temporarily added BM -->
                         @if(Sentinel::getUser()->isCollateralSupervisor() || $role == 4)
-                        <li><a href="{{ route('collateral.index', ['key' => 'sales']) }}"><i class="fa fa-circle-o"></i> Sales and Listings</a></li>
+                        <li><a href="{{ route('collateral.index', ['key' => 'sales']) }}"><i class="fa fa-circle-o"></i> Listed for Sale</a></li>
                         @endif       
                         <!-- Temporarily added BM -->
                         @if(Sentinel::getUser()->isCollateralValuator() || $role == 4)
@@ -1637,17 +1639,15 @@ if (!Sentinel::check()) {
                     </span>
                 </a>
                 <ul class="treeview-menu">
-                    <!-- Branch Uncollected -->
-                    @if(in_array($role, [1,4,3]))
-                        @if(in_array($role, [1,4]))
+                    @if(in_array($role, [1,4,3,10]))
+                        @if(in_array($role, [1,4,10]))
                         <li><a href="{{ url('vehicles/dashboard') }}"><i class="fa fa-circle-o"></i>MVL Dashboard</a></li>
-                        <!-- <li><a href="{{ url('vehicles/loans_pending_approval') }}"><i class="fa fa-circle-o"></i> Loans Pending @if(Sentinel::hasAccess('settings'))<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('loan_product_id',0)->count() }}</span>@else<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('office_id',$office_id)->where('loan_product_id',0)->count() }}</span>@endif</a></li> -->
                         @endif 
                         <li><a href="{{ url('vehicles/mvl/motor-vehicle-loans') }}"><i class="fa fa-circle-o"></i>MV Loans</a></li>
                         <li><a href="{{ url('vehicles') }}"><i class="fa fa-circle-o"></i>Vehicles Register</a></li>
                     @endif
 
-                    @hasRole('role.exec', 'role.dev', 'role.risk')
+                    @if(in_array($role, [1,4,10]))
                         <li><a href="{{ url('vehicles/custody-register') }}"><i class="fa fa-circle-o"></i>Custody Register (Storage)</a></li>
                         <li><a href="{{ url('vehicles/disposal-register') }}"><i class="fa fa-circle-o"></i>Disposal Register (Defaulted)</a></li>
                         <li><a href="{{ url('vehicles/sales') }}"><i class="fa fa-circle-o"></i>Vehicles Sold</a></li>

@@ -1016,6 +1016,176 @@ class CollateralController extends Controller
         return Excel::download(new ExportReport('collateral.exports.collateral_csv', compact('data')), $filename);
     }
 
+    public function sales(Request $request)
+    {
+        $user   = Sentinel::getUser();
+        $userId = $user->id;
+        $role   = UserRole::where('user_id', $userId)->first();
+        $roleId = $role ? $role->role_id : null;
+
+        // ── Base query: only sold items ──────────────────────────────────────
+        $baseQuery = function () use ($roleId, $user) {
+            $q = Collateral::with(['loan.client', 'loan.office', 'type', 'created_by'])
+                ->where('status', 'sold');
+            if ($roleId == 4) {
+                $q->where('office_id', $user->office_id);
+            } elseif ($roleId == 12) {
+                $districtId = $user->office ? $user->office->district_id : null;
+                $q->where('district_id', $districtId);
+            } elseif ($roleId == 6) {
+                $provinceId = $user->office ? $user->office->province_id : null;
+                $q->where('province_id', $provinceId);
+            }
+            // role 1 (admin) → no additional constraint
+            return $q;
+        };
+
+        // ── Filters ──────────────────────────────────────────────────────────
+        $query = $baseQuery();
+
+        if ($request->filled('collateral_type_id')) {
+            $query->where('collateral_type_id', $request->collateral_type_id);
+        }
+        if ($request->filled('condition')) {
+            $query->where('condition', $request->condition);
+        }
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
+        }
+        if ($request->filled('office_id')) {
+            $query->where('office_id', $request->office_id);
+        }
+        if ($request->filled('province_id')) {
+            $query->where('province_id', $request->province_id);
+        }
+        if ($request->filled('sold_from')) {
+            $query->whereDate('sold_at', '>=', $request->sold_from);
+        }
+        if ($request->filled('sold_to')) {
+            $query->whereDate('sold_at', '<=', $request->sold_to);
+        }
+        if ($request->filled('search')) {
+            $term = $request->search;
+            $query->where(function ($q) use ($term) {
+                $q->where('name', 'like', '%' . $term . '%')
+                  ->orWhere('buyer_name', 'like', '%' . $term . '%')
+                  ->orWhere('buyer_nrc',  'like', '%' . $term . '%')
+                  ->orWhere('serial_num', 'like', '%' . $term . '%');
+            });
+        }
+
+        // ── Sorting ──────────────────────────────────────────────────────────
+        $allowedSort = ['name', 'sold_price', 'current_worth', 'initial_price', 'sold_at', 'date_purchased'];
+        $sortBy  = in_array($request->sortBy, $allowedSort) ? $request->sortBy : 'sold_at';
+        $sortDir = $request->sort === 'asc' ? 'asc' : 'desc';
+        $query->orderBy($sortBy, $sortDir);
+
+        // ── Paginated list ────────────────────────────────────────────────────
+        $collateral = $query->paginate(20)->appends($request->except('page'));
+
+        // ── Summary stats (unfiltered scope, sold only) ───────────────────────
+        $statsQuery = $baseQuery();
+        // apply date filters to stats too so they reflect the current filter window
+        if ($request->filled('sold_from')) {
+            $statsQuery->whereDate('sold_at', '>=', $request->sold_from);
+        }
+        if ($request->filled('sold_to')) {
+            $statsQuery->whereDate('sold_at', '<=', $request->sold_to);
+        }
+        if ($request->filled('collateral_type_id')) {
+            $statsQuery->where('collateral_type_id', $request->collateral_type_id);
+        }
+        if ($request->filled('province_id')) {
+            $statsQuery->where('province_id', $request->province_id);
+        }
+        if ($request->filled('office_id')) {
+            $statsQuery->where('office_id', $request->office_id);
+        }
+
+        $allSold = $statsQuery->get();
+
+        $totalCount        = $allSold->count();
+        $totalSoldPrice    = $allSold->sum('sold_price');
+        $totalWorth        = $allSold->sum('current_worth');
+        $totalInitial      = $allSold->sum('initial_price');
+        $totalPenalty      = $allSold->sum('penalty');
+        $totalVettedVal    = $allSold->sum('vetted_valuation');
+
+        // disposal_costs is a JSON array of {name, amount} objects
+        $totalDisposalCosts = $allSold->sum(function ($item) {
+            if (!$item->disposal_costs || !is_array($item->disposal_costs)) return 0;
+            return collect($item->disposal_costs)->sum('amount');
+        });
+
+        $netProceeds       = $totalSoldPrice - $totalDisposalCosts - $totalPenalty;
+        $recoveryRate      = $totalWorth > 0 ? round(($totalSoldPrice / $totalWorth) * 100, 1) : 0;
+        $depreciationRate  = $totalInitial > 0 ? round((($totalInitial - $totalWorth) / $totalInitial) * 100, 1) : 0;
+
+        // ── Monthly sales trend (last 12 months) ─────────────────────────────
+        $trendQuery = $baseQuery()->whereNotNull('sold_at')
+            ->where('sold_at', '>=', Carbon::now()->subMonths(11)->startOfMonth());
+        if ($request->filled('collateral_type_id')) {
+            $trendQuery->where('collateral_type_id', $request->collateral_type_id);
+        }
+        $monthlySales = $trendQuery
+            ->selectRaw("DATE_FORMAT(sold_at, '%Y-%m') as period, COUNT(*) as cnt, SUM(sold_price) as revenue")
+            ->groupBy('period')
+            ->orderBy('period')
+            ->get();
+
+        // ── Top offices by sold count ─────────────────────────────────────────
+        $topOffices = $baseQuery()
+            ->selectRaw('office_id, COUNT(*) as cnt, SUM(sold_price) as revenue')
+            ->groupBy('office_id')
+            ->orderByDesc('cnt')
+            ->limit(8)
+            ->with('loan.office')
+            ->get()
+            ->map(function ($item) {
+                // resolve office name via a separate query (no direct relation on collateral)
+                $office = \App\Models\Office::find($item->office_id);
+                return [
+                    'office'  => $office ? $office->name : 'Unknown',
+                    'cnt'     => $item->cnt,
+                    'revenue' => $item->revenue,
+                ];
+            });
+
+        // ── Category breakdown ────────────────────────────────────────────────
+        $categoryBreakdown = $baseQuery()
+            ->selectRaw('category, COUNT(*) as cnt, SUM(sold_price) as revenue, SUM(current_worth) as worth')
+            ->groupBy('category')
+            ->orderByDesc('cnt')
+            ->get();
+
+        // ── Type breakdown ────────────────────────────────────────────────────
+        $typeBreakdown = $baseQuery()
+            ->selectRaw('collateral_type_id, COUNT(*) as cnt, SUM(sold_price) as revenue')
+            ->groupBy('collateral_type_id')
+            ->with('type')
+            ->orderByDesc('cnt')
+            ->get();
+
+        // ── Filter options ────────────────────────────────────────────────────
+        $collateralTypes = CollateralType::all();
+        $offices         = ($roleId == 1) ? Office::all() : Office::where('province_id', $user->office->province_id ?? 0)->get();
+        $provinces       = ($roleId == 1) ? Province::all() : collect();
+        $categories      = Collateral::CATEGORIES;
+
+        return view('collateral.sales', compact(
+            'collateral',
+            'totalCount', 'totalSoldPrice', 'totalWorth', 'totalInitial',
+            'totalPenalty', 'totalDisposalCosts', 'netProceeds',
+            'recoveryRate', 'depreciationRate', 'totalVettedVal',
+            'monthlySales',
+            'topOffices',
+            'categoryBreakdown',
+            'typeBreakdown',
+            'collateralTypes', 'offices', 'provinces', 'categories',
+            'roleId'
+        ));
+    }
+
     public function myCollateral(Request $request)
     {
         // if (!Sentinel::hasAccess('collateral.view')) {
