@@ -123,4 +123,12 @@ class Office extends Model
             ->join('province', 'offices.province_id', '=', 'province.id')
             ->first(['province.name as name', 'province.id as id']);
     }
+
+    /**
+     * Branch asset inventory records (GOA Asset Manager).
+     */
+    public function inventories()
+    {
+        return $this->hasMany(\App\Models\BranchAssetInventory::class, 'office_id');
+    }
 }

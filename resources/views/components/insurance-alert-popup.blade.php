@@ -99,11 +99,6 @@
                         style="border-radius:8px;font-weight:600;">
                     Dismiss
                 </button>
-                <a href="{{ route('goa.fleet-management') }}"
-                   class="btn btn-warning btn-sm"
-                   style="border-radius:8px;font-weight:600;color:#fff;background:#d97706;border-color:#d97706;">
-                    <i class="fa fa-car"></i> View Fleet Management
-                </a>
             </div>
 
         </div>

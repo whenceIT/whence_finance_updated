@@ -2497,19 +2497,36 @@ CURRENT BALANCE DASHBOARD
                     @if($loan->loan_product_id == 1)
                     <div class="tab-pane" id="payroll_schedule">
                         @php
-                            $schedule = DB::table('payroll_loan_schedules')
-                                ->where('loan_amount', $loan->principal)
-                                ->first();
                             $tenure = $loan->loan_term;
-                            $monthlyAmount = $schedule ? ($schedule->{"months_$tenure"} ?? null) : null;
+
+                            if ($loan->schedule_type === 'old') {
+                                // Old schedule: lookup from payroll_loan_old_schedule
+                                $oldRow = \App\Models\PayrollLoanOldSchedule::where('disbursement_amount', $loan->principal)->first();
+                                $colMap = [9 => 'repayment_9_months', 12 => 'repayment_12_months', 18 => 'repayment_18_months', 24 => 'repayment_24_months'];
+                                $col = $colMap[$tenure] ?? null;
+                                $monthlyAmount = ($oldRow && $col) ? $oldRow->$col : null;
+                            } else {
+                                // New schedule: lookup from payroll_loan_schedules
+                                $schedule = DB::table('payroll_loan_schedules')
+                                    ->where('loan_amount', $loan->principal)
+                                    ->first();
+                                $monthlyAmount = $schedule ? ($schedule->{"months_$tenure"} ?? null) : null;
+                            }
+
                             $totalRepayment = $monthlyAmount ? ($monthlyAmount * $tenure) : null;
                             $totalPaid = DB::table('loan_transactions')
                                 ->where('loan_id', $loan->id)
                                 ->where('transaction_type', 'repayment')
                                 ->sum('credit');
                             $paidPercentage = $totalRepayment ? min(100, round(($totalPaid / $totalRepayment) * 100)) : 0;
+                            $scheduleLabel  = ($loan->schedule_type === 'old') ? 'Old Schedule' : 'New Schedule';
                         @endphp
+
                         @if($monthlyAmount)
+                            <p class="text-muted" style="margin-bottom:8px;">
+                                <i class="fa fa-table"></i>&nbsp;
+                                Using <strong>{{ $scheduleLabel }}</strong>
+                            </p>
                             <table class="table table-striped table-hover">
                                 <thead>
                                     <tr>
@@ -3110,43 +3127,41 @@ CURRENT BALANCE DASHBOARD
                                                                     role="menu">
                                                                     @if(Sentinel::hasAccess('loans.transactions.view'))
                                                                         <li>
-                                                                            <a href="{{url('loan/transaction/'.$key->id.'/show')}}"><i
-                                                                                        class="fa fa-search"></i> {{ trans_choice('general.view',1) }}
-                                                                            </a></li>
-                                                                        <li>
+                                                                            <a href="{{url('loan/transaction/'.$key->id.'/show')}}">
+                                                                                <i class="fa fa-search"></i> {{ trans_choice('general.view',1) }}
+                                                                            </a>
+                                                                        </li>
                                                                     @endif
                                                                     @if($key->transaction_type=='repayment' || $key->payment_apply_to == 'part_payment' || $key->payment_apply_to == 'reloan_payment')
-                                                                     
                                                                         <li>
                                                                             <a href="{{url('loan/transaction/'.$key->id.'/pdf')}}"
-                                                                               target="_blank"><i
-                                                                                        class="fa fa-file-pdf-o"></i> {{ trans_choice('general.pdf',1) }} {{trans_choice('general.receipt',1)}}
-                                                                            </a></li>
+                                                                               target="_blank"><i class="fa fa-file-pdf-o"></i> {{ trans_choice('general.pdf',1) }} {{trans_choice('general.receipt',1)}}
+                                                                            </a>
+                                                                        </li>
                                                                     @endif
                                                                     
                                                                     
                                                                     @if($key->transaction_type=='refund' && $key->reversible==1)
                                                                         <li>
                                                                             <a href="{{url('loan/transaction/'.$key->id.'/print')}}"
-                                                                               target="_blank"><i
-                                                                                        class="fa fa-print"></i> {{ trans_choice('general.print',1) }} {{trans_choice('general.receipt',1)}}
-                                                                            </a></li>
+                                                                               target="_blank"><i class="fa fa-print"></i> {{ trans_choice('general.print',1) }} {{trans_choice('general.receipt',1)}}
+                                                                            </a>
+                                                                        </li>
                                                                         <li>
                                                                             <a href="{{url('loan/transaction/'.$key->id.'/pdf')}}"
-                                                                               target="_blank"><i
-                                                                                        class="fa fa-file-pdf-o"></i> {{ trans_choice('general.pdf',1) }} {{trans_choice('general.receipt',1)}}
-                                                                            </a></li>
+                                                                               target="_blank"><i class="fa fa-file-pdf-o"></i> {{ trans_choice('general.pdf',1) }} {{trans_choice('general.receipt',1)}}
+                                                                            </a>
+                                                                        </li>
                                                                         @if(Sentinel::hasAccess('loans.transactions.update'))
                                                                             <li>
-                                                                                <a href="{{url('loan/repayment/'.$key->id.'/edit')}}"><i
-                                                                                            class="fa fa-edit"></i> {{ trans('general.edit') }}
-                                                                                </a></li>
-
+                                                                                <a href="{{url('loan/repayment/'.$key->id.'/edit')}}"><i class="fa fa-edit"></i> {{ trans('general.edit') }}
+                                                                                </a>
+                                                                            </li>
                                                                             <li>
                                                                                 <a href="{{url('loan/repayment/'.$key->id.'/reverse')}}"
-                                                                                   class="delete"><i
-                                                                                            class="fa fa-minus-circle"></i> {{ trans('general.reverse') }}
-                                                                                </a></li>
+                                                                                   class="delete"><i class="fa fa-minus-circle"></i> {{ trans('general.reverse') }}
+                                                                                </a>
+                                                                            </li>
                                                                         @endif
                                                                     @endif
                                                                     

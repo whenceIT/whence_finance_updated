@@ -12,6 +12,8 @@ class Loan extends Model
     protected $table = "loans";
 
     protected $fillable = [
+        'final_due_date',
+        'schedule_type',
         'dormant_recovery',
         'shared',
         'esc_recovered',
@@ -32,7 +34,9 @@ class Loan extends Model
 
     protected $casts = [
         'dormant_recovery' => 'integer',
-        'shared' => 'integer',
+        'shared'           => 'integer',
+        'disbursement_date' => 'datetime',
+        'final_due_date'   => 'date',
     ];
 
     public function charges()

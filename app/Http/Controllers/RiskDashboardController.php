@@ -10,6 +10,7 @@ use App\Models\Deadline;
 use App\Models\Deposit;
 use App\Models\Expense;
 use App\Models\Office;
+use App\Models\Loan;
 
 class RiskDashboardController extends Controller
 {
@@ -43,6 +44,11 @@ class RiskDashboardController extends Controller
             ->where('deposits.deposit_type', 1)
             ->whereDate('bank_deposit_log.created_date', $today)
             ->sum('deposits.amount');
+
+        $lateDisbursementsThisWeek = Loan::where('created_at', '>=', now()->startOfWeek())
+            ->where('created_at', '<=', now()->subHour())
+            ->whereNotIn('status', ['disbursed', 'closed'])
+            ->count();
             
         // Get deadlines for countdown
         $buildingDeadline = Deadline::where('name', 'Building & Infrastructure fee deposits')->first();
@@ -66,6 +72,7 @@ class RiskDashboardController extends Controller
             'collectedAdminToday',
             'pendingDepositApprovals',
             'pendingExpenseApprovals',
+            'lateDisbursementsThisWeek',
             'buildingDeadline',
             'adminDeadline',
             'statutoryDeadline',
@@ -126,6 +133,62 @@ class RiskDashboardController extends Controller
         return response()->json([
             'success' => true,
             'offices' => $results,
+        ]);
+    }
+
+    /**
+     * Return late disbursement loans grouped by province -> office
+     * for modal display
+     */
+    public function lateDisbursementsDetail(Request $request)
+    {
+        $loans = Loan::with([
+            'client' => fn($q) => $q->select('id', 'first_name', 'last_name', 'mobile', 'office_id'),
+            'loan_officer' => fn($q) => $q->select('id', 'first_name', 'last_name', 'phone', 'email'),
+            'office' => fn($q) => $q->select('id', 'name', 'province_id', 'district_id'),
+            'office.province' => fn($q) => $q->select('id', 'name'),
+            'office.district' => fn($q) => $q->select('id', 'name'),
+        ])
+            ->where('created_at', '>=', now()->startOfWeek())
+            ->where('created_at', '<=', now()->subHour())
+            ->whereNotIn('status', ['disbursed', 'closed'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Group by province -> office
+        $grouped = $loans->groupBy(function ($loan) {
+            return $loan->office->province->name ?? 'Unknown Province';
+        })->map(function ($provinceLoans) {
+            return $provinceLoans->groupBy(function ($loan) {
+                return $loan->office->name ?? 'Unknown Office';
+            })->map(function ($officeLoans) {
+                return $officeLoans->map(function ($loan) {
+                    return [
+                        'id' => $loan->id,
+                        'account_number' => $loan->account_number,
+                        'external_id' => $loan->external_id,
+                        'principal' => $loan->principal,
+                        'status' => $loan->status,
+                        'created_at' => $loan->created_at?->format('Y-m-d H:i'),
+                        'client' => $loan->client ? [
+                            'id' => $loan->client->id,
+                            'name' => trim(($loan->client->first_name ?? '') . ' ' . ($loan->client->last_name ?? '')),
+                            'phone' => $loan->client->mobile,
+                        ] : null,
+                        'loan_officer' => $loan->loan_officer ? [
+                            'id' => $loan->loan_officer->id,
+                            'name' => trim(($loan->loan_officer->first_name ?? '') . ' ' . ($loan->loan_officer->last_name ?? '')),
+                            'phone' => $loan->loan_officer->phone,
+                            'email' => $loan->loan_officer->email,
+                        ] : null,
+                    ];
+                })->values();
+            });
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $grouped,
         ]);
     }
 }

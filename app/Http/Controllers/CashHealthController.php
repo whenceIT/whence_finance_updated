@@ -731,13 +731,8 @@ return view(
 
 public function nationalBalances()
 {
-    $offices = Office::select(
-        'id',
-        'name',
-        'province_id',
-        'district_id',
-        'withinhere_wallet_id'
-    )->get();
+    $offices = Office::with(['province', 'district'])
+        ->get(['id', 'name', 'province_id', 'district_id', 'withinhere_wallet_id']);
 
     $balances = [];
 
@@ -748,6 +743,8 @@ public function nationalBalances()
             'office_name' => $office->name,
             'province_id' => $office->province_id,
             'district_id' => $office->district_id,
+            'province_name' => optional($office->province)->name ?? 'Unknown Province',
+            'district_name' => optional($office->district)->name ?? 'Unknown District',
             'wallet_id' => $office->withinhere_wallet_id
         ];
     }
@@ -757,6 +754,7 @@ public function nationalBalances()
         'offices' => $balances
     ]);
 }
+
 
 
 public function nationalOfficeBalance($officeId)

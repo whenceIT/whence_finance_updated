@@ -65,6 +65,16 @@
     letter-spacing: 0.05em;
 }
 
+/* Stat info hints */
+.stat-hint {
+    display: inline-block;
+    margin-left: 4px;
+    font-size: 0.85rem;
+    color: #94a3b8;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
 /* Main Content Grid */
 .dashboard-content {
     max-width: 1200px;
@@ -636,15 +646,15 @@
             <div class="header-stats">
                 <div class="header-stat">
                     <span class="header-stat-value">{{ $totalVehicles }}</span>
-                    <span class="header-stat-label">Total Vehicles</span>
+                    <span class="header-stat-label">Total Number of Vehicles <span class="stat-hint" data-toggle="tooltip" data-trigger="hover click" data-placement="top" title="Total number of vehicles registered in the fleet, including active, under maintenance and out of service.">&#9432;</span></span>
                 </div>
                 <div class="header-stat">
                     <span class="header-stat-value">{{ $totalPositions }}</span>
-                    <span class="header-stat-label">Staff Positions</span>
+                    <span class="header-stat-label">Total Number of Institution Positions <span class="stat-hint" data-toggle="tooltip" data-trigger="hover click" data-placement="top" title="Total number of positions for the institution.">&#9432;</span></span>
                 </div>
                 <div class="header-stat">
                     <span class="header-stat-value">{{ $utilization }}%</span>
-                    <span class="header-stat-label">Utilization</span>
+                    <span class="header-stat-label">Vehicle Utilization <span class="stat-hint" data-toggle="tooltip" data-trigger="hover click" data-placement="top" title="Percentage of the fleet currently in Active status out of the total number of vehicles.">&#9432;</span></span>
                 </div>
             </div>
         </div>
@@ -672,32 +682,32 @@
                 <div class="status-content">
                     <div class="metrics-grid">
                         <div class="metric-item">
+                            <span class="metric-value">{{ number_format($approvedTotal) }}</span>
+                            <span class="metric-label">Total Number or Approved Capacity <span class="stat-hint" data-toggle="tooltip" data-trigger="hover click" data-placement="top" title="Total positions summed from branch capacity for all active offices.">&#9432;</span></span>
+                        </div>
+                        <div class="metric-item">
                             <span class="metric-value">{{ number_format($personnelTotal) }}</span>
-                            <span class="metric-label">Filled</span>
+                            <span class="metric-label">Total Number of Current Personel <span class="stat-hint" data-toggle="tooltip" data-trigger="hover click" data-placement="top" title="Number of active personnel (users with an assigned office) currently on roll.">&#9432;</span></span>
                         </div>
                         <div class="metric-item">
                             <span class="metric-value">{{ number_format(max($approvedTotal - $personnelTotal, 0)) }}</span>
-                            <span class="metric-label">Vacant</span>
+                            <span class="metric-label">Total Vacancies <span class="stat-hint" data-toggle="tooltip" data-trigger="hover click" data-placement="top" title="Position slots not yet filled (approved capacity minus current personnel).">&#9432;</span></span>
                         </div>
                         <div class="metric-item">
                             <span class="metric-value">{{ $fillRate }}%</span>
-                            <span class="metric-label">Fill Rate</span>
-                        </div>
-                        <div class="metric-item">
-                            <span class="metric-value">{{ number_format($pipelineTotalVacancies) }}</span>
-                            <span class="metric-label">Open Vacancies</span>
+                            <span class="metric-label">Fill Rate <span class="stat-hint" data-toggle="tooltip" data-trigger="hover click" data-placement="top" title="Percentage of approved positions currently filled by active personnel.">&#9432;</span></span>
                         </div>
                         <div class="metric-item">
                             <span class="metric-value">{{ number_format($pipelineTotalApplicants) }}</span>
-                            <span class="metric-label">Applicants</span>
+                            <span class="metric-label">Applicants <span class="stat-hint" data-toggle="tooltip" data-trigger="hover click" data-placement="top" title="Total number of applicants recorded across all vacancies.">&#9432;</span></span>
                         </div>
                         <div class="metric-item">
                             <span class="metric-value">{{ number_format($pipelineTotalOffersIssued) }}</span>
-                            <span class="metric-label">Offers Issued</span>
+                            <span class="metric-label">Offers Issued <span class="stat-hint" data-toggle="tooltip" data-trigger="hover click" data-placement="top" title="Total job offers issued (pending or accepted) across all vacancies.">&#9432;</span></span>
                         </div>
                         <div class="metric-item">
                             <span class="metric-value">{{ number_format($pipelineTotalReported) }}</span>
-                            <span class="metric-label">Reported</span>
+                            <span class="metric-label">Reported <span class="stat-hint" data-toggle="tooltip" data-trigger="hover click" data-placement="top" title="Number of candidates who have actually reported and been recorded as joined.">&#9432;</span></span>
                         </div>
                     </div>
                 </div>
@@ -719,23 +729,23 @@
                     <div class="metrics-grid">
                         <div class="metric-item">
                             <span class="metric-value">{{ $activeVehicles }}</span>
-                            <span class="metric-label">Active</span>
+                            <span class="metric-label">Active <span class="stat-hint" data-toggle="tooltip" data-trigger="hover click" data-placement="top" title="Vehicles currently in active service and available for use.">&#9432;</span></span>
                         </div>
                         <div class="metric-item">
                             <span class="metric-value">{{ $maintenanceVehicles }}</span>
-                            <span class="metric-label">Maintenance</span>
+                            <span class="metric-label">Maintenance <span class="stat-hint" data-toggle="tooltip" data-trigger="hover click" data-placement="top" title="Vehicles currently taken off the road for scheduled or unscheduled maintenance work.">&#9432;</span></span>
                         </div>
                         <div class="metric-item">
                             <span class="metric-value">{{ $outOfServiceVehicles }}</span>
-                            <span class="metric-label">Out of Service</span>
+                            <span class="metric-label">Out of Service <span class="stat-hint" data-toggle="tooltip" data-trigger="hover click" data-placement="top" title="Vehicles that are decommissioned, written off, or otherwise permanently unavailable.">&#9432;</span></span>
                         </div>
                         <div class="metric-item">
                             <span class="metric-value">{{ $insuranceUpToDate }}</span>
-                            <span class="metric-label">Insurance Up to Date</span>
+                            <span class="metric-label">Insurance Up to Date <span class="stat-hint" data-toggle="tooltip" data-trigger="hover click" data-placement="top" title="Vehicles whose insurance policy has not yet expired.">&#9432;</span></span>
                         </div>
                         <div class="metric-item">
                             <span class="metric-value">{{ $insuranceExpired }}</span>
-                            <span class="metric-label">Insurance Expired</span>
+                            <span class="metric-label">Insurance Expired <span class="stat-hint" data-toggle="tooltip" data-trigger="hover click" data-placement="top" title="Vehicles whose insurance policy expiry date has passed and renewal is required.">&#9432;</span></span>
                         </div>
                     </div>
                 </div>
@@ -758,19 +768,19 @@
                     <div class="metrics-grid">
                         <div class="metric-item">
                             <span class="metric-value">{{ $scheduledMaintenance }}</span>
-                            <span class="metric-label">Scheduled</span>
+                            <span class="metric-label">Scheduled <span class="stat-hint" data-toggle="tooltip" data-trigger="hover click" data-placement="top" title="Maintenance tasks that are planned and have a future due date.">&#9432;</span></span>
                         </div>
                         <div class="metric-item">
                             <span class="metric-value">{{ $overdueMaintenance }}</span>
-                            <span class="metric-label">Overdue</span>
+                            <span class="metric-label">Overdue <span class="stat-hint" data-toggle="tooltip" data-trigger="hover click" data-placement="top" title="Maintenance tasks whose due date has passed and have not yet been completed.">&#9432;</span></span>
                         </div>
                         <div class="metric-item">
                             <span class="metric-value">{{ $thisMonthMaintenance }}</span>
-                            <span class="metric-label">This Month</span>
+                            <span class="metric-label">This Month <span class="stat-hint" data-toggle="tooltip" data-trigger="hover click" data-placement="top" title="Maintenance tasks scheduled or completed during the current calendar month.">&#9432;</span></span>
                         </div>
                         <div class="metric-item">
                             <span class="metric-value">ZMW {{ number_format($monthlyMaintenanceCost) }}</span>
-                            <span class="metric-label">Monthly Cost</span>
+                            <span class="metric-label">Monthly Cost <span class="stat-hint" data-toggle="tooltip" data-trigger="hover click" data-placement="top" title="Total maintenance expenditure recorded for the current calendar month across all vehicles.">&#9432;</span></span>
                         </div>
                     </div>
                 </div>
@@ -796,6 +806,67 @@
                     <div id="staffing-chart" class="chart-container"></div>
                 </div>
             </div>
+
+            <!-- Asset Manager Summary Card -->
+            <a href="{{ route('goa.asset-manager.dashboard') }}" style="display:block;text-decoration:none;color:inherit;">
+            <div class="chart-card" style="background:linear-gradient(135deg,#fff 0%,#f0fdf4 100%);border-left:4px solid #16a34a;">
+                <div class="chart-header">
+                    <h3 class="chart-title"><i class="fa fa-cubes" style="color:#16a34a;margin-right:6px;"></i> Asset Manager</h3>
+                    <span style="font-size:.8rem;color:#64748b;">Branch Equipment Inventory</span>
+                </div>
+                <div class="chart-content" style="padding:10px 0 0;">
+                    @php
+                        $assetTotals = \App\Models\BranchAssetInventory::selectRaw('
+                            SUM(total)        as t,
+                            SUM(working)      as w,
+                            SUM(damaged)      as d,
+                            SUM(under_repair) as ur,
+                            SUM(missing)      as m
+                        ')->first();
+                        $aTotal   = (int)($assetTotals->t ?? 0);
+                        $aWorking = (int)($assetTotals->w ?? 0);
+                        $aDamaged = (int)($assetTotals->d ?? 0);
+                        $aRepair  = (int)($assetTotals->ur ?? 0);
+                        $aMissing = (int)($assetTotals->m ?? 0);
+                        $aCond    = $aTotal > 0 ? round(($aWorking/$aTotal)*100,1) : 0;
+                        $aAttention = \App\Models\BranchAssetDamageReport::whereNotIn('status',['Repaired','Closed'])->count();
+                        $aPending   = \App\Models\BranchAssetVerification::where('status','Pending')->count();
+                    @endphp
+                    <div style="display:flex;gap:12px;flex-wrap:wrap;padding:0 10px 10px;">
+                        <div style="text-align:center;flex:1;">
+                            <div style="font-size:1.5rem;font-weight:800;color:#16a34a;">{{ number_format($aTotal) }}</div>
+                            <div style="font-size:.75rem;color:#64748b;">Total Items</div>
+                        </div>
+                        <div style="text-align:center;flex:1;">
+                            <div style="font-size:1.5rem;font-weight:800;color:{{ $aCond >= 90 ? '#16a34a' : ($aCond >= 70 ? '#d97706' : '#dc2626') }};">{{ $aCond }}%</div>
+                            <div style="font-size:.75rem;color:#64748b;">Condition</div>
+                        </div>
+                        <div style="text-align:center;flex:1;">
+                            <div style="font-size:1.5rem;font-weight:800;color:#dc2626;">{{ $aDamaged }}</div>
+                            <div style="font-size:.75rem;color:#64748b;">Damaged</div>
+                        </div>
+                        <div style="text-align:center;flex:1;">
+                            <div style="font-size:1.5rem;font-weight:800;color:#d97706;">{{ $aRepair }}</div>
+                            <div style="font-size:.75rem;color:#64748b;">In Repair</div>
+                        </div>
+                        <div style="text-align:center;flex:1;">
+                            <div style="font-size:1.5rem;font-weight:800;color:#7c3aed;">{{ $aMissing }}</div>
+                            <div style="font-size:.75rem;color:#64748b;">Missing</div>
+                        </div>
+                    </div>
+                    @if($aAttention > 0 || $aPending > 0)
+                    <div style="background:#fef2f2;border-top:1px solid #fee2e2;padding:6px 12px;font-size:.82rem;">
+                        @if($aAttention > 0)
+                            <span style="color:#dc2626;"><i class="fa fa-exclamation-circle"></i> {{ $aAttention }} open damage report(s)</span>
+                        @endif
+                        @if($aPending > 0)
+                            <span style="color:#d97706;margin-left:10px;"><i class="fa fa-clock-o"></i> {{ $aPending }} pending verification(s)</span>
+                        @endif
+                    </div>
+                    @endif
+                </div>
+            </div>
+            </a>
         </div>
         </div>    
 
@@ -985,7 +1056,7 @@
                 <div class="sidebar-content">
                     <div class="quick-stats" style="padding: 0px 10px;">
                         <div class="quick-stat">
-                            <span class="quick-stat-label">Avg. Vehicle Age</span>
+                            <span class="quick-stat-label">Avg. Vehicle Age <span class="stat-hint" data-toggle="tooltip" data-trigger="hover click" data-placement="top" title="Average age of all registered fleet vehicles, calculated from their manufacture year.">&#9432;</span></span>
                             <span class="quick-stat-value">{{ $avgVehicleAge }} years</span>
                         </div>
                     </div>
@@ -1036,6 +1107,15 @@
 </div>
 
 <script>
+$(function () {
+    $('[data-toggle="tooltip"]').tooltip();
+    $('.stat-hint').on('click', function (e) {
+        // Prevent clicking the info icon from triggering the parent status-card link
+        e.preventDefault();
+        e.stopPropagation();
+    });
+});
+
 // Fleet Distribution Pie Chart
 var fleetOptions = {
     series: [{{ $activeVehicles }}, {{ $maintenanceVehicles }}, {{ $outOfServiceVehicles }}],
@@ -1098,7 +1178,7 @@ fleetChart.render();
 
 // Staffing Overview Pie Chart
 var staffingOptions = {
-    series: [{{ $personnelTotal }}, {{ max($approvedTotal - $personnelTotal, 0) }}],
+    series: [{{ $approvedTotal }}, {{ $personnelTotal }}, {{ max($approvedTotal - $personnelTotal, 0) }}],
     chart: {
         type: 'pie',
         height: 300,
@@ -1106,8 +1186,8 @@ var staffingOptions = {
         fontFamily: 'Segoe UI, sans-serif',
         background: 'transparent'
     },
-    labels: ['Filled', 'Vacant'],
-    colors: ['#059669', '#ef4444'],
+    labels: ['Approved Capacity', 'Current Personnel', 'Vacancies'],
+    colors: ['#2563eb', '#059669', '#ef4444'],
     legend: {
         position: 'bottom',
         fontSize: '12px',
@@ -1126,7 +1206,7 @@ var staffingOptions = {
         style: {
             fontSize: '12px',
             fontWeight: 600,
-            colors: ['#ffffff', '#ffffff']
+            colors: ['#ffffff', '#ffffff', '#ffffff']
         },
         dropShadow: {
             enabled: false
