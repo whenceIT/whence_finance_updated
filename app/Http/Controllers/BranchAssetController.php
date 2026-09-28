@@ -335,6 +335,23 @@ class BranchAssetController extends Controller
             ->with('success', 'Category "' . $data['name'] . '" created successfully.');
     }
 
+    public function storeLocation(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255|unique:asset_locations,name',
+            'type' => 'nullable|string|max:100',
+        ]);
+
+        \App\Models\AssetLocation::create([
+            'name'   => $data['name'],
+            'type'   => $data['type'] ?? 'branch',
+            'active' => true,
+        ]);
+
+        return redirect()->route('goa.asset-manager.inventory')
+            ->with('success', 'Location "' . $data['name'] . '" added successfully.');
+    }
+
     public function updateCategory(Request $request, $id)
     {
         $cat = BranchAssetCategory::findOrFail($id);

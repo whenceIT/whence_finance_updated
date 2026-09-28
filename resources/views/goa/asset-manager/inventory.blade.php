@@ -19,14 +19,15 @@ Overview - Asset Register
 
     {{-- Header --}}
     <div class="row mb-3">
-        <div class="col-md-8">
+        <div class="col-md-6">
             <h2 style="font-weight:700;color:#1e293b;margin-bottom:4px;"><i class="fa fa-list-alt" style="color:#2563eb;"></i> Asset Register</h2>
             <p class="text-muted" style="margin:0;">Full asset register — {{ number_format($grandTotals->total_lines ?? 0) }} records &nbsp;|&nbsp; Total Value: <strong>K{{ number_format($grandTotals->total_value ?? 0, 2) }}</strong></p>
         </div>
-        <div class="col-md-4 text-right" style="padding-top:10px;">
+        <div class="col-md-6 text-right" style="padding-top:10px;">
             <a href="{{ route('goa.asset-manager.dashboard') }}" class="btn btn-default btn-sm"><i class="fa fa-arrow-left"></i> Dashboard</a>
             <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addAssetModal"><i class="fa fa-plus"></i> Add Asset</button>
-            <button class="btn btn-default btn-sm" data-toggle="modal" data-target="#addCategoryModal"><i class="fa fa-tag"></i> Categories</button>
+            <button class="btn btn-default btn-sm" data-toggle="modal" data-target="#addLocationModal"><i class="fa fa-map-marker"></i> Add Location</button>
+            <button class="btn btn-default btn-sm" data-toggle="modal" data-target="#addCategoryModal"><i class="fa fa-tag"></i> Add Categories</button>
         </div>
     </div>
 
@@ -397,6 +398,40 @@ Overview - Asset Register
 </div>
 
 {{-- ============================================================ MODALS ============================================================ --}}
+
+{{-- Add Location Modal --}}
+<div class="modal fade" id="addLocationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="{{ route('goa.asset-manager.locations.store') }}">
+            @csrf
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title"><i class="fa fa-map-marker"></i> Add Location</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Location Name <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" placeholder="e.g. Head Office, Lae Branch" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select name="type" class="form-control">
+                            <option value="branch">Branch</option>
+                            <option value="office">Office</option>
+                            <option value="depot">Depot</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save Location</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 
 {{-- Add Asset Modal --}}
 <div class="modal fade" id="addAssetModal" tabindex="-1">

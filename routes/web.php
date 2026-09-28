@@ -451,6 +451,7 @@ Route::group(['prefix' => 'goa_dashboard'], function () {
     Route::post('asset-manager/verification',                      'BranchAssetController@requestVerification')->name('goa.asset-manager.verification.request');
     Route::post('asset-manager/verification/{id}/submit',          'BranchAssetController@submitVerification')->name('goa.asset-manager.verification.submit');
     Route::get('asset-manager/categories',                         'BranchAssetController@categories')->name('goa.asset-manager.categories');
+    Route::post('asset-manager/locations',                         'BranchAssetController@storeLocation')->name('goa.asset-manager.locations.store');
     Route::post('asset-manager/categories',                        'BranchAssetController@storeCategory')->name('goa.asset-manager.categories.store');
     Route::put('asset-manager/categories/{id}',                    'BranchAssetController@updateCategory')->name('goa.asset-manager.categories.update');
     Route::patch('asset-manager/categories/{id}/toggle',           'BranchAssetController@toggleCategory')->name('goa.asset-manager.categories.toggle');
