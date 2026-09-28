@@ -715,7 +715,7 @@ if ($summaryResponse->successful()) {
     */
 
 return view(
-    'cash-health.national',
+    'cash-health.national_adjusted',
     compact(
         'nationalHealth',
         'cycleStart',

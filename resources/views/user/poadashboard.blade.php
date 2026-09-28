@@ -20,180 +20,424 @@
 
 <div class="box box-danger">
 
-<div class="box-header with-border"
-     onclick="toggleEarlyWarning()"
-     style="cursor:pointer;">
+    <div class="box-header with-border"
+         onclick="toggleEarlyWarning()"
+         style="cursor:pointer;">
 
-    <h3 class="box-title">
-        <i class="fa fa-warning"></i>
-        Target Early Warning
-    </h3>
+        <h3 class="box-title">
+            <i class="fa fa-warning"></i>
+            Target Early Warning
+        </h3>
 
-    <div class="box-tools pull-right">
+        <div class="box-tools pull-right">
 
-        <span class="label label-danger"
-              style="font-size:13px; padding:6px 10px;">
-            {{ count($targetEarlyWarnings ?? []) }} Consultant(s)
-        </span>
+            @php
+                $earlyWarnings = $targetEarlyWarnings ?? [];
 
-        <button type="button"
-                class="btn btn-box-tool"
-                onclick="event.stopPropagation(); toggleEarlyWarning();">
-            <i id="earlyWarningArrow" class="fa fa-chevron-down"></i>
-        </button>
+                $warningCount = collect($earlyWarnings)
+                    ->where('warning', true)
+                    ->count();
+
+                $noDataCount = collect($earlyWarnings)
+                    ->where('status', 'no_data')
+                    ->count();
+            @endphp
+
+            <span class="label label-danger"
+                  style="font-size:13px; padding:6px 10px;">
+
+                {{ $warningCount }} Warning(s)
+
+            </span>
+
+            <button type="button"
+                    class="btn btn-box-tool"
+                    onclick="event.stopPropagation(); toggleEarlyWarning();">
+
+                <i id="earlyWarningArrow"
+                   class="fa fa-chevron-down"></i>
+
+            </button>
+
+        </div>
 
     </div>
 
-</div>
 
-<div class="box-body"
-     id="earlyWarningBody"
-     style="display:none;">
+    <div class="box-body"
+         id="earlyWarningBody"
+         style="display:none;">
 
-    @if(!empty($targetEarlyWarnings) && count($targetEarlyWarnings) > 0)
 
-        <div class="alert alert-danger" style="margin-bottom:15px;">
-            <i class="fa fa-exclamation-triangle"></i>
-            <strong>Early Warning:</strong>
-            The following loan consultants have missed their target
-            for <strong>two consecutive cycles</strong> and require attention.
-        </div>
+        @if(!empty($earlyWarnings) && count($earlyWarnings) > 0)
 
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover">
 
-                <thead style="background:#f4f4f4;">
-                    <tr>
-                        <th style="width:40px;">#</th>
-                        <th>Consultant</th>
-                        <th>Branch</th>
-                        <th>Target History</th>
-                        <th>Consecutive Misses</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
+            {{-- LEGEND --}}
+            <div style="
+                margin-bottom:15px;
+                padding:10px;
+                background:#f9f9f9;
+                border:1px solid #ddd;
+                border-radius:4px;
+            ">
 
-                <tbody>
+                <strong style="margin-right:15px;">
+                    Target History:
+                </strong>
 
-                    @foreach($targetEarlyWarnings as $index => $warning)
+                <span style="margin-right:15px;">
+                    <span style="
+                        display:inline-block;
+                        width:14px;
+                        height:14px;
+                        border-radius:50%;
+                        background:#00a65a;
+                        margin-right:4px;
+                        vertical-align:middle;
+                    "></span>
+
+                    Met
+                </span>
+
+
+                <span style="margin-right:15px;">
+                    <span style="
+                        display:inline-block;
+                        width:14px;
+                        height:14px;
+                        border-radius:50%;
+                        background:#dd4b39;
+                        margin-right:4px;
+                        vertical-align:middle;
+                    "></span>
+
+                    Missed
+                </span>
+
+
+                <span>
+                    <span style="
+                        display:inline-block;
+                        width:14px;
+                        height:14px;
+                        border-radius:50%;
+                        background:#999;
+                        margin-right:4px;
+                        vertical-align:middle;
+                    "></span>
+
+                    No Data
+                </span>
+
+            </div>
+
+
+            {{-- ACTUAL WARNINGS --}}
+            @if($warningCount > 0)
+
+                <div class="alert alert-danger"
+                     style="margin-bottom:15px;">
+
+                    <i class="fa fa-exclamation-triangle"></i>
+
+                    <strong>Early Warning:</strong>
+
+                    The following loan consultants have missed their
+                    target for <strong>two consecutive cycles</strong>
+                    and require attention.
+
+                </div>
+
+            @endif
+
+
+            {{-- NOT ENOUGH HISTORY --}}
+            @if($noDataCount > 0)
+
+                <div class="alert alert-info"
+                     style="margin-bottom:15px;">
+
+                    <i class="fa fa-info-circle"></i>
+
+                    <strong>Note:</strong>
+
+                    Some consultants do not yet have enough target
+                    history to determine whether they have missed
+                    two consecutive targets.
+
+                </div>
+
+            @endif
+
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered table-hover">
+
+                    <thead style="background:#f4f4f4;">
 
                         <tr>
 
-                            <td>{{ $index + 1 }}</td>
+                            <th style="width:40px;">
+                                #
+                            </th>
 
-                            <td>
-                                <strong>
-                                    {{ $warning['name'] ?? 'N/A' }}
-                                </strong>
-                            </td>
+                            <th>
+                                Consultant
+                            </th>
 
-                            <td>
-                                {{ $warning['office_name'] ?? $warning['office_id'] ?? 'N/A' }}
-                            </td>
+                            <th>
+                                Branch
+                            </th>
 
-                            <td>
+                            <th>
+                                Target History
+                            </th>
 
-                                @php
-                                    $history = $warning['target_history'] ?? [];
-                                @endphp
+                            <th>
+                                Status
+                            </th>
 
-                                <div style="white-space:nowrap;">
-
-                                    @foreach($history as $value)
-
-                                        @if((int)$value === 1)
-
-                                            <span title="Target Met"
-                                                  style="
-                                                    display:inline-block;
-                                                    width:16px;
-                                                    height:16px;
-                                                    border-radius:50%;
-                                                    background:#00a65a;
-                                                    margin-right:4px;
-                                                    vertical-align:middle;
-                                                  ">
-                                            </span>
-
-                                        @else
-
-                                            <span title="Target Missed"
-                                                  style="
-                                                    display:inline-block;
-                                                    width:16px;
-                                                    height:16px;
-                                                    border-radius:50%;
-                                                    background:#dd4b39;
-                                                    margin-right:4px;
-                                                    vertical-align:middle;
-                                                  ">
-                                            </span>
-
-                                        @endif
-
-                                    @endforeach
-
-                                </div>
-
-                                <small class="text-muted">
-                                    Newest → oldest
-                                </small>
-
-                            </td>
-
-                            <td>
-
-                                <span class="label label-danger"
-                                      style="font-size:12px;">
-
-                                    {{ $warning['consecutive_misses'] ?? 2 }}
-                                    consecutive misses
-
-                                </span>
-
-                            </td>
-
-                            <td>
-
-                                @if(!empty($warning['user_id']))
-
-                                    <a href="/user/{{ $warning['user_id'] }}/staff_info"
-                                       class="btn btn-xs btn-danger">
-
-                                        <i class="fa fa-user"></i>
-                                        View Consultant
-
-                                    </a>
-
-                                @endif
-
-                            </td>
+                            <th>
+                                Action
+                            </th>
 
                         </tr>
 
-                    @endforeach
+                    </thead>
 
-                </tbody>
 
-            </table>
-        </div>
+                    <tbody>
 
-    @else
+                        @foreach($earlyWarnings as $index => $warning)
 
-        <div class="alert alert-success"
-             style="margin-bottom:0;">
+                            @php
 
-            <i class="fa fa-check-circle"></i>
+                                $history =
+                                    $warning['target_history'] ?? [];
 
-            <strong>No early warnings.</strong>
-            No loan consultant has missed their target
-            for two consecutive cycles.
+                                $isWarning =
+                                    !empty($warning['warning']);
 
-        </div>
+                                $status =
+                                    $warning['status'] ?? '';
 
-    @endif
+                            @endphp
 
-</div>
+
+                            <tr>
+
+                                <td>
+                                    {{ $index + 1 }}
+                                </td>
+
+
+                                <td>
+
+                                    <strong>
+                                        {{ $warning['name'] ?? 'N/A' }}
+                                    </strong>
+
+                                </td>
+
+
+                                <td>
+
+                                    {{ $warning['office_name']
+                                        ?? $warning['office_id']
+                                        ?? 'N/A' }}
+
+                                </td>
+
+
+                                {{-- TARGET HISTORY --}}
+                                <td>
+
+                                    <div style="
+                                        white-space:nowrap;
+                                        margin-bottom:4px;
+                                    ">
+
+                                        @foreach($history as $value)
+
+                                            @if((int)$value === 1)
+
+                                                {{-- TARGET MET --}}
+
+                                                <span
+                                                    title="Target Met"
+                                                    style="
+                                                        display:inline-block;
+                                                        width:16px;
+                                                        height:16px;
+                                                        border-radius:50%;
+                                                        background:#00a65a;
+                                                        margin-right:4px;
+                                                        vertical-align:middle;
+                                                    ">
+                                                </span>
+
+
+                                            @elseif((int)$value === 0)
+
+                                                {{-- TARGET MISSED --}}
+
+                                                <span
+                                                    title="Target Missed"
+                                                    style="
+                                                        display:inline-block;
+                                                        width:16px;
+                                                        height:16px;
+                                                        border-radius:50%;
+                                                        background:#dd4b39;
+                                                        margin-right:4px;
+                                                        vertical-align:middle;
+                                                    ">
+                                                </span>
+
+
+                                            @elseif((int)$value === 2)
+
+                                                {{-- NO DATA --}}
+
+                                                <span
+                                                    title="No Target Data"
+                                                    style="
+                                                        display:inline-block;
+                                                        width:16px;
+                                                        height:16px;
+                                                        border-radius:50%;
+                                                        background:#999;
+                                                        margin-right:4px;
+                                                        vertical-align:middle;
+                                                    ">
+                                                </span>
+
+                                            @endif
+
+                                        @endforeach
+
+                                    </div>
+
+
+                                    <small class="text-muted">
+
+                                        Newest → oldest
+
+                                    </small>
+
+                                </td>
+
+
+                                {{-- STATUS --}}
+                                <td>
+
+                                    @if($isWarning)
+
+                                        <span class="label label-danger"
+                                              style="font-size:12px;">
+
+                                            <i class="fa fa-warning"></i>
+
+                                            {{ $warning['consecutive_misses'] ?? 2 }}
+                                            consecutive misses
+
+                                        </span>
+
+
+                                    @elseif($status === 'no_data')
+
+                                        <span class="label label-default"
+                                              style="font-size:12px;">
+
+                                            <i class="fa fa-info-circle"></i>
+
+                                            Not enough data
+
+                                        </span>
+
+
+                                        @if(isset($warning['cycles_with_data']))
+
+                                            <br>
+
+                                            <small class="text-muted">
+
+                                                {{
+                                                    $warning['cycles_with_data']
+                                                }}
+                                                historical cycle(s)
+
+                                            </small>
+
+                                        @endif
+
+
+                                    @else
+
+                                        <span class="label label-success"
+                                              style="font-size:12px;">
+
+                                            <i class="fa fa-check"></i>
+
+                                            No warning
+
+                                        </span>
+
+                                    @endif
+
+                                </td>
+
+
+                                {{-- ACTION --}}
+                                <td>
+
+                                    @if(!empty($warning['user_id']))
+
+                                        <a href="/user/{{ $warning['user_id'] }}/staff_info"
+                                           class="btn btn-xs
+                                           {{ $isWarning
+                                                ? 'btn-danger'
+                                                : 'btn-default' }}">
+
+                                            <i class="fa fa-user"></i>
+
+                                            View Consultant
+
+                                        </a>
+
+                                    @endif
+
+                                </td>
+
+                            </tr>
+
+                        @endforeach
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+        @else
+
+            <div class="alert alert-success"
+                 style="margin-bottom:0;">
+
+                <i class="fa fa-check-circle"></i>
+
+                <strong>No early warnings.</strong>
+
+                No loan consultant has missed their target
+                for two consecutive cycles.
+
+            </div>
+
+        @endif
+
+    </div>
 
 </div>
 
