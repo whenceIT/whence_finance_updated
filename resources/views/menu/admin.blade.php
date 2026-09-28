@@ -481,6 +481,7 @@ if (!Sentinel::check()) {
                             @if(in_array($role, [4,6]))
                             <li><a href="{{ route('collateral.approvals.queue') }}"><i class="fa fa-circle-o"></i>Collateral Approvals</a></li>
                             @endif
+                            
                         </ul>
                     </li>
                     @endif
@@ -928,6 +929,10 @@ if (!Sentinel::check()) {
                     @endif
                      @if(Sentinel::hasAccess('expenses'))
                         <li><a href="{{ url('client/transfer_approvals') }}"><i class="fa fa-circle-o"></i> Client Transfer Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{\App\Models\ClientTransferRequest::count()}}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\ClientTransferRequest::where('new_office_id',$office_id)->count() }}</span>@endif</a></li>
+                    @endif
+                    @if(Sentinel::hasAccess('settings'))
+                    <li><a href="{{ url('loan/pending_loan_transfers') }}"><i class="fa fa-circle-o"></i> Pending Loan Transfers <span class="label label-info pull-right-container" >{{\App\Models\LoanTransferRequest::count()}}</span></a>
+                                    </li>
                     @endif
 
                     @if(Sentinel::hasAccess('expenses'))

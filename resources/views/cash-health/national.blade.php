@@ -910,6 +910,357 @@
     @endforeach
 
 
+    {{-- ========================================================= --}}
+{{-- ISSUES REQUIRING ATTENTION --}}
+{{-- ========================================================= --}}
+
+<div style="
+    background:#fff;
+    border:1px solid #e6e9ef;
+    border-radius:14px;
+    padding:22px 25px;
+    margin-bottom:24px;
+">
+
+    <div style="
+        font-size:16px;
+        font-weight:700;
+        color:#202633;
+        margin-bottom:5px;
+    ">
+        Issues Requiring Attention
+    </div>
+
+    <div style="
+        font-size:12px;
+        color:#697386;
+        margin-bottom:18px;
+    ">
+        Number of provinces and branches currently showing
+        issues in each cash-health area.
+    </div>
+
+
+    <div style="
+        display:grid;
+        grid-template-columns:repeat(3,1fr);
+        gap:14px;
+    ">
+
+
+        {{-- DISBURSEMENT --}}
+
+        <div style="
+            border:1px solid #e7eaf0;
+            border-radius:10px;
+            padding:16px;
+        ">
+
+            <div style="
+                font-size:11px;
+                font-weight:700;
+                color:#697386;
+                text-transform:uppercase;
+            ">
+                Disbursement
+            </div>
+
+            <div style="
+                margin-top:9px;
+                font-size:22px;
+                font-weight:700;
+                color:#b45309;
+            ">
+
+                {{ $issues['disbursement']['branch_count'] ?? 0 }}
+
+            </div>
+
+            <div style="
+                margin-top:3px;
+                font-size:11px;
+                color:#8a93a3;
+            ">
+
+                branches affected
+
+            </div>
+
+            <div style="
+                margin-top:10px;
+                font-size:11px;
+                color:#697386;
+            ">
+
+                Across
+                <strong>
+                    {{ $issues['disbursement']['province_count'] ?? 0 }}
+                </strong>
+                provinces
+
+            </div>
+
+        </div>
+
+
+        {{-- COLLECTION --}}
+
+        <div style="
+            border:1px solid #e7eaf0;
+            border-radius:10px;
+            padding:16px;
+        ">
+
+            <div style="
+                font-size:11px;
+                font-weight:700;
+                color:#697386;
+                text-transform:uppercase;
+            ">
+                Collection
+            </div>
+
+            <div style="
+                margin-top:9px;
+                font-size:22px;
+                font-weight:700;
+                color:#dc2626;
+            ">
+
+                {{ $issues['collection']['branch_count'] ?? 0 }}
+
+            </div>
+
+            <div style="
+                margin-top:3px;
+                font-size:11px;
+                color:#8a93a3;
+            ">
+
+                branches affected
+
+            </div>
+
+            <div style="
+                margin-top:10px;
+                font-size:11px;
+                color:#697386;
+            ">
+
+                Across
+                <strong>
+                    {{ $issues['collection']['province_count'] ?? 0 }}
+                </strong>
+                provinces
+
+            </div>
+
+        </div>
+
+
+        {{-- RESIDUAL CASH --}}
+
+        <div style="
+            border:1px solid #e7eaf0;
+            border-radius:10px;
+            padding:16px;
+        ">
+
+            <div style="
+                font-size:11px;
+                font-weight:700;
+                color:#697386;
+                text-transform:uppercase;
+            ">
+                Residual Cash
+            </div>
+
+            <div style="
+                margin-top:9px;
+                font-size:22px;
+                font-weight:700;
+                color:#b45309;
+            ">
+
+                {{ $issues['residual_cash']['branch_count'] ?? 0 }}
+
+            </div>
+
+            <div style="
+                margin-top:3px;
+                font-size:11px;
+                color:#8a93a3;
+            ">
+
+                branches affected
+
+            </div>
+
+            <div style="
+                margin-top:10px;
+                font-size:11px;
+                color:#697386;
+            ">
+
+                Across
+                <strong>
+                    {{ $issues['residual_cash']['province_count'] ?? 0 }}
+                </strong>
+                provinces
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+{{-- ========================================================= --}}
+{{-- NET CONTRIBUTION PERFORMANCE --}}
+{{-- ========================================================= --}}
+
+<div style="
+    background:#fff;
+    border:1px solid #e6e9ef;
+    border-radius:14px;
+    padding:22px 25px;
+    margin-bottom:24px;
+">
+
+    <div style="
+        font-size:16px;
+        font-weight:700;
+        color:#202633;
+        margin-bottom:5px;
+    ">
+        Net Contribution
+    </div>
+
+    <div style="
+        font-size:12px;
+        color:#697386;
+        margin-bottom:18px;
+    ">
+        Shows whether the institution added or consumed cash
+        over different reporting periods.
+    </div>
+
+
+    @php
+
+        $contributionPeriods = [
+
+            'this_month' => 'This Month',
+
+            'last_month' => 'Last Month',
+
+            'this_quarter' => 'This Quarter',
+
+            'this_year' => 'This Year',
+
+            'last_year' => 'Last Year',
+
+        ];
+
+    @endphp
+
+
+    <div style="
+        display:grid;
+        grid-template-columns:repeat(5,1fr);
+        gap:10px;
+    ">
+
+        @foreach($contributionPeriods as $key => $label)
+
+            @php
+
+                $value =
+                    $contribution[$key] ?? 0;
+
+                $positive =
+                    $value >= 0;
+
+            @endphp
+
+
+            <div style="
+                border:1px solid #e7eaf0;
+                border-radius:10px;
+                padding:14px;
+            ">
+
+                <div style="
+                    font-size:10px;
+                    color:#8a93a3;
+                    font-weight:700;
+                    text-transform:uppercase;
+                ">
+                    {{ $label }}
+                </div>
+
+
+                <div style="
+                    margin-top:9px;
+                    font-size:17px;
+                    font-weight:700;
+                    color:{{ $positive ? '#15803d' : '#dc2626' }};
+                ">
+
+                    {{ $positive ? '+' : '-' }}
+                    K{{ number_format(abs($value), 0) }}
+
+                </div>
+
+
+                <div style="
+                    margin-top:6px;
+                    font-size:10px;
+                    color:{{ $positive ? '#15803d' : '#dc2626' }};
+                ">
+
+                    {{ $positive ? 'Positive contribution' : 'Negative contribution' }}
+
+                </div>
+
+            </div>
+
+        @endforeach
+
+    </div>
+
+
+    {{-- TREND INTERPRETATION --}}
+
+    @if(!empty($contribution['interpretation']))
+
+        <div style="
+            margin-top:16px;
+            padding:13px 15px;
+            background:#f8fafc;
+            border:1px solid #edf0f3;
+            border-radius:9px;
+            font-size:12px;
+            line-height:1.6;
+            color:#4b5563;
+        ">
+
+            <strong style="color:#202633;">
+                Sustainability:
+            </strong>
+
+            {{ $contribution['interpretation'] }}
+
+        </div>
+
+    @endif
+
+</div>
+
+
 
     {{-- ===================================================== --}}
     {{-- REASON --}}
@@ -944,6 +1295,202 @@
         </div>
 
     @endif
+
+</div>
+
+
+
+{{-- ========================================================= --}}
+{{-- POSITIVE / NEGATIVE CONTRIBUTORS --}}
+{{-- ========================================================= --}}
+
+<div style="
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+    margin-bottom:24px;
+">
+
+
+    {{-- POSITIVE --}}
+
+    <div style="
+        background:#fff;
+        border:1px solid #e6e9ef;
+        border-radius:14px;
+        overflow:hidden;
+    ">
+
+        <div style="
+            padding:18px 20px;
+            border-bottom:1px solid #edf0f3;
+        ">
+
+            <div style="
+                font-size:15px;
+                font-weight:700;
+                color:#202633;
+            ">
+                Positive Contributors
+            </div>
+
+            <div style="
+                margin-top:4px;
+                font-size:11px;
+                color:#697386;
+            ">
+                Provinces or branches adding positive value.
+            </div>
+
+        </div>
+
+
+        @forelse(
+            ($contributors['positive'] ?? []) as $item
+        )
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                padding:13px 20px;
+                border-bottom:1px solid #f0f2f5;
+                gap:15px;
+            ">
+
+                <div>
+
+                    <div style="
+                        font-size:12px;
+                        font-weight:600;
+                        color:#343b48;
+                    ">
+                        {{ $item['name'] ?? 'Unknown' }}
+                    </div>
+
+                </div>
+
+
+                <div style="
+                    font-size:12px;
+                    font-weight:700;
+                    color:#15803d;
+                    white-space:nowrap;
+                ">
+
+                    +K{{ number_format(
+                        abs($item['contribution'] ?? 0),
+                        0
+                    ) }}
+
+                </div>
+
+            </div>
+
+        @empty
+
+            <div style="
+                padding:20px;
+                font-size:12px;
+                color:#8a93a3;
+            ">
+                No positive contributors available.
+            </div>
+
+        @endforelse
+
+    </div>
+
+
+
+    {{-- NEGATIVE --}}
+
+    <div style="
+        background:#fff;
+        border:1px solid #e6e9ef;
+        border-radius:14px;
+        overflow:hidden;
+    ">
+
+        <div style="
+            padding:18px 20px;
+            border-bottom:1px solid #edf0f3;
+        ">
+
+            <div style="
+                font-size:15px;
+                font-weight:700;
+                color:#202633;
+            ">
+                Negative Contributors
+            </div>
+
+            <div style="
+                margin-top:4px;
+                font-size:11px;
+                color:#697386;
+            ">
+                Provinces or branches reducing institutional value.
+            </div>
+
+        </div>
+
+
+        @forelse(
+            ($contributors['negative'] ?? []) as $item
+        )
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                padding:13px 20px;
+                border-bottom:1px solid #f0f2f5;
+                gap:15px;
+            ">
+
+                <div>
+
+                    <div style="
+                        font-size:12px;
+                        font-weight:600;
+                        color:#343b48;
+                    ">
+                        {{ $item['name'] ?? 'Unknown' }}
+                    </div>
+
+                </div>
+
+
+                <div style="
+                    font-size:12px;
+                    font-weight:700;
+                    color:#dc2626;
+                    white-space:nowrap;
+                ">
+
+                    -K{{ number_format(
+                        abs($item['contribution'] ?? 0),
+                        0
+                    ) }}
+
+                </div>
+
+            </div>
+
+        @empty
+
+            <div style="
+                padding:20px;
+                font-size:12px;
+                color:#8a93a3;
+            ">
+                No negative contributors available.
+            </div>
+
+        @endforelse
+
+    </div>
 
 </div>
 
@@ -1386,6 +1933,35 @@
                 </th>
 
 
+                {{-- TYPE --}}
+
+<th style="
+    text-align:center;
+    padding:13px 15px;
+    font-size:11px;
+    color:#374151;
+    letter-spacing:.8px;
+    font-weight:700;
+">
+
+    <div>
+        TYPE
+    </div>
+
+    <div style="
+        font-size:10px;
+        font-weight:500;
+        letter-spacing:0;
+        text-transform:none;
+        margin-top:4px;
+        color:#6b7280;
+    ">
+        Main issue
+    </div>
+
+</th>
+
+
                 {{-- STATUS --}}
 
                 <th style="
@@ -1415,6 +1991,9 @@
                 </th>
 
 
+
+
+
                 {{-- DETAILS --}}
 
                 <th style="
@@ -1442,6 +2021,9 @@
                     </div>
 
                 </th>
+
+
+                
 
             </tr>
 
@@ -1600,6 +2182,29 @@
 
         </td>
 
+        <td style="
+    padding:16px 12px;
+    text-align:center;
+">
+
+    <span style="
+        display:inline-block;
+        padding:5px 8px;
+        border-radius:7px;
+        background:#f8fafc;
+        border:1px solid #e7eaf0;
+        color:#343b48;
+        font-size:9px;
+        font-weight:700;
+        line-height:1.3;
+    ">
+
+        {{ $provinceClassification['label'] ?? 'Not classified' }}
+
+    </span>
+
+</td>
+
 
         <td style="
             padding:16px;
@@ -1656,6 +2261,99 @@
             <div style="
                 padding:10px 30px 20px 55px;
             ">
+
+            {{-- ================================================= --}}
+{{-- PROVINCE ISSUE SUMMARY --}}
+{{-- ================================================= --}}
+
+@php
+
+    $provinceIssues =
+        $province['issues'] ?? [];
+
+@endphp
+
+
+<div style="
+    margin-bottom:14px;
+    background:#fff;
+    border:1px solid #e7eaf0;
+    border-radius:10px;
+    padding:15px;
+">
+
+    <div style="
+        font-size:11px;
+        font-weight:700;
+        color:#8a93a3;
+        text-transform:uppercase;
+        margin-bottom:10px;
+    ">
+        Issues Requiring Attention
+    </div>
+
+
+    <div style="
+        display:flex;
+        flex-wrap:wrap;
+        gap:10px;
+    ">
+
+
+        <div style="
+            padding:8px 10px;
+            background:#fff7ed;
+            border-radius:7px;
+            font-size:11px;
+            color:#9a3412;
+        ">
+
+            Disbursement:
+            <strong>
+                {{ $provinceIssues['disbursement']['branch_count'] ?? 0 }}
+            </strong>
+            branches
+
+        </div>
+
+
+        <div style="
+            padding:8px 10px;
+            background:#fef2f2;
+            border-radius:7px;
+            font-size:11px;
+            color:#991b1b;
+        ">
+
+            Collection:
+            <strong>
+                {{ $provinceIssues['collection']['branch_count'] ?? 0 }}
+            </strong>
+            branches
+
+        </div>
+
+
+        <div style="
+            padding:8px 10px;
+            background:#fff7ed;
+            border-radius:7px;
+            font-size:11px;
+            color:#9a3412;
+        ">
+
+            Residual Cash:
+            <strong>
+                {{ $provinceIssues['residual_cash']['branch_count'] ?? 0 }}
+            </strong>
+            branches
+
+        </div>
+
+
+    </div>
+
+</div>
 
 
                 @foreach(($province['districts'] ?? []) as $district)
