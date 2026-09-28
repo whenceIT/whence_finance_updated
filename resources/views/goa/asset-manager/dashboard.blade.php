@@ -1,6 +1,6 @@
 ﻿@extends('layouts.master')
 @section('title')
-    GOA Manager - Asset Manager Dashboard
+Overview - Statistics
 @endsection
 @section('content')
 <div class="container-fluid">
@@ -40,59 +40,94 @@
     </div>
 
     {{-- Summary Stats --}}
-    <div class="row">
-        <div class="col-md-2 col-sm-4 col-xs-6">
-            <div class="info-box">
-                <span class="info-box-icon bg-blue"><i class="fa fa-cubes"></i></span>
-                <div class="info-box-content">
-                    <span class="info-box-text">Total Items</span>
-                    <span class="info-box-number">{{ number_format($totalItems) }}</span>
-                </div>
+    <style>
+        .asset-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .asset-stat-card {
+            display: flex;
+            align-items: stretch;
+            background: #fff;
+            border-radius: 6px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.12);
+            overflow: hidden;
+            flex: 1 1 130px;
+            min-width: 120px;
+        }
+        .asset-stat-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 54px;
+            min-width: 54px;
+            font-size: 22px;
+            color: #fff;
+        }
+        .asset-stat-body {
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .asset-stat-label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            line-height: 1.3;
+            margin-bottom: 2px;
+        }
+        .asset-stat-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1e293b;
+            line-height: 1;
+        }
+    </style>
+    <div class="asset-stats">
+        <div class="asset-stat-card">
+            <div class="asset-stat-icon" style="background:#2563eb;"><i class="fa fa-cubes"></i></div>
+            <div class="asset-stat-body">
+                <span class="asset-stat-label">Total Items</span>
+                <span class="asset-stat-value">{{ number_format($totalItems) }}</span>
             </div>
         </div>
-        <div class="col-md-2 col-sm-4 col-xs-6">
-            <div class="info-box">
-                <span class="info-box-icon bg-green"><i class="fa fa-check-circle"></i></span>
-                <div class="info-box-content">
-                    <span class="info-box-text">Working</span>
-                    <span class="info-box-number">{{ number_format($totalWorking) }}</span>
-                </div>
+        <div class="asset-stat-card">
+            <div class="asset-stat-icon" style="background:#27ae60;"><i class="fa fa-check-circle"></i></div>
+            <div class="asset-stat-body">
+                <span class="asset-stat-label">Working</span>
+                <span class="asset-stat-value">{{ number_format($totalWorking) }}</span>
             </div>
         </div>
-        <div class="col-md-2 col-sm-4 col-xs-6">
-            <div class="info-box">
-                <span class="info-box-icon bg-red"><i class="fa fa-times-circle"></i></span>
-                <div class="info-box-content">
-                    <span class="info-box-text">Damaged</span>
-                    <span class="info-box-number">{{ number_format($totalDamaged) }}</span>
-                </div>
+        <div class="asset-stat-card">
+            <div class="asset-stat-icon" style="background:#e74c3c;"><i class="fa fa-times-circle"></i></div>
+            <div class="asset-stat-body">
+                <span class="asset-stat-label">Damaged</span>
+                <span class="asset-stat-value">{{ number_format($totalDamaged) }}</span>
             </div>
         </div>
-        <div class="col-md-2 col-sm-4 col-xs-6">
-            <div class="info-box">
-                <span class="info-box-icon bg-orange"><i class="fa fa-wrench"></i></span>
-                <div class="info-box-content">
-                    <span class="info-box-text">Under Repair</span>
-                    <span class="info-box-number">{{ number_format($totalUnderRepair) }}</span>
-                </div>
+        <div class="asset-stat-card">
+            <div class="asset-stat-icon" style="background:#e67e22;"><i class="fa fa-wrench"></i></div>
+            <div class="asset-stat-body">
+                <span class="asset-stat-label">Under Repair</span>
+                <span class="asset-stat-value">{{ number_format($totalUnderRepair) }}</span>
             </div>
         </div>
-        <div class="col-md-2 col-sm-4 col-xs-6">
-            <div class="info-box">
-                <span class="info-box-icon bg-yellow"><i class="fa fa-question-circle"></i></span>
-                <div class="info-box-content">
-                    <span class="info-box-text">Missing</span>
-                    <span class="info-box-number">{{ number_format($totalMissing) }}</span>
-                </div>
+        <div class="asset-stat-card">
+            <div class="asset-stat-icon" style="background:#f39c12;"><i class="fa fa-question-circle"></i></div>
+            <div class="asset-stat-body">
+                <span class="asset-stat-label">Missing</span>
+                <span class="asset-stat-value">{{ number_format($totalMissing) }}</span>
             </div>
         </div>
-        <div class="col-md-2 col-sm-4 col-xs-6">
-            <div class="info-box">
-                <span class="info-box-icon" style="background:{{ $overallCondition >= 90 ? '#27ae60' : ($overallCondition >= 70 ? '#f39c12' : '#e74c3c') }};"><i class="fa fa-bar-chart"></i></span>
-                <div class="info-box-content">
-                    <span class="info-box-text">Overall Condition</span>
-                    <span class="info-box-number">{{ $overallCondition }}%</span>
-                </div>
+        <div class="asset-stat-card">
+            <div class="asset-stat-icon" style="background:{{ $overallCondition >= 90 ? '#27ae60' : ($overallCondition >= 70 ? '#f39c12' : '#e74c3c') }};"><i class="fa fa-bar-chart"></i></div>
+            <div class="asset-stat-body">
+                <span class="asset-stat-label">Overall Condition</span>
+                <span class="asset-stat-value">{{ $overallCondition }}%</span>
             </div>
         </div>
     </div>

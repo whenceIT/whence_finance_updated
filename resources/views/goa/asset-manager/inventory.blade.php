@@ -1,5 +1,7 @@
 ﻿@extends('layouts.master')
-@section('title')GOA Manager - Asset Register @endsection
+@section('title')
+Overview - Asset Register 
+@endsection
 @section('content')
 <div class="container-fluid">
 
@@ -29,59 +31,94 @@
     </div>
 
     {{-- Grand total stat bar --}}
-    <div class="row mb-2">
-        <div class="col-md-2 col-sm-4 col-xs-6">
-            <div class="info-box" style="min-height:70px;">
-                <span class="info-box-icon bg-blue" style="height:70px;line-height:70px;"><i class="fa fa-cubes"></i></span>
-                <div class="info-box-content" style="padding:8px 10px;">
-                    <span class="info-box-text">Total Lines</span>
-                    <span class="info-box-number">{{ number_format($grandTotals->total_lines ?? 0) }}</span>
-                </div>
+    <style>
+        .asset-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .asset-stat-card {
+            display: flex;
+            align-items: stretch;
+            background: #fff;
+            border-radius: 6px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.12);
+            overflow: hidden;
+            flex: 1 1 130px;
+            min-width: 120px;
+        }
+        .asset-stat-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 54px;
+            min-width: 54px;
+            font-size: 22px;
+            color: #fff;
+        }
+        .asset-stat-body {
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .asset-stat-label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            line-height: 1.3;
+            margin-bottom: 2px;
+        }
+        .asset-stat-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1e293b;
+            line-height: 1;
+        }
+    </style>
+    <div class="asset-stats">
+        <div class="asset-stat-card">
+            <div class="asset-stat-icon" style="background:#2563eb;"><i class="fa fa-cubes"></i></div>
+            <div class="asset-stat-body">
+                <span class="asset-stat-label">Total Lines</span>
+                <span class="asset-stat-value">{{ number_format($grandTotals->total_lines ?? 0) }}</span>
             </div>
         </div>
-        <div class="col-md-2 col-sm-4 col-xs-6">
-            <div class="info-box" style="min-height:70px;">
-                <span class="info-box-icon bg-aqua" style="height:70px;line-height:70px;"><i class="fa fa-hashtag"></i></span>
-                <div class="info-box-content" style="padding:8px 10px;">
-                    <span class="info-box-text">Total Qty</span>
-                    <span class="info-box-number">{{ number_format($grandTotals->total_qty ?? 0) }}</span>
-                </div>
+        <div class="asset-stat-card">
+            <div class="asset-stat-icon" style="background:#0891b2;"><i class="fa fa-hashtag"></i></div>
+            <div class="asset-stat-body">
+                <span class="asset-stat-label">Total Qty</span>
+                <span class="asset-stat-value">{{ number_format($grandTotals->total_qty ?? 0) }}</span>
             </div>
         </div>
-        <div class="col-md-2 col-sm-4 col-xs-6">
-            <div class="info-box" style="min-height:70px;">
-                <span class="info-box-icon bg-yellow" style="height:70px;line-height:70px;"><i class="fa fa-money"></i></span>
-                <div class="info-box-content" style="padding:8px 10px;">
-                    <span class="info-box-text">Total Value (K)</span>
-                    <span class="info-box-number" style="font-size:1rem;">{{ number_format($grandTotals->total_value ?? 0, 0) }}</span>
-                </div>
+        <div class="asset-stat-card">
+            <div class="asset-stat-icon" style="background:#f39c12;"><i class="fa fa-money"></i></div>
+            <div class="asset-stat-body">
+                <span class="asset-stat-label">Total Value (K)</span>
+                <span class="asset-stat-value" style="font-size:18px;">{{ number_format($grandTotals->total_value ?? 0, 0) }}</span>
             </div>
         </div>
-        <div class="col-md-2 col-sm-4 col-xs-6">
-            <div class="info-box" style="min-height:70px;">
-                <span class="info-box-icon bg-green" style="height:70px;line-height:70px;"><i class="fa fa-check-circle"></i></span>
-                <div class="info-box-content" style="padding:8px 10px;">
-                    <span class="info-box-text">Working</span>
-                    <span class="info-box-number">{{ number_format($grandTotals->total_working ?? 0) }}</span>
-                </div>
+        <div class="asset-stat-card">
+            <div class="asset-stat-icon" style="background:#27ae60;"><i class="fa fa-check-circle"></i></div>
+            <div class="asset-stat-body">
+                <span class="asset-stat-label">Working</span>
+                <span class="asset-stat-value">{{ number_format($grandTotals->total_working ?? 0) }}</span>
             </div>
         </div>
-        <div class="col-md-2 col-sm-4 col-xs-6">
-            <div class="info-box" style="min-height:70px;">
-                <span class="info-box-icon bg-red" style="height:70px;line-height:70px;"><i class="fa fa-times-circle"></i></span>
-                <div class="info-box-content" style="padding:8px 10px;">
-                    <span class="info-box-text">Damaged</span>
-                    <span class="info-box-number">{{ number_format($grandTotals->total_damaged ?? 0) }}</span>
-                </div>
+        <div class="asset-stat-card">
+            <div class="asset-stat-icon" style="background:#e74c3c;"><i class="fa fa-times-circle"></i></div>
+            <div class="asset-stat-body">
+                <span class="asset-stat-label">Damaged</span>
+                <span class="asset-stat-value">{{ number_format($grandTotals->total_damaged ?? 0) }}</span>
             </div>
         </div>
-        <div class="col-md-2 col-sm-4 col-xs-6">
-            <div class="info-box" style="min-height:70px;">
-                <span class="info-box-icon bg-purple" style="height:70px;line-height:70px;"><i class="fa fa-question-circle"></i></span>
-                <div class="info-box-content" style="padding:8px 10px;">
-                    <span class="info-box-text">Missing</span>
-                    <span class="info-box-number">{{ number_format($grandTotals->total_missing ?? 0) }}</span>
-                </div>
+        <div class="asset-stat-card">
+            <div class="asset-stat-icon" style="background:#8e44ad;"><i class="fa fa-question-circle"></i></div>
+            <div class="asset-stat-body">
+                <span class="asset-stat-label">Missing</span>
+                <span class="asset-stat-value">{{ number_format($grandTotals->total_missing ?? 0) }}</span>
             </div>
         </div>
     </div>
