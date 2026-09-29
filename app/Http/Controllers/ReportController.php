@@ -938,7 +938,7 @@ class ReportController extends Controller
 
 
                 $new_loans = Loan::whereIn('status', ['disbursed', 'closed'])->whereBetween(
-                    'disbursement_date',
+                    'created_date',
                     [$start_date, $end_date]
                 )->when($office_id, function ($query) use ($office_id) {
                     if ($office_id != 0) {
@@ -1017,7 +1017,7 @@ $top_up = LoanTopUp::whereBetween('date', [$start_date, $end_date])
 
 
                 $new_loans = Loan::whereIn('status', ['disbursed', 'closed'])->whereBetween(
-                    'disbursement_date',
+                    'created_date',
                     [$start_date, $end_date]
                 )->when($office_id, function ($query) use ($office_id) {
                     if ($office_id != 0) {
@@ -1080,7 +1080,7 @@ $targets_met = TargetsMet::whereBetween('date', [$start_date, $end_date])
                     ->whereBetween('created_date', [$start_date, $end_date])->get();
 
                 $new_loans = Loan::whereIn('status', ['disbursed', 'closed'])
-                    ->whereBetween('disbursement_date', [$start_date, $end_date])->when($office_id, function ($query) use ($office_id) {
+                    ->whereBetween('created_date', [$start_date, $end_date])->when($office_id, function ($query) use ($office_id) {
                         if ($office_id != 0) {
                             $query->where('office_id', '=', $office_id);
                         }
@@ -1156,7 +1156,7 @@ $targets_met = TargetsMet::whereBetween('date', [$start_date, $end_date])
     ->get();
 
            $new_loans = Loan::whereIn('status', ['disbursed', 'closed'])
-    ->whereBetween('disbursement_date', [$start_date, $end_date])
+    ->whereBetween('created_date', [$start_date, $end_date])
     ->where('loan_product_id', $loan_product)
     ->when($office_id, function ($query) use ($office_id) {
         if ($office_id != 0) {
