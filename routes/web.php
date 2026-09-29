@@ -669,6 +669,7 @@ Route::group(['prefix' => 'risk'], function () {
     Route::get('dashboard/branch-cash-balances', [RiskDashboardController::class, 'branchCashBalances'])->name('risk.dashboard.branch-cash-balances');
     Route::get('dashboard/late-disbursements', [RiskDashboardController::class, 'lateDisbursementsDetail'])->name('risk.dashboard.late-disbursements');
     Route::get('dashboard/blockages-detail', [RiskDashboardController::class, 'blockagesDetail'])->name('risk.dashboard.blockages-detail');
+    Route::get('dashboard/blocking-history', [RiskDashboardController::class, 'blockingHistoryDetail'])->name('risk.dashboard.blocking-history');
     Route::get('overview', [RiskController::class, 'overview'])->name('risk.overview');
     Route::get('audit-trail', [RiskController::class, 'auditTrail']);
     Route::get('heat-map', [RiskController::class, 'heatMap'])->name('risk.heat-map');
@@ -1024,6 +1025,7 @@ Route::group(['prefix' => 'loan'], function () {
     Route::get('reloan_approvals', 'LoanController@reloan_approvals');
     Route::get('transaction_approvals', 'LoanController@transaction_approvals');
     Route::get('approved_recoveries', 'Recoveries\RecoveryTransactionController@approvedRecoveries');
+    Route::get('recovery/ledger', 'Recoveries\RecoveryTransactionController@recoveryLedger');
     Route::get('recoveries_approvals', 'Recoveries\RecoveryCaseController@recoveriesApprovals');
     Route::get('recoveries_approve/{id}', 'Recoveries\RecoveryCaseController@recoveriesApprove');
     Route::get('recoveries_decline/{id}', 'Recoveries\RecoveryCaseController@recoveriesDecline');

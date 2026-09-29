@@ -28,7 +28,6 @@
 1 - big card (Total Overall Recovered)
 4 - equal small cards (Active Cases, Resolved Cases, Specialists, Dept. Unit Share)
 -->
-@include('recoveries._partials.bento-grid')
 <hr >
 {{-- Period Selector --}}
 <div class="box box-default">

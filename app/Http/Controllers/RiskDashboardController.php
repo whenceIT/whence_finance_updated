@@ -12,6 +12,7 @@ use App\Models\Expense;
 use App\Models\Office;
 use App\Models\Loan;
 use App\Models\Blockage;
+use App\Models\OfficeBlockingHistory;
 
 class RiskDashboardController extends Controller
 {
@@ -52,6 +53,12 @@ class RiskDashboardController extends Controller
             ->count();
 
         $totalBlocked = Blockage::count();
+
+        // Blocking rate: 48 ÷ sum(blocked_count) × 100
+        $totalBlockedCount = OfficeBlockingHistory::sum('blocked_count');
+        $blockingRate = $totalBlockedCount > 0
+            ? round((48 / $totalBlockedCount) * 100, 1)
+            : 0;
             
         // Get deadlines for countdown
         $buildingDeadline = Deadline::where('name', 'Building & Infrastructure fee deposits')->first();
@@ -77,6 +84,8 @@ class RiskDashboardController extends Controller
             'pendingExpenseApprovals',
             'lateDisbursementsThisWeek',
             'totalBlocked',
+            'blockingRate',
+            'totalBlockedCount',
             'buildingDeadline',
             'adminDeadline',
             'statutoryDeadline',
@@ -193,6 +202,33 @@ class RiskDashboardController extends Controller
         return response()->json([
             'success' => true,
             'data' => $grouped,
+        ]);
+    }
+
+    /**
+     * Return office blocking history ordered by blocked_count desc for modal display
+     */
+    public function blockingHistoryDetail(Request $request)
+    {
+        $histories = OfficeBlockingHistory::with(['office' => fn($q) => $q->select('id', 'name')])
+            ->orderByDesc('blocked_count')
+            ->get()
+            ->map(function ($row) {
+                return [
+                    'id'             => $row->id,
+                    'office'         => $row->office ? ['id' => $row->office->id, 'name' => $row->office->name] : null,
+                    'blocked_count'  => $row->blocked_count,
+                    'reason'         => $row->reason,
+                    'last_blocked_at'=> $row->last_blocked_at?->toDateTimeString(),
+                ];
+            });
+
+        $totalCount = $histories->sum('blocked_count');
+
+        return response()->json([
+            'success' => true,
+            'data'    => $histories,
+            'total_blocked_count' => $totalCount,
         ]);
     }
 
