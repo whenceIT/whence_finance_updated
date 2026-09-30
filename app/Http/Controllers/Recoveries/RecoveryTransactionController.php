@@ -219,43 +219,6 @@ class RecoveryTransactionController extends Controller
             return $transaction->loan && $transaction->loan->client;
         })->pluck('loan.client.id')->unique()->count();
 
-        // Group transactions by case for case-level summary
-        $casesSummary = [];
-        $transactionsByCase = $transactions->groupBy(function($transaction) {
-            return $transaction->recovery_case ? $transaction->recovery_case->id : 'no_case';
-        });
-
-        foreach ($transactionsByCase as $caseId => $caseTransactions) {
-            $firstTransaction = $caseTransactions->first();
-            $case = $firstTransaction->recovery_case;
-            $caseAmount = $caseTransactions->sum('credit');
-            $caseDebit = $caseTransactions->sum('debit');
-            
-            $casesSummary[] = [
-                'case' => $case,
-                'loan_id' => $firstTransaction->loan_id,
-                'client' => $firstTransaction->loan ? $firstTransaction->loan->client : null,
-                'total_credit' => $caseAmount,
-                'total_debit' => $caseDebit,
-                'net_amount' => $caseAmount - $caseDebit,
-                'transaction_count' => $caseTransactions->count(),
-                'first_payment' => $caseTransactions->sortBy('created_at')->first()->created_at,
-                'last_payment' => $caseTransactions->sortByDesc('created_at')->first()->created_at,
-            ];
-        }
-
-        // Group by date for daily breakdown
-        $dailyBreakdown = $transactions->groupBy(function($transaction) {
-            return Carbon::parse($transaction->created_at)->format('Y-m-d');
-        })->map(function($dayTransactions) {
-            return [
-                'credit' => $dayTransactions->sum('credit'),
-                'debit' => $dayTransactions->sum('debit'),
-                'net' => $dayTransactions->sum('credit') - $dayTransactions->sum('debit'),
-                'count' => $dayTransactions->count(),
-            ];
-        })->sortKeysDesc();
-
         // Get offices for filter dropdown
         if (Sentinel::hasAccess('settings')) {
             $offices = Office::orderBy('name')->get();
@@ -297,8 +260,6 @@ class RecoveryTransactionController extends Controller
 
         return view('recoveries.transactions.ledger', compact(
             'transactions',
-            'casesSummary',
-            'dailyBreakdown',
             'totalAmount',
             'totalDebit',
             'netAmount',

@@ -115,27 +115,6 @@
     background: white;
     padding: 0;
 }
-.cases-summary {
-    margin-bottom: 25px;
-}
-.cases-summary table {
-    width: 100%;
-    border-collapse: collapse;
-}
-.cases-summary th {
-    background: #f8f9fa;
-    padding: 10px 15px;
-    text-align: left;
-    font-weight: 600;
-    border-bottom: 2px solid #e9ecef;
-}
-.cases-summary td {
-    padding: 8px 15px;
-    border-bottom: 1px solid #eee;
-}
-.cases-summary tr:hover {
-    background: #f8f9fa;
-}
 .daily-breakdown table {
     width: 100%;
     border-collapse: collapse;
@@ -225,7 +204,7 @@
 
 <!-- Filter Form -->
 <div class="filter-section">
-    <form method="GET" action="{{ url('recovery/ledger') }}" class="filter-form">
+    <form method="GET" action="{{ url('loan/recovery/ledger') }}" class="filter-form">
         <div class="form-group">
             <label>Period</label>
             <select name="period" class="form-control" style="min-width: 120px;">
@@ -273,101 +252,12 @@
             <button type="submit" class="btn btn-sm btn-primary">
                 <i class="fa fa-filter"></i> Apply Filters
             </button>
-            <a href="{{ url('recovery/ledger') }}" class="btn btn-sm btn-default">
+            <a href="{{ url('loan/recovery/ledger') }}" class="btn btn-sm btn-default">
                 <i class="fa fa-refresh"></i> Reset
             </a>
         </div>
     </form>
 </div>
-
-<!-- Cases Summary -->
-@if(count($casesSummary) > 0)
-<div class="cases-summary">
-    <h4 style="margin-bottom: 15px;"><i class="fa fa-folder-open"></i> Cases Overview</h4>
-    <table class="table table-bordered table-hover">
-        <thead>
-            <tr>
-                <th>Case #</th>
-                <th>Client</th>
-                <th>Loan ID</th>
-                <th>Specialist</th>
-                <th class="text-right">Credits</th>
-                <th class="text-right">Debits</th>
-                <th class="text-right">Net</th>
-                <th class="text-center">Transactions</th>
-                <th>First Payment</th>
-                <th>Last Payment</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($casesSummary as $summary)
-            <tr>
-                <td>{{ $summary['case']->case_number ?? 'N/A' }}</td>
-                <td>
-                    @if($summary['client'])
-                        {{ $summary['client']->first_name }} {{ $summary['client']->last_name }}
-                        <br><small class="text-muted">{{ $summary['client']->phone ?? '' }}</small>
-                    @else
-                        <span class="text-muted">N/A</span>
-                    @endif
-                </td>
-                <td>
-                    @if($summary['loan_id'])
-                        <a href="{{ url('loan/'.$summary['loan_id'].'/show') }}">{{ $summary['loan_id'] }}</a>
-                    @else
-                        N/A
-                    @endif
-                </td>
-                <td>
-                    @if($summary['case']->assignedSpecialist)
-                        {{ $summary['case']->assignedSpecialist->first_name }} {{ $summary['case']->assignedSpecialist->last_name }}
-                    @else
-                        <span class="text-muted">Not Assigned</span>
-                    @endif
-                </td>
-                <td class="text-right text-success">+K{{ number_format($summary['total_credit'], 2) }}</td>
-                <td class="text-right text-danger">-K{{ number_format($summary['total_debit'], 2) }}</td>
-                <td class="text-right font-weight-bold">K{{ number_format($summary['net_amount'], 2) }}</td>
-                <td class="text-center">{{ $summary['transaction_count'] }}</td>
-                <td>{{ $summary['first_payment'] ? \Carbon\Carbon::parse($summary['first_payment'])->format('d M Y') : 'N/A' }}</td>
-                <td>{{ $summary['last_payment'] ? \Carbon\Carbon::parse($summary['last_payment'])->format('d M Y') : 'N/A' }}</td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-</div>
-@endif
-
-<!-- Daily Breakdown -->
-@if(count($dailyBreakdown) > 0)
-<div class="cases-summary">
-    <h4 style="margin-bottom: 15px;"><i class="fa fa-line-chart"></i> Daily Breakdown</h4>
-    <div class="daily-breakdown table-responsive">
-        <table class="table table-bordered table-sm">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th class="text-right">Credits</th>
-                    <th class="text-right">Debits</th>
-                    <th class="text-right">Net</th>
-                    <th class="text-center">Transactions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($dailyBreakdown as $date => $data)
-                <tr>
-                    <td>{{ $date }}</td>
-                    <td class="text-right text-success">K{{ number_format($data['credit'], 2) }}</td>
-                    <td class="text-right text-danger">K{{ number_format($data['debit'], 2) }}</td>
-                    <td class="text-right font-weight-bold">K{{ number_format($data['net'], 2) }}</td>
-                    <td class="text-center">{{ $data['count'] }}</td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
-</div>
-@endif
 
 <!-- All Transactions Table -->
 @if(count($transactions) > 0)
@@ -375,6 +265,21 @@
         <div class="box-header" style="background: #f8f9fa; border-bottom: 2px solid #e9ecef;">
             <h3 class="box-title" style="padding: 10px;">
                 <i class="fa fa-table"></i> All Transactions
+                <small class="text-muted" style="font-weight: 400;">
+                    @php
+                        $periodLabels = [
+                            'daily' => 'Today',
+                            'weekly' => 'This Week',
+                            'monthly' => 'This Month',
+                            'yearly' => 'This Year',
+                        ];
+                    @endphp
+                    @if($period === 'custom' && $startDate && $endDate)
+                        ({{ date('d M Y', strtotime($startDate)) }} &ndash; {{ date('d M Y', strtotime($endDate)) }})
+                    @else
+                        ({{ $periodLabels[$period] ?? 'All Time' }})
+                    @endif
+                </small>
             </h3>
             <div class="box-tools">
                 <span class="text-muted">
