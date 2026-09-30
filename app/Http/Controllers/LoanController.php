@@ -4054,8 +4054,11 @@ $new_balance = $debit_amount - $credit_amount;
 
                 // Send SMS to client about the transaction (only for enabled offices)
                 $enabledOffices = config('smsoffices.enabled_offices', []);
-                if (in_array($loan->office_id, $enabledOffices)) {
-                    $this->bulkSms->sendToClients([$client], $message);
+
+                if($loan->loan_product_id == 2){
+                    if (in_array($loan->office_id, $enabledOffices) && $loan->loan_product_id == 2) {
+                        $this->bulkSms->sendToClients([$client], $message);
+                    }
                 }
                 
                 
