@@ -80,7 +80,7 @@
 
 
 <!-- Dynamic Headline based on current filters -->
-<div style="margin: 20px 0 25px 0; padding: 20px 25px; background: linear-gradient(135deg, #ebeef8 0%, #cac8cc 100%); border-radius: 12px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+<div style="margin: 20px 0 25px 0; padding: 20px 25px; background: linear-gradient(135deg, #b2b6c5 0%, #cac8cc 100%); border-radius: 12px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
     <div style="display: flex; align-items: center; justify-content: space-between;">
         <div>
             <h2 style="margin: 0 0 8px 0; color: #272636; font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px;">
@@ -120,8 +120,7 @@
      ROW 1 — Primary KPI info-boxes
 ══════════════════════════════════════════ --}}
 <div class="row">
-
-    <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
+    <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
         <div class="info-box bg-green">
             <span class="info-box-icon"><i class="fa fa-money"></i></span>
             <div class="info-box-content">
@@ -131,7 +130,7 @@
                         <i class="fa fa-database"></i> Fund
                     </button>
                 </span>
-                <span class="info-box-number">{{ number_format($kpis['totalRecovered'], 2) }}</span>
+                <span class="info-box-number">{{ number_format($kpis['totalRecovered'] + $funds, 2) }}</span>
                 <div class="progress">
                     <div class="progress-bar"
                          style="width:{{ $kpis['recoveredChange'] !== null ? min(abs($kpis['recoveredChange']),100) : 0 }}%">
@@ -149,25 +148,25 @@
         </div>
     </div>
 
-    <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
-        <div class="info-box bg-aqua">
-            <span class="info-box-icon"><i class="fa fa-university"></i></span>
+    <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
+        <div class="info-box bg-blue">
+            <span class="info-box-icon"><i class="fa fa-briefcase"></i></span>
             <div class="info-box-content">
-                <span class="info-box-text">Dept. Attribution</span>
-                <span class="info-box-number">{{ number_format($kpis['deptRecovered'], 2) }}</span>
+                <span class="info-box-text">Dept. Cash Collected</span>
+                <span class="info-box-number">{{ number_format($kpis['unitShare'], 2) }}</span>
                 <div class="progress">
                     <div class="progress-bar"
-                         style="width:{{ $kpis['totalRecovered'] > 0 ? round(($kpis['deptRecovered']/$kpis['totalRecovered'])*100) : 0 }}%">
+                         style="width:{{ $kpis['deptRecovered'] > 0 ? min(round(($kpis['unitShare']/$kpis['deptRecovered'])*100), 100) : 0 }}%">
                     </div>
                 </div>
                 <span class="progress-description">
-                    {{ $kpis['totalRecovered'] > 0 ? round(($kpis['deptRecovered']/$kpis['totalRecovered'])*100) : 0 }}% of gross
+                    Unit shares recorded {{ $period === 'custom' ? 'in range' : 'this ' . $period }}
                 </span>
             </div>
         </div>
     </div>
 
-    <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
+    <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
         <div class="info-box bg-yellow">
             <span class="info-box-icon"><i class="fa fa-folder-open"></i></span>
             <div class="info-box-content">
@@ -185,7 +184,7 @@
         </div>
     </div>
 
-    <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
+    <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
         <div class="info-box bg-red">
             <span class="info-box-icon"><i class="fa fa-exclamation-triangle"></i></span>
             <div class="info-box-content">
@@ -198,25 +197,32 @@
             </div>
         </div>
     </div>
-
 </div>
 
 {{-- ═══════════════════════════════════════════
      ROW 2 — Net Recovery strip (secondary info-boxes)
+     Five cards across a 12-col grid: 20% each at lg so the row
+     spans the full width. Below lg it falls back to the normal grid.
 ══════════════════════════════════════════ --}}
-<div class="row">
+<style>
+@media (min-width: 1200px) {
+    .kpi-row-5 { display: flex; flex-wrap: wrap; }
+    .kpi-row-5 > [class*="col-"] { flex: 0 0 20%; max-width: 20%; }
+}
+</style>
+<div class="row kpi-row-5">
 
-    <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
+    <div class="col-lg-2 col-md-4 col-sm-6 col-xs-12">
         <div class="info-box">
             <span class="info-box-icon bg-green"><i class="fa fa-line-chart"></i></span>
             <div class="info-box-content">
                 <span class="info-box-text">Net Recovered</span>
-                <span class="info-box-number">{{ number_format($kpis['netRecovered'], 2) }}</span>
+                <span class="info-box-number">{{ number_format($kpis['netRecovered'] + $funds, 2) }}</span>
             </div>
         </div>
     </div>
 
-    <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
+    <div class="col-lg-2 col-md-4 col-sm-6 col-xs-12">
         <div class="info-box">
             <span class="info-box-icon bg-red"><i class="fa fa-minus-circle"></i></span>
             <div class="info-box-content">
@@ -226,7 +232,7 @@
         </div>
     </div>
 
-    <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
+    <div class="col-lg-2 col-md-4 col-sm-6 col-xs-12">
         <div class="info-box">
             <span class="info-box-icon bg-blue"><i class="fa fa-check-circle"></i></span>
             <div class="info-box-content">
@@ -236,7 +242,20 @@
         </div>
     </div>
 
-    <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
+    <div class="col-lg-2 col-md-4 col-sm-6 col-xs-12">
+        <div class="info-box">
+            <span class="info-box-icon bg-purple"><i class="fa fa-check-square-o"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Fully Paid Cases</span>
+                <span class="info-box-number">{{ $kpis['closedCasesCount'] }}</span>
+                <span class="progress-description">
+                    K {{ number_format($kpis['closedCasesValue'], 2) }} recovered
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-2 col-md-4 col-sm-6 col-xs-12">
         <div class="info-box">
             <span class="info-box-icon bg-yellow"><i class="fa fa-percent"></i></span>
             <div class="info-box-content">

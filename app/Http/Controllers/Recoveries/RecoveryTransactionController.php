@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\Recoveries;
 
 use App\Http\Controllers\Controller;
+use App\Models\Loan;
 use App\Models\LoanTransaction;
+use App\Models\PaymentType;
 use App\Models\RecoveryCase;
+use App\Models\RecoveryPayment;
+use App\Models\UnitShare;
 use App\Models\Office;
 use App\Models\UserRole;
 use App\Models\RecoveryFund;
@@ -275,5 +279,118 @@ class RecoveryTransactionController extends Controller
             'recoveryCases',
             'funds'
         ));
+    }
+
+    /**
+     * Store a debt recovery payment against a recovery case
+     */
+    public function store_debt_recovery(Request $request, $loan)
+    {
+        try {
+            $loan = Loan::where('id', $loan)->first();
+            // Get the recovery case
+            $recoveryCase = RecoveryCase::find($request->recovery_case_id);
+
+            if ($recoveryCase) {
+                // Get payment details from form
+                $amount = $request->amount;
+
+                // Get attribution details from recovery case (not from form)
+                $recoveriesDeptPct = $recoveryCase->recoveries_dept_attribution_pct ?? 0;
+                $originBranchPct = $recoveryCase->origin_branch_attribution_pct ?? 0;
+                $supportingBranchPct = $recoveryCase->supporting_branch_attribution_pct ?? 0;
+
+                // Get branch details from recovery case
+                $originBranchId = $recoveryCase->origin_branch_id;
+                $supportingBranchId = $recoveryCase->supporting_branch_id;
+                $assignedSpecialistId = $recoveryCase->assigned_specialist_id;
+
+                // Get outstanding from recovery case (not from form)
+                $outstandingBefore = $recoveryCase->loan_outstanding_amount;
+                $previousRecovered = $recoveryCase->amount_recovered ?? 0;
+                $outstandingAfter = max(0, $outstandingBefore - $amount);
+
+                // Calculate attribution amounts from recovery case percentages
+                $recoveriesDeptAmount = $amount * ($recoveriesDeptPct / 100);
+                $originBranchAmount = $amount * ($originBranchPct / 100);
+                $supportingBranchAmount = $amount * ($supportingBranchPct / 100);
+
+                // Create recovery payment record
+                $recoveryPayment = new RecoveryPayment();
+                $recoveryPayment->recovery_case_id = $recoveryCase->id;
+                $recoveryPayment->transaction_id = null;
+                $recoveryPayment->recorded_by = Sentinel::getUser()->id;
+                $recoveryPayment->receipt_number = $request->receipt_number ?? RecoveryPayment::generateReceiptNumber();
+                $recoveryPayment->amount = $amount;
+
+                // Handle payment method - validate against allowed enum values
+                $allowedPaymentMethods = ['cash', 'mobile_money', 'bank_transfer', 'cheque', 'payroll_deduction'];
+                $paymentMethodInput = $request->payment_type_id;
+
+                // If payment_method is numeric, get the actual name from PaymentType
+                if (is_numeric($paymentMethodInput)) {
+                    $paymentType = PaymentType::find($paymentMethodInput);
+                    if ($paymentType) {
+                        $paymentMethodInput = strtolower(str_replace(' ', '_', $paymentType->name));
+                    }
+                }
+
+                // Validate and set payment method
+                if (in_array($paymentMethodInput, $allowedPaymentMethods)) {
+                    $recoveryPayment->payment_method = $paymentMethodInput;
+                } else {
+                    // Default to 'cash' if invalid value provided
+                    $recoveryPayment->payment_method = 'cash';
+                }
+                $recoveryPayment->payment_date = $request->date ?? date('Y-m-d');
+                $recoveryPayment->payment_reference = $request->payment_reference;
+                $recoveryPayment->bank_name = $request->bank_name;
+                $recoveryPayment->recoveries_dept_amount = $recoveriesDeptAmount;
+                $recoveryPayment->origin_branch_amount = $originBranchAmount;
+                $recoveryPayment->supporting_branch_amount = $supportingBranchAmount;
+                $recoveryPayment->is_settlement = $request->is_settlement ?? false;
+                $recoveryPayment->outstanding_before = $outstandingBefore;
+                $recoveryPayment->outstanding_after = $outstandingAfter;
+                $recoveryPayment->notes = $request->notes;
+                $recoveryPayment->save();
+
+                // Handle dept_share_amount
+                if ($request->filled('dept_share_amount') && $request->dept_share_amount > 0) {
+                    UnitShare::create([
+                        'unit' => 'recoveries_dept_share',
+                        'amount' => $request->dept_share_amount,
+                        'loan_id' => $loan->id,
+                        'office_id' => $loan->office_id ?? null,
+                        'user_id' => Sentinel::getUser()->id,
+                        'notes' => $request->notes,
+                    ]);
+                }
+
+                // Update recovery case with amount recovered (from case, not form)
+                $recoveryCase->amount_recovered = $previousRecovered + $amount;
+                $recoveryCase->last_payment_date = $request->date ?? date('Y-m-d');
+                $recoveryCase->save();
+
+                // If settlement, update case status
+                if ($request->is_settlement == 1 || $request->is_settlement == '1') {
+                    $recoveryCase->status = 'recovered_runaway';
+                    $recoveryCase->settlement_amount = $amount;
+                    $recoveryCase->resolved_date = date('Y-m-d');
+                    $recoveryCase->save();
+
+                    $loan->status = 'closed';
+                    $loan->save();
+                }
+                // Log audit for entering a Debt recovery transaction for approval
+                $user = Sentinel::getUser();
+                $this->auditorService->logEntereedRecoveryTransactionForApproval($user, request(), $loan);
+
+                Flash::success(trans('general.successfully_saved'));
+                return redirect('loan/' . $loan->id . '/show');
+            }
+        } catch (\Throwable $th) {
+            dd($th.' Contact IT Support');
+            return null;
+        }
     }
 }

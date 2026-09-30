@@ -36,7 +36,15 @@ class RecoveryDashboardService
         );
         
         $netRecovered     = $totalRecovered - $totalCosts;
-        $unitShare        = UnitShare::sum('amount');
+        $unitShare        = UnitShare::forPeriod($period, $dateFrom, $dateTo)->sum('amount');
+
+        // Fully paid cases: recovery case whose loan has been closed
+        $closedCases = RecoveryCase::forPeriod($period, $dateFrom, $dateTo)
+            ->whereNotNull('approved_date')
+            ->whereHas('loan', fn($q) => $q->where('status', 'closed'));
+
+        $closedCasesCount = (clone $closedCases)->count();
+        $closedCasesValue = (clone $closedCases)->sum('amount_recovered');
 
         // Compare to previous period
         $prevRecovered = RecoveryPayment::whereHas('recoveryCase', function($q) use ($period) {
@@ -57,7 +65,8 @@ class RecoveryDashboardService
         return compact(
             'totalRecovered', 'deptRecovered', 'activeCases', 'resolvedCases',
             'resolutionRate', 'portfolioAtRisk', 'totalCosts', 'netRecovered',
-            'recoveredChange', 'unitShare'
+            'recoveredChange', 'unitShare',
+            'closedCasesCount', 'closedCasesValue'
         );
     }
 

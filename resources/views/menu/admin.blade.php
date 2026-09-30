@@ -175,7 +175,7 @@ if (!Sentinel::check()) {
                  GOA MANAGER SECTION
             ============================================ -->
             
-            @hasRole('role.exec', 'role.goa')
+            @hasRole('role.exec', 'role.goa', 'role.risk')
             <li class="treeview @if(Request::is('goa_dashboard*')) active menu-open @endif">
                 <a href="#">
                     <i class="fa fa-building"></i> <span>GOA Manager</span>

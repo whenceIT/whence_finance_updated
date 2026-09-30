@@ -40,6 +40,9 @@ class BranchAssetController extends Controller
         $totalMissing    = (int) ($totals->total_missing ?? 0);
         $overallCondition = $totalItems > 0 ? round(($totalWorking / $totalItems) * 100, 1) : 0;
 
+        // Total declared value of all inventory
+        $totalInventoryValue = (float) BranchAssetInventory::sum('total_value');
+
         // Most damaged categories (top 5)
         $mostDamagedCategories = BranchAssetInventory::with('category')
             ->select('category_id', DB::raw('SUM(damaged) as total_damaged'), DB::raw('COUNT(DISTINCT office_id) as branches_affected'))
@@ -145,7 +148,7 @@ class BranchAssetController extends Controller
             'totalItems', 'totalWorking', 'totalDamaged', 'totalUnderRepair', 'totalMissing',
             'overallCondition', 'mostDamagedCategories', 'branchesWithMostDamage',
             'totalRepairCost', 'thisMonthRepairCost', 'repairCostByBranch',
-            'pendingVerifications', 'attentionItems'
+            'pendingVerifications', 'attentionItems', 'totalInventoryValue'
         ));
     }
 

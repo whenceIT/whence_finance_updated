@@ -132,6 +132,30 @@ Overview - Statistics
         </div>
     </div>
 
+    {{-- Total Inventory Value --}}
+    <div style="display:flex;align-items:stretch;background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 60%,#3b82f6 100%);border-radius:10px;box-shadow:0 4px 18px rgba(37,99,235,.30);padding:28px 36px;margin-bottom:22px;gap:28px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;justify-content:center;width:70px;min-width:70px;height:70px;background:rgba(255,255,255,.18);border-radius:50%;">
+            <i class="fa fa-dollar" style="font-size:32px;color:#fff;"></i>
+        </div>
+        <div style="flex:1;min-width:180px;">
+            <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,.75);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Total Inventory Value</div>
+            <div style="font-size:42px;font-weight:800;color:#fff;line-height:1;letter-spacing:-1px;">
+                K{{ number_format($totalInventoryValue, 2) }}
+            </div>
+            <div style="font-size:13px;color:rgba(255,255,255,.65);margin-top:6px;">Declared value across all branch asset inventories</div>
+        </div>
+        <div style="display:flex;flex-direction:column;justify-content:center;align-items:flex-end;gap:6px;min-width:160px;">
+            <div style="background:rgba(255,255,255,.15);border-radius:6px;padding:8px 16px;text-align:center;">
+                <div style="font-size:11px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.5px;">Total Items</div>
+                <div style="font-size:22px;font-weight:700;color:#fff;">{{ number_format($totalItems) }}</div>
+            </div>
+            <div style="background:rgba(255,255,255,.15);border-radius:6px;padding:8px 16px;text-align:center;">
+                <div style="font-size:11px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.5px;">Condition</div>
+                <div style="font-size:22px;font-weight:700;color:{{ $overallCondition >= 90 ? '#4ade80' : ($overallCondition >= 70 ? '#fbbf24' : '#f87171') }};">{{ $overallCondition }}%</div>
+            </div>
+        </div>
+    </div>
+
     {{-- Attention Required --}}
     @if($attentionItems->isNotEmpty())
     <div class="row">

@@ -49,15 +49,15 @@
                         <label class="control-label">Amount <span class="text-danger">*</span></label>
                         <div class="input-group input-group-lg" style="margin-bottom: 15px;">
                             <span class="input-group-addon"><strong>K</strong></span>
-                            <input type="number" name="amount" id="recovery_amount" class="form-control" step="0.01" required placeholder="Enter recovered amount" style="font-size: 18px; font-weight: bold;">
+                            <input type="number" name="amount" id="recovery_amount" class="form-control" step="0.01" required placeholder="Enter total recovered amount" style="font-size: 18px; font-weight: bold;">
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6" id="deptShareContainer" style="display: none;">
+                <div class="col-md-6" id="deptShareContainer">
                     <div class="form-group">
-                        <label class="control-label" style="font-weight: bold;">Dept Share Amount</label>
-                        <input type="number" name="dept_share_amount" id="dept_share_amount" class="form-control" step="0.01" placeholder="Enter dept share amount" style="background-color: #fdecea;">
-                        <small class="text-muted">Amount allocated to Recoveries Dept (optional)</small>
+                        <label class="control-label" style="font-weight: bold;">Unit Share Amount</label>
+                        <input type="number" name="dept_share_amount" id="dept_share_amount" class="form-control" step="0.01" placeholder="Enter unit share amount" style="background-color: #fdecea;">
+                        <small class="text-muted">Amount allocated to Recoveries Dept unit share, which will be deducted from the Enter total recovered amount (optional)</small>
                     </div>
                 </div>
             </div>
@@ -130,33 +130,3 @@
     </div>
   </div>
 </div>
-
-<script>
-$(document).ready(function() {
-    function checkForm() {
-        var caseSelected = $('#recovery_case_id').val() !== '';
-        var amountFilled = $('#recovery_amount').val() !== '';
-        if (caseSelected && amountFilled) {
-            $('#recoverySubmitBtn').prop('disabled', false);
-        } else {
-            $('#recoverySubmitBtn').prop('disabled', true);
-        }
-    }
-
-    function updateDeptShareVisibility() {
-        var selectedOption = $('#recovery_case_id :selected');
-        var escRecovered = selectedOption.data('esc-recovered');
-        if (escRecovered == 1) {
-            $('#deptShareContainer').show();
-        } else {
-            $('#deptShareContainer').hide();
-        }
-    }
-
-    $('#recovery_case_id, #recovery_amount').on('change input', checkForm);
-    $('#recovery_case_id').on('change', updateDeptShareVisibility);
-    
-    updateDeptShareVisibility(); // initial check
-    checkForm(); // initial check
-});
-</script>

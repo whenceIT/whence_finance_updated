@@ -1152,7 +1152,7 @@ Route::post('delete_client_application/{id}', 'LoanController@delete_client_appl
     Route::get('{loan}/repayment/create', 'LoanController@create_repayment');
     ////////////////////////////////////////////////////////////////////////////////////////
     Route::post('{id}/repayment/store', 'LoanController@transaction_fp_pp');
-    Route::post('{id}/repayment/case/store', 'LoanController@store_debt_recovery');
+    Route::post('{id}/repayment/case/store', 'Recoveries\RecoveryTransactionController@store_debt_recovery');
     Route::get('repayment/{loan_transaction}/edit', 'LoanController@edit_repayment');
     Route::post('repayment/{id}/update', 'LoanController@update_repayment');
     Route::get('repayment/{id}/reverse', 'LoanController@reverse_repayment');
