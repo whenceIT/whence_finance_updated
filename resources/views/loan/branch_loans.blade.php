@@ -112,6 +112,9 @@
                 @endforeach
                 </tbody>
             </table>
+            <div class="text-center">
+                {{ $data->links() }}
+            </div>
         </div>
     </div>
 @endsection
@@ -120,12 +123,11 @@
 
         $('#data-table').DataTable({
             dom: 'frtip',
-            "paging": true,
-            "lengthChange": true,
-            "displayLength": 15,
+            "paging": false,
+            "lengthChange": false,
             "searching": true,
             "ordering": true,
-            "info": true,
+            "info": false,
             "autoWidth": true,
             "order": [[4, "desc"]],
             "columnDefs": [

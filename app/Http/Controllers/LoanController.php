@@ -255,7 +255,7 @@ class LoanController extends Controller
 
         // Log audit for branch active loans
         $this->auditorService->logBranchLoanAccess($user, request());
-        $data = $query->get();
+        $data = $query->paginate(15);
         return view('loan.branch_loans', compact('data'));
     }
 

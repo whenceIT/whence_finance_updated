@@ -305,7 +305,7 @@ public function myLeavedays(Request $request)
         $leave->date_requested = now();
         $leave->save();
 
-        GeneralHelper::audit_trail("Create", "Leeave", $leave->id);
+        GeneralHelper::audit_trail("Create", "Leave", $leave->id);
         Flash::success("Leave Application submitted successfully");
         return Redirect::route('leave.my_leave_days');
     }
@@ -320,24 +320,14 @@ public function myLeavedays(Request $request)
 
         } elseif ($user->inRole(6)) {
             // Provincial Manager — sees leaves from offices in their province
-            $query->whereIn('office_id', function ($q) use ($provinceId) {
-                $q->select('id')->from('offices')->where('province_id', $user->province_id);
-            });
-        } elseif ($user->inRole(12)) {
-            // DM Manager — sees leaves from offices in their district
-            $districtId = Office::find($user->office_id)?->district_id;
-            $query->whereIn('office_id', function ($q) use ($districtId) {
-                $q->select('id')->from('offices')->where('district_id', $districtId);
-            });
-
+            $provinceId = Office::find($user->office_id)?->province_id;
+            $query->whereIn('office_id', GeneralHelper::officeIdsByProvince($provinceId));
         } elseif ($user->inRole(4)) {
             // Branch Manager — sees leaves from their own office only
             $query->where('office_id', $user->office_id);
-
         } elseif ($user->inRole(3)) {
             // Loan Officer — sees leaves from their own office only
             $query->where('office_id', $user->office_id);
-
         } else {
             // Everyone else sees only their own leave
             $query->where('user_id', $user->id);
