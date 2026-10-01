@@ -10,6 +10,8 @@ class BranchAssetDamageReport extends Model
 
     protected $fillable = [
         'office_id',
+        'location_id',
+        'inventory_id',
         'category_id',
         'quantity_affected',
         'reported_date',
@@ -27,6 +29,16 @@ class BranchAssetDamageReport extends Model
     public function office()
     {
         return $this->belongsTo(Office::class, 'office_id');
+    }
+
+    public function location()
+    {
+        return $this->belongsTo(AssetLocation::class, 'location_id');
+    }
+
+    public function inventory()
+    {
+        return $this->belongsTo(BranchAssetInventory::class, 'inventory_id');
     }
 
     public function category()

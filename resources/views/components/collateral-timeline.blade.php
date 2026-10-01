@@ -1,12 +1,10 @@
 @props([
-    'currentStatus' => 'pledged',
+    'currentStatus' => 'seized_inventory',
     'showHeader' => true,
 ])
 
 @php
     $allStatuses = [
-        'pledged' => 'Pledged',
-        'seizure_pending' => 'Seizure Pending',
         'seized_inventory' => 'Seized/Inventory',
         'valuation_completed' => 'Valuation Completed',
         'listed_for_sale' => 'Listed for Sale',
@@ -15,8 +13,6 @@
         'released' => 'Released',
     ];
     $statusLabels = [
-        'pledged' => 'Collateral attached to an active loan.',
-        'seizure_pending' => 'Initiated by Branch Manager, awaiting approval and handover.',
         'seized_inventory' => 'Physically taken and in central inventory, awaiting evaluation.',
         'valuation_completed' => 'Independent valuation recorded, not yet sold.',
         'listed_for_sale' => 'Asset is being marketed.',
@@ -60,7 +56,7 @@
         <i class="fa fa-lightbulb-o" style="color: #6366f1; font-size: 16px; margin-top: 2px; flex-shrink: 0;"></i>
         <div>
             <div style="font-size: 13.5px; color: #1e293b; line-height: 1.6;">
-                <strong>Current Stage: {{ $allStatuses[$currentStep] ?? 'Pledged' }}</strong> — {{ $statusLabels[$currentStep] ?? $statusLabels['pledged'] }}
+                <strong>Current Stage: {{ $allStatuses[$currentStep] ?? 'Seized/Inventory' }}</strong> — {{ $statusLabels[$currentStep] ?? $statusLabels['seized_inventory'] }}
             </div>
             <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">This is the first step in the Loan Collateral Workflow.</div>
         </div>

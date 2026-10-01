@@ -442,6 +442,7 @@ Route::group(['prefix' => 'goa_dashboard'], function () {
     Route::post('asset-manager/inventory',                         'BranchAssetController@storeInventory')->name('goa.asset-manager.inventory.store');
     Route::put('asset-manager/inventory/{id}',                     'BranchAssetController@updateInventory')->name('goa.asset-manager.inventory.update');
     Route::get('asset-manager/damage-reports',                     'BranchAssetController@damageReports')->name('goa.asset-manager.damage-reports');
+    Route::get('asset-manager/damage-reports/inventory-options',   'BranchAssetController@inventoryOptions')->name('goa.asset-manager.damage-reports.inventory-options');
     Route::post('asset-manager/damage-reports',                    'BranchAssetController@storeDamageReport')->name('goa.asset-manager.damage-reports.store');
     Route::put('asset-manager/damage-reports/{id}',                'BranchAssetController@updateDamageReport')->name('goa.asset-manager.damage-reports.update');
     Route::get('asset-manager/repairs',                            'BranchAssetController@repairs')->name('goa.asset-manager.repairs');

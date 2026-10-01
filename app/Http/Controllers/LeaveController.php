@@ -316,15 +316,33 @@ public function myLeavedays(Request $request)
         $query = Leave::where('status', 'pending');
 
         if ($user->inRole(1)) {
-            // Admin sees all
+            // Admin sees all — no additional constraints
+
         } elseif ($user->inRole(6)) {
-            $query->whereIn('office_id', function ($q) use ($user) {
-                $q->select('id')->from('offices')->where('province_id', $user->province_id);
+            // Provincial Manager — sees leaves from offices in their province
+            $provinceId = Office::find($user->office_id)?->province_id;
+            $query->whereIn('office_id', function ($q) use ($provinceId) {
+                $q->select('id')->from('offices')->where('province_id', $provinceId);
             });
+
+        } elseif ($user->inRole(12)) {
+            // DM Manager — sees leaves from offices in their district
+            $districtId = Office::find($user->office_id)?->district_id;
+            $query->whereIn('office_id', function ($q) use ($districtId) {
+                $q->select('id')->from('offices')->where('district_id', $districtId);
+            });
+
         } elseif ($user->inRole(4)) {
+            // Branch Manager — sees leaves from their own office only
             $query->where('office_id', $user->office_id);
+
+        } elseif ($user->inRole(3)) {
+            // Loan Officer — sees leaves from their own office only
+            $query->where('office_id', $user->office_id);
+
         } else {
-            // Default behavior
+            // Everyone else sees only their own leave
+            $query->where('user_id', $user->id);
         }
 
         $leave = $query->get();

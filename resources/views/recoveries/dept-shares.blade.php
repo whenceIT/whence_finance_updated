@@ -205,8 +205,8 @@
                         <label>Unit</label>
                         <select name="unit" id="unit" class="form-control">
                             <option value="unit_share">Unit Share</option>
-                            <option value="recoveries_dept_share">Recoveries Dept Share</option>
-                            <option value="dormant_client_unit_share">Dormant Client Unit Share</option>
+                            <!-- <option value="recoveries_dept_share">Recoveries Dept Share</option>
+                            <option value="dormant_client_unit_share">Dormant Client Unit Share</option> -->
                         </select>
                     </div>
                     <div class="form-group">

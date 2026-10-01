@@ -8,6 +8,15 @@ class Collateral extends Model
 {
     protected $table = 'collaterals';
 
+    public const STATUSES = [
+        'seized_inventory'     => 'Seized/Inventory',
+        'valuation_completed'  => 'Valuation Completed',
+        'listed_for_sale'      => 'Listed for Sale',
+        'sold'                 => 'Sold',
+        'written_off'          => 'Written Off',
+        'released'             => 'Released',
+    ];
+
     public const CATEGORIES = [
         'electronics'   => 'Electronics',
         'furniture'     => 'Furniture',
@@ -40,6 +49,7 @@ class Collateral extends Model
         'buyer_name',
         'buyer_phone',
         'buyer_nrc',
+        'buyer_gender',
         'penalty',
         'disposal_costs',
         'loan_id',

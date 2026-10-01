@@ -12,10 +12,8 @@
             {{ csrf_field() }}
             <div class="box-body">
                 @php
-                    $currentStep = old('status', 'pledged');
+                    $currentStep = old('status', 'seized_inventory');
                     $allStatuses = [
-                        'pledged' => 'Pledged',
-                        'seizure_pending' => 'Seizure Pending',
                         'seized_inventory' => 'Seized/Inventory',
                         'valuation_completed' => 'Valuation Completed',
                         'listed_for_sale' => 'Listed for Sale',
@@ -49,7 +47,7 @@
                                 </div>
                                 <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f0f2f5;">
                                     <span style="font-size: 12px; color: #6b7280; font-weight: 500;">Status</span>
-                                    <span style="font-size: 13px; color: #2c3e50; font-weight: 600;" id="create-analysis-status">{{ $allStatuses[$currentStep] ?? 'Pledged' }}</span>
+                                    <span style="font-size: 13px; color: #2c3e50; font-weight: 600;" id="create-analysis-status">{{ $allStatuses[$currentStep] ?? 'Seized/Inventory' }}</span>
                                 </div>
                             </div>
                             <div style="margin-top: 10px;">
@@ -135,11 +133,6 @@
                     <div class="col-md-4">
                         <input type="date" name="date_purchased" class="form-control" value="{{ old('date_purchased') }}" required>
                         {!! $errors->first('date_purchased', '<span class="help-block">:message</span>') !!}
-                    </div>
-                    <label class="control-label col-md-2">Date Pledged</label>
-                    <div class="col-md-2">
-                        <input type="date" name="pledged_at" class="form-control" value="{{ old('pledged_at') }}">
-                        {!! $errors->first('pledged_at', '<span class="help-block">:message</span>') !!}
                     </div>
                 </div>
 

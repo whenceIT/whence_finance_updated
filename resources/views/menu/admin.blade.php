@@ -304,10 +304,10 @@ if (!Sentinel::check()) {
             </li>
 
             <li><a href="{{ url('loan/pending_client_app_applications') }}"><i class="fa fa-mobile"></i>Client App Loan Applications<span class="label label-warning pull-right">
-{{ \App\Models\Client::where('status', 'active')
-    ->where('staff_id', Sentinel::getUser()->id)
-    ->whereIn('id', \App\Models\ClientAppLoanApplications::where('status', 'pending')->pluck('client_id'))
-    ->count() }}
+            {{ \App\Models\Client::where('status', 'active')
+            ->where('staff_id', Sentinel::getUser()->id)
+            ->whereIn('id', \App\Models\ClientAppLoanApplications::where('status', 'pending')->pluck('client_id'))
+            ->count() }}
             </span></a></li>
             
             <li class="@if(Request::is('dashboard')) active @endif">

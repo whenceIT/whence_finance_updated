@@ -5,6 +5,9 @@ use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
 
+ini_set('memory_limit', '4096M');
+ini_set('max_execution_time', '300');
+
 /*
 |--------------------------------------------------------------------------
 | Check If Application Is Under Maintenance

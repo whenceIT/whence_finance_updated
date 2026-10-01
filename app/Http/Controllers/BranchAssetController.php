@@ -423,10 +423,10 @@ class BranchAssetController extends Controller
 
     public function damageReports(Request $request)
     {
-        $query = BranchAssetDamageReport::with('office', 'category', 'reporter');
+        $query = BranchAssetDamageReport::with('location', 'office', 'category', 'reporter');
 
-        if ($request->office_id) {
-            $query->where('office_id', $request->office_id);
+        if ($request->location_id) {
+            $query->where('location_id', $request->location_id);
         }
         if ($request->category_id) {
             $query->where('category_id', $request->category_id);
@@ -437,7 +437,7 @@ class BranchAssetController extends Controller
 
         $reports = $query->orderByDesc('reported_date')->paginate(20);
 
-        $offices    = Office::where('active', 1)->orderBy('name')->get();
+        $locations  = AssetLocation::where('active', 1)->orderBy('name')->get();
         $categories = BranchAssetCategory::where('active', true)->orderBy('name')->get();
 
         $openCount         = BranchAssetDamageReport::whereNotIn('status', ['Repaired', 'Closed'])->count();
@@ -445,14 +445,15 @@ class BranchAssetController extends Controller
         $closedCount       = BranchAssetDamageReport::whereIn('status', ['Repaired', 'Closed'])->count();
 
         return view('goa.asset-manager.damage-reports', compact(
-            'reports', 'offices', 'categories', 'openCount', 'sentForRepairCount', 'closedCount'
+            'reports', 'locations', 'categories', 'openCount', 'sentForRepairCount', 'closedCount'
         ));
     }
 
     public function storeDamageReport(Request $request)
     {
         $data = $request->validate([
-            'office_id'        => 'required|integer|exists:offices,id',
+            'location_id'      => 'required|integer|exists:asset_locations,id',
+            'inventory_id'     => 'required|integer|exists:branch_asset_inventories,id',
             'category_id'      => 'required|integer|exists:branch_asset_categories,id',
             'quantity_affected'=> 'required|integer|min:1',
             'reported_date'    => 'required|date',
@@ -460,23 +461,31 @@ class BranchAssetController extends Controller
             'photo'            => 'nullable|image|max:2048',
         ]);
 
+        // The selected asset row must belong to the chosen location and category
+        $inv = BranchAssetInventory::where('id', $data['inventory_id'])
+            ->where('location_id', $data['location_id'])
+            ->where('category_id', $data['category_id'])
+            ->first();
+
+        if (! $inv) {
+            return back()->withInput()->withErrors([
+                'inventory_id' => 'The selected asset does not belong to the chosen location and category.',
+            ]);
+        }
+
+        if ($inv->working < $data['quantity_affected']) {
+            return back()->withInput()->withErrors([
+                'quantity_affected' => 'Cannot report ' . $data['quantity_affected'] . ' damaged — only '
+                    . $inv->working . ' working item(s) recorded on this asset.',
+            ]);
+        }
+
         $photoPath = null;
         if ($request->hasFile('photo')) {
             $photoPath = $request->file('photo')->store('asset-damage', 'public');
         }
 
-        DB::transaction(function () use ($data, $photoPath) {
-            // Ensure inventory record exists
-            $inv = BranchAssetInventory::firstOrCreate(
-                ['office_id' => $data['office_id'], 'category_id' => $data['category_id']],
-                ['total' => 0, 'working' => 0, 'damaged' => 0, 'missing' => 0, 'under_repair' => 0]
-            );
-
-            // Validate that working stock is sufficient
-            if ($inv->working < $data['quantity_affected']) {
-                abort(422, 'Cannot report ' . $data['quantity_affected'] . ' damaged — only ' . $inv->working . ' working item(s) recorded.');
-            }
-
+        DB::transaction(function () use ($data, $photoPath, $inv) {
             // Update inventory: working → damaged
             $inv->working -= $data['quantity_affected'];
             $inv->damaged += $data['quantity_affected'];
@@ -484,7 +493,8 @@ class BranchAssetController extends Controller
 
             // Create damage report
             BranchAssetDamageReport::create([
-                'office_id'         => $data['office_id'],
+                'location_id'       => $data['location_id'],
+                'inventory_id'      => $inv->id,
                 'category_id'       => $data['category_id'],
                 'quantity_affected' => $data['quantity_affected'],
                 'reported_date'     => $data['reported_date'],
@@ -497,6 +507,42 @@ class BranchAssetController extends Controller
 
         return redirect()->route('goa.asset-manager.damage-reports')
             ->with('success', 'Damage report submitted. Inventory updated.');
+    }
+
+    /**
+     * Asset-register rows for a given location + category, used by the
+     * cascading "select the specific item" dropdown on the damage form.
+     */
+    public function inventoryOptions(Request $request)
+    {
+        $validated = $request->validate([
+            'location_id' => 'required|integer',
+            'category_id' => 'required|integer',
+        ]);
+
+        $locationId = $validated['location_id'];
+        $categoryId = $validated['category_id'];
+
+        $items = BranchAssetInventory::with('location', 'category')
+            ->where('location_id', $locationId)
+            ->where('category_id', $categoryId)
+            ->orderBy('asset_id')
+            ->get()
+            ->map(fn($inv) => [
+                'id'            => $inv->id,
+                'asset_id'      => $inv->asset_id,
+                'label'         => trim(($inv->asset_id ?? 'ID ' . $inv->id) . ' — '
+                                    . ($inv->item_description ?? 'Unnamed') . ' — '
+                                    . ($inv->serial_number ? 'SN ' . $inv->serial_number . ' — ' : '')
+                                    . ($inv->location->name ?? '')
+                                    . ' — ' . $inv->working . '/' . $inv->total . ' working'),
+                'working'       => (int) $inv->working,
+                'total'         => (int) $inv->total,
+                'item_description' => $inv->item_description,
+                'serial_number' => $inv->serial_number,
+            ]);
+
+        return response()->json($items);
     }
 
     public function updateDamageReport(Request $request, $id)
@@ -514,11 +560,15 @@ class BranchAssetController extends Controller
         DB::transaction(function () use ($report, $data, $oldStatus, $newStatus) {
             $report->update($data);
 
-            // Move damaged → under_repair when sent for repair
+            // Move damaged → under_repair when sent for repair.
+            // Resolve via the specific inventory row; office_id is null on new
+            // reports and all inventories are keyed by location_id.
             if ($oldStatus !== 'Sent for Repair' && $newStatus === 'Sent for Repair') {
-                $inv = BranchAssetInventory::where('office_id', $report->office_id)
-                    ->where('category_id', $report->category_id)
-                    ->first();
+                $inv = $report->inventory_id
+                    ? BranchAssetInventory::find($report->inventory_id)
+                    : BranchAssetInventory::where('location_id', $report->location_id)
+                        ->where('category_id', $report->category_id)
+                        ->first();
                 if ($inv && $inv->damaged >= $report->quantity_affected) {
                     $inv->damaged    -= $report->quantity_affected;
                     $inv->under_repair += $report->quantity_affected;

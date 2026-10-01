@@ -224,8 +224,6 @@
             <div class="subtitle">{{ $collateral->name }}</div>
             @php
                 $statusMeaning = match($collateral->status) {
-                    'pledged' => 'Collateral attached to an active loan.',
-                    'seizure_pending' => 'Initiated by Branch Manager, awaiting approval and handover.',
                     'seized_inventory' => 'Physically taken and in central inventory, awaiting evaluation.',
                     'valuation_completed' => 'Independent valuation recorded, not yet sold.',
                     'listed_for_sale' => 'Asset is being marketed.',
@@ -317,8 +315,6 @@
                         <span class="cd-label">Status</span>
                         <span class="cd-value">
                             @php $statusClass = match($collateral->status) {
-                                'pledged' => 'cd-badge-active',
-                                'seizure_pending' => 'cd-badge-defaulted',
                                 'seized_inventory' => 'cd-badge-repossessed',
                                 'valuation_completed' => 'cd-badge-sold',
                                 'listed_for_sale' => 'cd-badge-sold',
@@ -328,8 +324,6 @@
                                 default => 'cd-badge-default',
                             }; @endphp
                             <span class="cd-badge {{ $statusClass }}">{{ match($collateral->status) {
-                                'pledged' => 'Pledged',
-                                'seizure_pending' => 'Seizure Pending',
                                 'seized_inventory' => 'Seized/Inventory',
                                 'valuation_completed' => 'Valuation Completed',
                                 'listed_for_sale' => 'Listed for Sale',
@@ -577,16 +571,6 @@
         </div>
         @php
             $workflow = [
-                'pledged' => [
-                    'next' => 'seizure_pending',
-                    'label' => 'Request Seizure',
-                    'roles' => [3, 4, 6],
-                ],
-                'seizure_pending' => [
-                    'next' => 'seized_inventory',
-                    'label' => 'Approve Seizure',
-                    'roles' => [1,4,6],
-                ],
                 'seized_inventory' => [
                     'next' => 'valuation_completed',
                     'label' => 'Mark as Valuation Completed',
@@ -614,8 +598,6 @@
                         <label>Next Step</label>
                         <p class="form-control-static" style="margin-top: 7px;">
                             Current: <strong>{{ match($collateral->status) {
-                                'pledged' => 'Pledged', 
-                                'seizure_pending' => 'Seizure Pending',
                                 'seized_inventory' => 'Seized/Inventory',
                                 'valuation_completed' => 'Valuation Completed',
                                 'listed_for_sale' => 'Listed for Sale',
@@ -626,7 +608,6 @@
                                 default => ucfirst($collateral->status),
                             } }}</strong>
                             → <strong>{{ match($currentWorkflow['next']) {
-                                'seizure_pending' => 'Seizure Pending',
                                 'seized_inventory' => 'Seized/Inventory',
                                 'valuation_completed' => 'Valuation Completed',
                                 'listed_for_sale' => 'Listed for Sale',
@@ -745,8 +726,6 @@
                 <div class="form-group">
                     <label>New Status</label>
                     <select name="new_status" class="form-control" required>
-                        <option value="pledged">Pledged</option>
-                        <option value="seizure_pending">Seizure Pending</option>
                         <option value="seized_inventory">Seized/Inventory</option>
                         <option value="valuation_completed">Valuation Completed</option>
                         <option value="listed_for_sale">Listed for Sale</option>
@@ -1012,11 +991,21 @@ $(document).ready(function() {
                                 <input type="text" name="buyer_name" class="form-control" placeholder="Buyer full name" value="{{ old('buyer_name', $collateral->buyer_name) }}">
                             </div>
                             <div class="col-md-6">
-                                <input type="text" name="buyer_phone" class="form-control" placeholder="Buyer phone" value="{{ old('buyer_phone', $collateral->buyer_phone) }}">
+                                <input type="text" name="buyer_phone" class="form-control" placeholder="Buyer phone number" value="{{ old('buyer_phone', $collateral->buyer_phone) }}">
                             </div>
                         </div>
-                        <div style="margin-top: 8px;">
-                            <input type="text" name="buyer_nrc" class="form-control" placeholder="Buyer NRC / ID number" value="{{ old('buyer_nrc', $collateral->buyer_nrc) }}">
+                        <div class="row" style="margin-top: 8px;">
+                            <div class="col-md-6">
+                                <input type="text" name="buyer_nrc" class="form-control" placeholder="Buyer NRC / ID number" value="{{ old('buyer_nrc', $collateral->buyer_nrc) }}">
+                            </div>
+                            <div class="col-md-6">
+                                <select name="buyer_gender" class="form-control">
+                                    <option value="">— Gender —</option>
+                                    <option value="male"{{ old('buyer_gender', $collateral->buyer_gender) === 'male' ? ' selected' : '' }}>Male</option>
+                                    <option value="female"{{ old('buyer_gender', $collateral->buyer_gender) === 'female' ? ' selected' : '' }}>Female</option>
+                                    <option value="other"{{ old('buyer_gender', $collateral->buyer_gender) === 'other' ? ' selected' : '' }}>Other</option>
+                                </select>
+                            </div>
                         </div>
                         <small class="form-help-text">Captured for conflict-of-interest auditing against employee records.</small>
                     </div>
@@ -1110,8 +1099,6 @@ $(document).ready(function() {
         var status = $('select[name="new_status"]').val();
         var $summaries = $('.current-status-summary-text');
         var meanings = {
-            'pledged': 'Collateral attached to an active loan.',
-            'seizure_pending': 'Initiated by Branch Manager, awaiting approval and handover.',
             'seized_inventory': 'Physically taken and in central inventory, awaiting evaluation.',
             'valuation_completed': 'Independent valuation recorded, not yet sold.',
             'listed_for_sale': 'Asset is being marketed.',

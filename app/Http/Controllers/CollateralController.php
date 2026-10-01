@@ -325,11 +325,7 @@ class CollateralController extends Controller
      */
     public function store(Request $request)
     {
-        // if (!Sentinel::hasAccess('collateral.create')) {
-        //     Flash::warning("Permission Denied");
-        //     return redirect()->back();
-        // }
-
+   
         $request->validate([
             'name'           => 'required',
             'category'       => 'nullable|string|max:255|in:' . implode(',', array_keys(\App\Models\Collateral::CATEGORIES)),
@@ -338,7 +334,6 @@ class CollateralController extends Controller
             'current_worth'  => 'required',
             'loan_id'        => 'required|integer|unique:collaterals,loan_id',
             'date_purchased' => 'required',
-            'pledged_at'     => 'nullable|date',
             'condition'      => 'required',
             'stage_icon'     => 'nullable|string',
             'vetted_valuation'      => 'nullable|numeric|min:0',
@@ -349,7 +344,7 @@ class CollateralController extends Controller
             'vvc_items.*.name'   => 'nullable|string|max:255',
             'vvc_items.*.amount' => 'nullable|numeric|min:0',
         ]);
-
+        
         // Verify the selected loan has an eligible status
         $loan = Loan::find($request->loan_id);
         // if (!$loan || !in_array($loan->status, ['disbursed', 'defaulted'])) {
@@ -367,8 +362,7 @@ class CollateralController extends Controller
         $collateral->approved_value    = $request->approved_value ?? $request->current_worth;
         $collateral->loan_id           = $request->loan_id;
         $collateral->date_purchased    = $request->date_purchased;
-        $collateral->pledged_at        = $request->pledged_at;
-        $collateral->status            = 'pledged';
+        $collateral->status            = 'seized_inventory';
         $collateral->condition         = $request->condition;
         $collateral->description       = $request->description;
         $collateral->collateral_type_id = $request->collateral_type_id;

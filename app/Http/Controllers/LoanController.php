@@ -1844,12 +1844,6 @@ $vehicle->save();
                 return redirect()->route('clients.edit-kyc', [$loan->client_id, $loan->id]);
             }
             
-            // Check if loan has collateral and redirect to collateral create page
-            if ($request->has('has_collateral') && $request->has_collateral == '1' && $request->has('redirect_to_collateral') && $request->redirect_to_collateral == '1') {
-                Flash::success(trans('general.successfully_saved'));
-                return redirect('collateral/create?loan_id=' . $loan->id);
-            }
-            
             Flash::success(trans('general.successfully_saved'));
             return redirect('loan/' . $loan->id . '/show');
         }
