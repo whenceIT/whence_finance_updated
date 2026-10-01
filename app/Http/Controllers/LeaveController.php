@@ -315,26 +315,39 @@ public function myLeavedays(Request $request)
         $user = Sentinel::getUser();
         $query = Leave::where('status', 'pending');
 
+        $roleNames = $user->roles->pluck('name')->filter()->implode(', ');
+        $officeIds = collect();
+
         if ($user->inRole(1)) {
             // Admin sees all — no additional constraints
-
+            $officeIds = Office::pluck('id');
+            $scope = 'All offices';
         } elseif ($user->inRole(6)) {
             // Provincial Manager — sees leaves from offices in their province
             $provinceId = Office::find($user->office_id)?->province_id;
-            $query->whereIn('office_id', GeneralHelper::officeIdsByProvince($provinceId));
+            $officeIds = GeneralHelper::officeIdsByProvince($provinceId);
+            $query->whereIn('office_id', $officeIds);
+            $scope = 'Offices in your province';
         } elseif ($user->inRole(4)) {
             // Branch Manager — sees leaves from their own office only
+            $officeIds = collect([$user->office_id]);
             $query->where('office_id', $user->office_id);
+            $scope = 'Your office only';
         } elseif ($user->inRole(3)) {
             // Loan Officer — sees leaves from their own office only
+            $officeIds = collect([$user->office_id]);
             $query->where('office_id', $user->office_id);
+            $scope = 'Your office only';
         } else {
             // Everyone else sees only their own leave
             $query->where('user_id', $user->id);
+            $scope = 'Your own leave requests only';
         }
 
+        $offices = Office::whereIn('id', $officeIds)->orderBy('name')->pluck('name');
+
         $leave = $query->get();
-        return view('leave.pending_leave_approvals', compact('leave'));
+        return view('leave.pending_leave_approvals', compact('leave', 'roleNames', 'scope', 'offices'));
     }
 
     public function approve(Request $request, $id)
