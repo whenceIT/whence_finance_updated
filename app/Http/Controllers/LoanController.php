@@ -245,7 +245,7 @@ class LoanController extends Controller
             $query->whereHas('office', function ($q) use ($provinceId) {
                 $q->where('province_id', $provinceId);
             });
-        } else {
+        } else { 
             // Default: scope to loans created by the user (Loan Consultants) or assigned to them
             $query->where(function ($q) use ($userId) {
                 $q->where('created_by_id', $userId)
@@ -255,7 +255,7 @@ class LoanController extends Controller
 
         // Log audit for branch active loans
         $this->auditorService->logBranchLoanAccess($user, request());
-        $data = $query->paginate(15);
+        $data = $query->get();
         return view('loan.branch_loans', compact('data'));
     }
 
@@ -5329,3 +5329,4 @@ $new_balance = $debit_amount - $credit_amount;
 
 
 }
+

@@ -543,6 +543,10 @@ Route::group(['prefix' => 'payrollloans'], function () {
     Route::get('dashboard', 'PayrollloanController@dashboard');
 });
 
+Route::group(['prefix' => 'payroll'], function () {
+    Route::get('dashboard', 'PayrollloanController@dashboard');
+});
+
 //route for users
 Route::group(['prefix' => 'user'], function () {
     Route::get('data', 'UserController@index');

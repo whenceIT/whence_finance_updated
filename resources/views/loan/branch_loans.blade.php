@@ -43,7 +43,7 @@
 
                 $credit = $credit + $transaction->credit;
                 ?>
-@endforeach
+                @endforeach
                 <?php
                 $balance = $debit - $credit;
                 ?>
@@ -112,9 +112,9 @@
                 @endforeach
                 </tbody>
             </table>
-            <div class="text-center">
-                {{ $data->links() }}
-            </div>
+
+
+
         </div>
     </div>
 @endsection
@@ -123,11 +123,12 @@
 
         $('#data-table').DataTable({
             dom: 'frtip',
-            "paging": false,
-            "lengthChange": false,
+            "paging": true,
+            "lengthChange": true,
+            "displayLength": 15,
             "searching": true,
             "ordering": true,
-            "info": false,
+            "info": true,
             "autoWidth": true,
             "order": [[4, "desc"]],
             "columnDefs": [
@@ -152,3 +153,5 @@
     </script>
 @endsection
         
+
+
