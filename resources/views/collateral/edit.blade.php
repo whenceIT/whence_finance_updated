@@ -17,8 +17,6 @@
                     <div class="col-md-8">
                         @php
                             $statusLabel = match($collateral->status) {
-                                'pledged' => 'Pledged',
-                                'seizure_pending' => 'Seizure Pending',
                                 'seized_inventory' => 'Seized/Inventory',
                                 'valuation_completed' => 'Valuation Completed',
                                 'listed_for_sale' => 'Listed for Sale',
@@ -82,10 +80,6 @@
                     <label class="control-label col-md-2">Lifecycle Dates</label>
                     <div class="col-md-8">
                         <div class="row">
-                            <div class="col-md-4">
-                                <label>Pledged At</label>
-                                <input type="date" name="pledged_at" class="form-control" value="{{ old('pledged_at', optional($collateral->pledged_at)->format('Y-m-d')) }}">
-                            </div>
                             <div class="col-md-4">
                                 <label>Seized At</label>
                                 <input type="date" name="seized_at" class="form-control" value="{{ old('seized_at', optional($collateral->seized_at)->format('Y-m-d')) }}">

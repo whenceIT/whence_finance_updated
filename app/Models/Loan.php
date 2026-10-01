@@ -79,6 +79,11 @@ class Loan extends Model
         return $this->hasOne(Client::class, 'id', 'client_id');
     }
 
+    public function recoveryCase()
+    {
+        return $this->hasOne(\App\Models\RecoveryCase::class, 'loan_id', 'id');
+    }
+
     public function group()
     {
         return $this->hasOne(Group::class, 'id', 'group_id');

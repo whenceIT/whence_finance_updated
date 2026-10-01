@@ -3107,4 +3107,33 @@ public static function new_new_loan_total_balance($id)
         }
         return array_unique(array_map('strval', $result));
     }
+
+    /**
+     * Return all office IDs that belong to the given province.
+     *
+     * @param  int|null  $provinceId
+     * @return \Illuminate\Support\Collection<int>
+     */
+    public static function officeIdsByProvince(?int $provinceId): \Illuminate\Support\Collection
+    {
+        if (!$provinceId) {
+            return collect();
+        }
+        return Office::where('province_id', $provinceId)->pluck('id');
+    }
+
+    /**
+     * Return all office IDs that belong to the given district.
+     *
+     * @param  int|null  $districtId
+     * @return \Illuminate\Support\Collection<int>
+     */
+    public static function officeIdsByDistrict(?int $districtId): \Illuminate\Support\Collection
+    {
+        if (!$districtId) {
+            return collect();
+        }
+
+        return Office::where('district_id', $districtId)->pluck('id');
+    }
 }

@@ -83,11 +83,11 @@
         <div class="box-body" style="padding:10px 15px;">
             <form method="GET" action="{{ route('goa.asset-manager.damage-reports') }}" class="form-inline">
                 <div class="form-group" style="margin-right:10px;">
-                    <label class="mr-1">Branch:</label>
-                    <select name="office_id" class="form-control form-control-sm">
-                        <option value="">All Branches</option>
-                        @foreach($offices as $o)
-                            <option value="{{ $o->id }}" {{ request('office_id') == $o->id ? 'selected' : '' }}>{{ $o->name }}</option>
+                    <label class="mr-1">Location:</label>
+                    <select name="location_id" class="form-control form-control-sm">
+                        <option value="">All Locations</option>
+                        @foreach($locations as $loc)
+                            <option value="{{ $loc->id }}" {{ request('location_id') == $loc->id ? 'selected' : '' }}>{{ $loc->name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -147,8 +147,20 @@
                     @endphp
                     <tr>
                         <td>{{ $loop->iteration + ($reports->currentPage() - 1) * $reports->perPage() }}</td>
-                        <td>{{ optional($report->office)->name }}</td>
-                        <td>{{ optional($report->category)->name }}</td>
+                        <td>{{ optional($report->location)->name ?? optional($report->office)->name ?? '—' }}</td>
+                        <td>
+                            @if($report->inventory)
+                                <strong>{{ $report->inventory->asset_id ?? '—' }}</strong><br>
+                                <small class="text-muted">
+                                    {{ $report->inventory->item_description ?? '' }}
+                                    @if($report->inventory->serial_number)
+                                        · SN {{ $report->inventory->serial_number }}
+                                    @endif
+                                </small>
+                            @else
+                                {{ optional($report->category)->name }}
+                            @endif
+                        </td>
                         <td class="text-center"><strong>{{ $report->quantity_affected }}</strong></td>
                         <td>{{ $report->reported_date ? $report->reported_date->format('d M Y') : '—' }}</td>
                         <td style="max-width:200px;">{{ mb_strimwidth($report->description, 0, 83, '…') }}</td>
@@ -198,27 +210,45 @@
                     <h4 class="modal-title"><i class="fa fa-exclamation-triangle"></i> Report Asset Damage</h4>
                 </div>
                 <div class="modal-body">
+                    @if($errors->any())
+                        <div class="alert alert-danger" style="padding:8px 12px;">
+                            <ul style="margin:0;padding-left:18px;">
+                                @foreach($errors->all() as $err)
+                                    <li>{{ $err }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
-                                <label>Branch <span class="text-danger">*</span></label>
-                                <select name="office_id" class="form-control" required>
-                                    <option value="">-- Select Branch --</option>
-                                    @foreach($offices as $o)
-                                        <option value="{{ $o->id }}" {{ old('office_id') == $o->id ? 'selected' : '' }}>{{ $o->name }}</option>
+                                <label>Asset Location <span class="text-danger">*</span></label>
+                                <select name="location_id" id="drLocationId" class="form-control" required>
+                                    <option value="">-- Select Location --</option>
+                                    @foreach($locations as $loc)
+                                        <option value="{{ $loc->id }}" {{ old('location_id') == $loc->id ? 'selected' : '' }}>{{ $loc->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label>Asset Category <span class="text-danger">*</span></label>
-                                <select name="category_id" class="form-control" required>
-                                    <option value="">-- Select Asset --</option>
+                                <select name="category_id" id="drCategoryId" class="form-control" required>
+                                    <option value="">-- Select Category --</option>
                                     @foreach($categories as $c)
                                         <option value="{{ $c->id }}" {{ old('category_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
                                     @endforeach
                                 </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Specific Asset <span class="text-danger">*</span></label>
+                                <select name="inventory_id" id="drInventoryId" class="form-control" required disabled>
+                                    <option value="">-- Select Location &amp; Category first --</option>
+                                </select>
+                                <span class="help-block" id="drInventoryHint">Pick the exact register item the damage applies to.</span>
                             </div>
                         </div>
                     </div>
@@ -294,6 +324,74 @@ $(function () {
         $('#updateNotes').val($(this).data('notes'));
         $('#updateStatusForm').attr('action', '/goa_dashboard/asset-manager/damage-reports/' + id);
     });
+
+    // ── Cascading: Location + Category → Specific Asset ─────────────────────
+    var $loc = $('#drLocationId'),
+        $cat = $('#drCategoryId'),
+        $inv = $('#drInventoryId'),
+        $hint = $('#drInventoryHint'),
+        optsUrl = '{{ route("goa.asset-manager.damage-reports.inventory-options") }}',
+        oldInventory = '{{ old("inventory_id") }}';
+
+    function resetInventory(message) {
+        $inv.html('<option value="">' + message + '</option>').prop('disabled', true);
+        $hint.text('Pick the exact register item the damage applies to.');
+    }
+
+    function loadInventory() {
+        var locationId = $loc.val(),
+            categoryId = $cat.val();
+
+        if (!locationId || !categoryId) {
+            resetInventory('-- Select Location & Category first --');
+            return;
+        }
+
+        $inv.html('<option value="">Loading assets...</option>').prop('disabled', true);
+
+        $.ajax({
+            url: optsUrl,
+            method: 'GET',
+            data: { location_id: locationId, category_id: categoryId },
+            dataType: 'json'
+        })
+            .done(function (items) {
+                if (!items || items.length === 0) {
+                    resetInventory('-- No assets at this location/category --');
+                    $hint.text('There is no inventory recorded for this combination.');
+                    return;
+                }
+
+                var html = '<option value="">-- Select the damaged asset --</option>';
+                items.forEach(function (it) {
+                    html += '<option value="' + it.id + '"' +
+                            (String(it.id) === String(oldInventory) ? ' selected' : '') +
+                            (it.working < 1 ? ' disabled' : '') + '>' +
+                            it.label +
+                            (it.working < 1 ? ' — none working' : '') +
+                            '</option>';
+                });
+
+                $inv.html(html).prop('disabled', false);
+                $hint.text(items.length + ' asset(s) found. Only assets with working stock can be reported.');
+            })
+            .fail(function (xhr) {
+                if (xhr.status === 422) {
+                    resetInventory('-- Select Location & Category first --');
+                    return;
+                }
+                resetInventory('-- Failed to load assets --');
+                $hint.text('Could not load inventory. Please try again.');
+            });
+    }
+
+    $loc.on('change', loadInventory);
+    $cat.on('change', loadInventory);
+
+    // Repopulate after a validation bounce-back
+    @if(old('location_id') && old('category_id'))
+        $(document).on('shown.bs.modal', '#reportDamageModal', loadInventory);
+    @endif
 });
 </script>
 @endsection

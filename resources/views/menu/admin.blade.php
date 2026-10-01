@@ -94,10 +94,8 @@ if (!Sentinel::check()) {
                 </a>
 	        </li>
 
-
-
-                   @if(Sentinel::hasAccess('expenses'))
-               <li class="treeview @if(Request::is('executive_dashboard*')) active menu-open @endif">
+            @if(Sentinel::hasAccess('expenses'))
+            <li class="treeview @if(Request::is('executive_dashboard*')) active menu-open @endif">
                 <a href="#">
                     <i class="fa fa-dashboard"></i> <span>Cash Health Module</span>
                     <span class="pull-right-container">
@@ -105,27 +103,27 @@ if (!Sentinel::check()) {
                     </span>
                 </a>
                 <ul class="treeview-menu">
-                           @if($role == 1)
-<li><a href="{{ route('cash_health.national') }}"><i class="fa fa-circle-o"></i>Executive Cash Health Module</a></li>
-                           @endif
+                        @if($role == 1)
+                            <li><a href="{{ route('cash_health.national') }}"><i class="fa fa-circle-o"></i>Executive Cash Health Module</a></li>
+                        @endif
 
-                            @if($role == 4)
-<li>
-    <a href="{{ url('cash_health/show/' . $office_id) }}">
-        <i class="fa fa-circle-o"></i>Branch Cash Health
-    </a>
-</li>
-                           @endif
+                        @if($role == 4)
+                            <li>
+                                <a href="{{ url('cash_health/show/' . $office_id) }}">
+                                    <i class="fa fa-circle-o"></i>Branch Cash Health
+                                </a>
+                            </li>
+                        @endif
 
 
-                                @if($other_role == 12)
-<li><a href="{{ url('cash_health/district/' . $my_district) }}"><i class="fa fa-circle-o"></i>District Cash Health</a></li>
-                           @endif
+                        @if($other_role == 12)
+                            <li><a href="{{ url('cash_health/district/' . $my_district) }}"><i class="fa fa-circle-o"></i>District Cash Health</a></li>
+                        @endif
 
 
                         @if($role == 6)
-<li><a href="{{ url('cash_health/province/' . $province_id) }}"><i class="fa fa-circle-o"></i>Provincal Cash Health</a></li>
-                           @endif
+                            <li><a href="{{ url('cash_health/province/' . $province_id) }}"><i class="fa fa-circle-o"></i>Provincal Cash Health</a></li>
+                        @endif
                 </ul>
             </li>
             @endif
@@ -177,7 +175,7 @@ if (!Sentinel::check()) {
                  GOA MANAGER SECTION
             ============================================ -->
             
-            @hasRole('role.exec', 'role.goa')
+            @hasRole('role.exec', 'role.goa', 'role.risk')
             <li class="treeview @if(Request::is('goa_dashboard*')) active menu-open @endif">
                 <a href="#">
                     <i class="fa fa-building"></i> <span>GOA Manager</span>
@@ -306,10 +304,10 @@ if (!Sentinel::check()) {
             </li>
 
             <li><a href="{{ url('loan/pending_client_app_applications') }}"><i class="fa fa-mobile"></i>Client App Loan Applications<span class="label label-warning pull-right">
-{{ \App\Models\Client::where('status', 'active')
-    ->where('staff_id', Sentinel::getUser()->id)
-    ->whereIn('id', \App\Models\ClientAppLoanApplications::where('status', 'pending')->pluck('client_id'))
-    ->count() }}
+            {{ \App\Models\Client::where('status', 'active')
+            ->where('staff_id', Sentinel::getUser()->id)
+            ->whereIn('id', \App\Models\ClientAppLoanApplications::where('status', 'pending')->pluck('client_id'))
+            ->count() }}
             </span></a></li>
             
             <li class="@if(Request::is('dashboard')) active @endif">
@@ -1703,46 +1701,53 @@ if (!Sentinel::check()) {
                                     </span>
                                 </a>
                             </li>
-                            <li class="@if(Request::is('recovery/case/data')) active @endif">
-                                <a href="{{ url('recovery/case/data') }}"><i class="fa fa-circle-o"></i> All Cases</a>
-                            </li>
-                            <li class="@if(Request::is('recovery/case/cross_branch')) active @endif">
-                                <a href="{{ url('recovery/case/cross_branch') }}"><i class="fa fa-circle-o"></i> Cross-Branch
-                                    <span class="pull-right-container">
-                                        <span class="label label-primary pull-right">{{\App\Models\RecoveryCase::whereNotNull('approved_date')->where('category', 'cross_branch')->count()}}</span>
-                                    </span>
-                                </a>
-                            </li>
-                            <li class="@if(Request::is('recovery/case/escalated')) active @endif">
-                                <a href="{{ url('recovery/case/escalated') }}"><i class="fa fa-circle-o"></i> Escalated Accounts
-                                    <span class="pull-right-container">
-                                        <span class="label label-warning pull-right">{{\App\Models\RecoveryCase::whereNotNull('approved_date')->where('category', 'escalated')->count()}}</span>
-                                    </span>
-                                </a>
-                            </li>
-                            <li class="@if(Request::is('recovery/case/dormant')) active @endif">
-                                <a href="{{ url('recovery/case/dormant') }}"><i class="fa fa-circle-o"></i> Dormant Revival
-                                    <span class="pull-right-container">
-                                        <span class="label label-default pull-right">{{\App\Models\RecoveryCase::whereNotNull('approved_date')->where('category', 'dormant')->count()}}</span>
-                                    </span>
-                                </a>
-                            </li>
-                            <li class="@if(Request::is('recovery/case/legal')) active @endif">
-                                <a href="{{ url('recovery/case/legal') }}"><i class="fa fa-circle-o"></i> Legal Recovery
-                                    <span class="pull-right-container">
-                                        <span class="label label-danger pull-right">{{\App\Models\RecoveryCase::whereNotNull('approved_date')->where('category', 'legal')->count()}}</span>
-                                    </span>
-                                </a>
-                            </li>
-                            <li class="@if(Request::is('recovery/case/skip_trace')) active @endif">
-                                <a href="{{ url('recovery/case/skip_trace') }}"><i class="fa fa-circle-o"></i> Skip Tracing
-                                    <span class="pull-right-container">
-                                        <span class="label label-success pull-right">{{\App\Models\RecoveryCase::whereNotNull('approved_date')->where('category', 'skip_trace')->count()}}</span>
-                                    </span>
-                                </a>
-                            </li>
                             <li class="@if(Request::is('recovery/case/create')) active @endif">
-                                <a href="{{ url('recovery/case/create') }}"><i class="fa fa-circle-o"></i> Open New Case</a>
+                                <a href="{{ url('recovery/case/create') }}"><i class="fa fa-plus-circle"></i> Add New Case</a>
+                            </li>
+                            <li class="treeview @if(Request::is('recovery/case/*')) active menu-open @endif">
+                                <a href="#">
+                                    <i class="fa fa-folder-open"></i> <span>Cases</span>
+                                </a>
+                                <ul class="treeview-menu">
+                                    <li class="@if(Request::is('recovery/case/data')) active @endif">
+                                        <a href="{{ url('recovery/case/data') }}"><i class="fa fa-circle-o"></i> All Cases</a>
+                                    </li>
+                                    <li class="@if(Request::is('recovery/case/cross_branch')) active @endif">
+                                        <a href="{{ url('recovery/case/cross_branch') }}"><i class="fa fa-circle-o"></i> Cross-Branch
+                                            <span class="pull-right-container">
+                                                <span class="label label-primary pull-right">{{\App\Models\RecoveryCase::whereNotNull('approved_date')->where('category', 'cross_branch')->count()}}</span>
+                                            </span>
+                                        </a>
+                                    </li>
+                                    <li class="@if(Request::is('recovery/case/escalated')) active @endif">
+                                        <a href="{{ url('recovery/case/escalated') }}"><i class="fa fa-circle-o"></i> Escalated Accounts
+                                            <span class="pull-right-container">
+                                                <span class="label label-warning pull-right">{{\App\Models\RecoveryCase::whereNotNull('approved_date')->where('category', 'escalated')->count()}}</span>
+                                            </span>
+                                        </a>
+                                    </li>
+                                    <li class="@if(Request::is('recovery/case/dormant')) active @endif">
+                                        <a href="{{ url('recovery/case/dormant') }}"><i class="fa fa-circle-o"></i> Dormant Revival
+                                            <span class="pull-right-container">
+                                                <span class="label label-default pull-right">{{\App\Models\RecoveryCase::whereNotNull('approved_date')->where('category', 'dormant')->count()}}</span>
+                                            </span>
+                                        </a>
+                                    </li>
+                                    <li class="@if(Request::is('recovery/case/legal')) active @endif">
+                                        <a href="{{ url('recovery/case/legal') }}"><i class="fa fa-circle-o"></i> Legal Recovery
+                                            <span class="pull-right-container">
+                                                <span class="label label-danger pull-right">{{\App\Models\RecoveryCase::whereNotNull('approved_date')->where('category', 'legal')->count()}}</span>
+                                            </span>
+                                        </a>
+                                    </li>
+                                    <li class="@if(Request::is('recovery/case/skip_trace')) active @endif">
+                                        <a href="{{ url('recovery/case/skip_trace') }}"><i class="fa fa-circle-o"></i> Skip Tracing
+                                            <span class="pull-right-container">
+                                                <span class="label label-success pull-right">{{\App\Models\RecoveryCase::whereNotNull('approved_date')->where('category', 'skip_trace')->count()}}</span>
+                                            </span>
+                                        </a>
+                                    </li>
+                                </ul>
                             </li>
                             <li class="@if(Request::is('recovery/specialist/*')) active @endif">
                                 <a href="{{ url('recovery/specialist/data') }}"><i class="fa fa-circle-o"></i> Specialists</a>
@@ -1754,37 +1759,29 @@ if (!Sentinel::check()) {
                             <li class="@if(Request::is('dept-shares/*')) active @endif">
                                 <a href="{{ url('recovery/dept-shares') }}"><i class="fa fa-share"></i> Department Shares </a>
                             </li>
-                            <li class="@if(Request::is('recovery/report/*')) active @endif">
-                                <!-- <a href="{{ url('recovery/report/overview') }}"><i class="fa fa-circle-o"></i> Recovery Reports</a> -->
+                         
+                            <li class="treeview @if(Request::is('loan/recovery_case_approvals') || Request::is('loan/recoveries_approvals') || Request::is('loan/approved_recoveries')) active menu-open @endif">
+                                <a href="#">
+                                    <i class="fa fa-thumbs-up"></i> <span>Approvals</span>
+                                </a>
+                                <ul class="treeview-menu">
+                                    @if(Sentinel::hasAccess('expenses'))
+                                    <li><a href="{{ url('loan/recovery_case_approvals') }}"><i class="fa fa-circle-o"></i> Approve Cases <span class="label label-danger pull-right-container" >{{\App\Models\RecoveryCase::whereNull('approved_date')->count()}}</span></a></li>
+                                    @endif
+                                    @if(Sentinel::hasAccess('expenses'))
+                                    <li><a href="{{ url('loan/recoveries_approvals') }}"><i class="fa fa-circle-o"></i> Transactions Approvals <span class="label label-danger pull-right-container" >{{\App\Helpers\GeneralHelper::pending_recoveries_approvals_count()}}</span></a></li>
+                                    @endif
+                                    @if(Sentinel::hasAccess('expenses'))
+                                    <li><a href="{{ url('loan/approved_recoveries') }}"><i class="fa fa-circle-o"></i> Approved Transactions <span class="label label-danger pull-right-container" >{{\App\Helpers\GeneralHelper::pending_recoveries_approvals_count()}}</span></a></li>
+                                    @endif
+                                </ul>
                             </li>
-                        
-                            <!-- Branch Uncollected -->
                             @if(Sentinel::hasAccess('expenses'))
-                            <!-- <li><a href="{{ url('loan/branch_uncollected') }}"><i class="fa fa-circle-o"></i> Branch uncollected</a></li> -->
-                            @endif
-                        
-                            <!-- Branch Uncollected -->
-                            @if(Sentinel::hasAccess('expenses'))
-                            <!-- <li><a href="{{ url('loan/dormant_loans') }}"><i class="fa fa-frown-o"></i>Dormant Loans</a></li> -->
-                            @endif
-                            @if($role != 3 || $role != 2 || $role != 11)
-                                @if(Sentinel::hasAccess('expenses'))
-                                    <li>
-                                        <a href="{{ url('loan/recovery_case_approvals') }}">
-                                            <i class="fa fa-circle-o"></i> 
-                                            Cases of Recoveries 
-                                            <span class="label label-danger pull-right-container" >
-                                                {{\App\Models\RecoveryCase::whereNull('approved_date')->count()}}
-                                            </span>
-                                        </a>
-                                    </li>
-                                @endif
-                                @if(Sentinel::hasAccess('expenses'))
-                                    <li><a href="{{ url('loan/recoveries_approvals') }}"><i class="fa fa-circle-o"></i> Transactions Approvals <span class="label label-danger pull-right-container" >{{\App\Helpers\GeneralHelper::pending_recoveries_approvals_count()}}</span> </a></li>
-                                @endif
-                                @if(Sentinel::hasAccess('expenses'))
-                                    <li><a href="{{ url('loan/approved_recoveries') }}"><i class="fa fa-circle-o"></i> Approved Transactions <span class="label label-danger pull-right-container" >{{\App\Helpers\GeneralHelper::pending_recoveries_approvals_count()}}</span> </a></li>
-                                @endif
+                            <li class="@if(Request::is('loan/recovery/ledger')) active @endif">
+                                <a href="{{ url('loan/recovery/ledger') }}">
+                                    <i class="fa fa-book"></i> Recovery Ledger
+                                </a>
+                            </li>
                             @endif
                     </ul>
                 </li>

@@ -234,6 +234,7 @@ class CollateralApprovalController extends Controller
             'buyer_name'     => 'nullable|string|max:255',
             'buyer_phone'    => 'nullable|string|max:50',
             'buyer_nrc'      => 'nullable|string|max:50',
+            'buyer_gender'   => 'nullable|string|in:male,female,other',
         ]);
 
         if ($collateral->status === 'sold' || $collateral->status === 'written_off' || $collateral->status === 'released') {
@@ -256,6 +257,7 @@ class CollateralApprovalController extends Controller
         $collateral->buyer_name = $request->buyer_name;
         $collateral->buyer_phone = $request->buyer_phone;
         $collateral->buyer_nrc = $request->buyer_nrc;
+        $collateral->buyer_gender = $request->buyer_gender;
         $collateral->date_resold = Carbon::now();
         $collateral->sold_at = Carbon::now();
         $collateral->save();

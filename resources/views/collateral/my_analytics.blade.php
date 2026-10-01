@@ -33,7 +33,7 @@
             </form>
 
             <ul class="nav nav-tabs" role="tablist">
-                @foreach(['pledged','seizure_pending','seized_inventory','valuation_completed','listed_for_sale','sold','written_off','released'] as $status)
+                @foreach(['seized_inventory','valuation_completed','listed_for_sale','sold','written_off','released'] as $status)
                     <li role="presentation" {{ $loop->first ? 'class="active"' : '' }}>
                         <a href="#tab-{{ $status }}" aria-controls="tab-{{ $status }}" role="tab" data-toggle="tab">
                             {{ ucfirst(str_replace('_', ' ', $status)) }}
@@ -44,7 +44,7 @@
             </ul>
 
             <div class="tab-content" style="margin-top: 20px;">
-                @foreach(['pledged','seizure_pending','seized_inventory','valuation_completed','listed_for_sale','sold','written_off','released'] as $status)
+                @foreach(['seized_inventory','valuation_completed','listed_for_sale','sold','written_off','released'] as $status)
                     <div role="tabpanel" class="tab-pane {{ $loop->first ? 'active' : '' }}" id="tab-{{ $status }}">
                         <div class="table-responsive">
                             <table class="table table-bordered table-striped">

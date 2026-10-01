@@ -21,6 +21,7 @@ Custom option to have two fields (This Month (default - when page loads)):
 
 
 
+@include('recoveries._partials.bento-grid')
 
 Salaries Condition (put inside the if statement)
 isset($status[0]) && isset($status[1]) && isset($status[2]) && $status[0]['status'] === 'fully paid' && $status[1]['status'] === 'fully paid' && $status[2]['status'] === 'fully paid' 
@@ -64,3 +65,22 @@ isset($status[0]) && isset($status[1]) && isset($status[2]) && $status[0]['statu
                     @endphp
                 @endif 
  
+
+ //Recoveries
+     <!-- <div class="col-lg-2 col-md-4 col-sm-6 col-xs-12">
+        <div class="info-box bg-aqua">
+            <span class="info-box-icon"><i class="fa fa-university"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Dept. Attribution</span>
+                <span class="info-box-number">{{ number_format($kpis['deptRecovered'], 2) }}</span>
+                <div class="progress">
+                    <div class="progress-bar"
+                         style="width:{{ $kpis['totalRecovered'] > 0 ? round(($kpis['deptRecovered']/$kpis['totalRecovered'])*100) : 0 }}%">
+                    </div>
+                </div>
+                <span class="progress-description">
+                    {{ $kpis['totalRecovered'] > 0 ? round(($kpis['deptRecovered']/$kpis['totalRecovered'])*100) : 0 }}% of gross
+                </span>
+            </div>
+        </div>
+    </div> -->

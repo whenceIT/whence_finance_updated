@@ -47,8 +47,9 @@ $userPosition = Sentinel::getUser()->position_name;
             </div>
             @endif
 
-            @if($role == 1)
-            <div class="box-tools pull-right" style="margin-right: 8px;">
+            @if($role == 1 || $role == 13)  
+            <div class="box-tools pull-right" style="display: flex; flex-direction: row; align-items: center; gap: 6px; margin-right: 8px;">
+                <a href="{{ route('collateral.sales', ['key' => 'admin']) }}" class="btn btn-success btn-sm"><i class="fa fa-tags"></i> Sales Dashboard Report</a>
                 <button type="button" class="btn btn-info btn-sm" id="open-reports-modal"><i class="fa fa-bar-chart"></i> Show Reports</button>
             </div>
             @endif
@@ -59,8 +60,6 @@ $userPosition = Sentinel::getUser()->position_name;
                 <select name="status" class="form-control input-sm" style="width: 140px;">
                     @if(request('key') === 'admin')
                         <option value="">All Statuses</option>
-                        <option value="pledged"{{ request('status') == 'pledged' ? ' selected' : '' }}>Pledged</option>
-                        <option value="seizure_pending"{{ request('status') == 'seizure_pending' ? ' selected' : '' }}>Seizure Pending</option>
                         <option value="seized_inventory"{{ request('status') == 'seized_inventory' ? ' selected' : '' }}>Seized/Inventory</option>
                         <option value="valuation_completed"{{ request('status') == 'valuation_completed' ? ' selected' : '' }}>Valuation Completed</option>
                         <option value="listed_for_sale"{{ request('status') == 'listed_for_sale' ? ' selected' : '' }}>Listed for Sale</option>
@@ -75,8 +74,6 @@ $userPosition = Sentinel::getUser()->position_name;
                         <option value="seized_inventory"{{ request('status') == 'seized_inventory' ? ' selected' : '' }}>Seized/Inventory</option>
                     @else
                         <option value="">All Statuses</option>
-                        <option value="pledged"{{ request('status') == 'pledged' ? ' selected' : '' }}>Pledged</option>
-                        <option value="seizure_pending"{{ request('status') == 'seizure_pending' ? ' selected' : '' }}>Seizure Pending</option>
                         <option value="seized_inventory"{{ request('status') == 'seized_inventory' ? ' selected' : '' }}>Seized/Inventory</option>
                         <option value="valuation_completed"{{ request('status') == 'valuation_completed' ? ' selected' : '' }}>Valuation Completed</option>
                         <option value="listed_for_sale"{{ request('status') == 'listed_for_sale' ? ' selected' : '' }}>Listed for Sale</option>
@@ -148,8 +145,6 @@ $userPosition = Sentinel::getUser()->position_name;
             <div class="row" style="margin-bottom: 20px;">
                 @php
                     $statLabels = [
-                        'pledged' => 'Pledged',
-                        'seizure_pending' => 'Seizure Pending',
                         'seized_inventory' => 'Seized/Inventory',
                         'valuation_completed' => 'Valuation Completed',
                         'listed_for_sale' => 'Listed for Sale',
@@ -218,8 +213,6 @@ $userPosition = Sentinel::getUser()->position_name;
                                   <td>{{ optional($item->type)->name }}</td>
                                    <td class="{{ match($item->status) {
                                            'sold' => 'bg-green',
-                                           'pledged' => 'bg-light',
-                                           'seizure_pending' => 'bg-warning',
                                            'seized_inventory' => 'bg-info',
                                            'valuation_completed' => 'bg-aqua',
                                            'listed_for_sale' => 'bg-purple',
@@ -229,8 +222,6 @@ $userPosition = Sentinel::getUser()->position_name;
                                            default => ''
                                        } }}">
                                        {{ match($item->status) {
-                                           'pledged' => 'Pledged',
-                                           'seizure_pending' => 'Seizure Pending',
                                            'seized_inventory' => 'Seized/Inventory',
                                            'valuation_completed' => 'Valuation Completed',
                                            'listed_for_sale' => 'Listed for Sale',
@@ -264,7 +255,7 @@ $userPosition = Sentinel::getUser()->position_name;
                                     <td>{{ $item->loan?->office?->name }}</td>
                                   <td>
                                      <a href="{{ route('collateral.show', $item) }}" class="btn btn-xs btn-primary">View</a>
-                                      @if(request('key') !== 'admin' && ($role == 1 || (Sentinel::getUser()->id == $item->created_by_id && $item->status === 'pledged') || ($role == 4 && in_array($item->status, ['pledged', 'seizure_pending']))))
+                                      @if(request('key') !== 'admin' && ($role == 1 || (Sentinel::getUser()->id == $item->created_by_id && $item->status === 'seized_inventory') || ($role == 4 && in_array($item->status, ['seized_inventory']))))
                                           <a href="{{ route('collateral.edit', $item) }}" class="btn btn-xs btn-warning">Edit</a>
                                           <form action="{{ route('collateral.destroy', $item) }}" method="POST" style="display:inline;">
                                               @csrf

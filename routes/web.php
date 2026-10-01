@@ -442,6 +442,7 @@ Route::group(['prefix' => 'goa_dashboard'], function () {
     Route::post('asset-manager/inventory',                         'BranchAssetController@storeInventory')->name('goa.asset-manager.inventory.store');
     Route::put('asset-manager/inventory/{id}',                     'BranchAssetController@updateInventory')->name('goa.asset-manager.inventory.update');
     Route::get('asset-manager/damage-reports',                     'BranchAssetController@damageReports')->name('goa.asset-manager.damage-reports');
+    Route::get('asset-manager/damage-reports/inventory-options',   'BranchAssetController@inventoryOptions')->name('goa.asset-manager.damage-reports.inventory-options');
     Route::post('asset-manager/damage-reports',                    'BranchAssetController@storeDamageReport')->name('goa.asset-manager.damage-reports.store');
     Route::put('asset-manager/damage-reports/{id}',                'BranchAssetController@updateDamageReport')->name('goa.asset-manager.damage-reports.update');
     Route::get('asset-manager/repairs',                            'BranchAssetController@repairs')->name('goa.asset-manager.repairs');
@@ -539,6 +540,10 @@ Route::group(['prefix' => 'vehicles'], function () {
 }); 
 
 Route::group(['prefix' => 'payrollloans'], function () {
+    Route::get('dashboard', 'PayrollloanController@dashboard');
+});
+
+Route::group(['prefix' => 'payroll'], function () {
     Route::get('dashboard', 'PayrollloanController@dashboard');
 });
 
@@ -669,6 +674,7 @@ Route::group(['prefix' => 'risk'], function () {
     Route::get('dashboard/branch-cash-balances', [RiskDashboardController::class, 'branchCashBalances'])->name('risk.dashboard.branch-cash-balances');
     Route::get('dashboard/late-disbursements', [RiskDashboardController::class, 'lateDisbursementsDetail'])->name('risk.dashboard.late-disbursements');
     Route::get('dashboard/blockages-detail', [RiskDashboardController::class, 'blockagesDetail'])->name('risk.dashboard.blockages-detail');
+    Route::get('dashboard/blocking-history', [RiskDashboardController::class, 'blockingHistoryDetail'])->name('risk.dashboard.blocking-history');
     Route::get('overview', [RiskController::class, 'overview'])->name('risk.overview');
     Route::get('audit-trail', [RiskController::class, 'auditTrail']);
     Route::get('heat-map', [RiskController::class, 'heatMap'])->name('risk.heat-map');
@@ -1024,6 +1030,7 @@ Route::group(['prefix' => 'loan'], function () {
     Route::get('reloan_approvals', 'LoanController@reloan_approvals');
     Route::get('transaction_approvals', 'LoanController@transaction_approvals');
     Route::get('approved_recoveries', 'Recoveries\RecoveryTransactionController@approvedRecoveries');
+    Route::get('recovery/ledger', 'Recoveries\RecoveryTransactionController@recoveryLedger');
     Route::get('recoveries_approvals', 'Recoveries\RecoveryCaseController@recoveriesApprovals');
     Route::get('recoveries_approve/{id}', 'Recoveries\RecoveryCaseController@recoveriesApprove');
     Route::get('recoveries_decline/{id}', 'Recoveries\RecoveryCaseController@recoveriesDecline');
@@ -1150,7 +1157,7 @@ Route::post('delete_client_application/{id}', 'LoanController@delete_client_appl
     Route::get('{loan}/repayment/create', 'LoanController@create_repayment');
     ////////////////////////////////////////////////////////////////////////////////////////
     Route::post('{id}/repayment/store', 'LoanController@transaction_fp_pp');
-    Route::post('{id}/repayment/case/store', 'LoanController@store_debt_recovery');
+    Route::post('{id}/repayment/case/store', 'Recoveries\RecoveryTransactionController@store_debt_recovery');
     Route::get('repayment/{loan_transaction}/edit', 'LoanController@edit_repayment');
     Route::post('repayment/{id}/update', 'LoanController@update_repayment');
     Route::get('repayment/{id}/reverse', 'LoanController@reverse_repayment');

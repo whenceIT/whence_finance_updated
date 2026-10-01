@@ -245,7 +245,7 @@ class LoanController extends Controller
             $query->whereHas('office', function ($q) use ($provinceId) {
                 $q->where('province_id', $provinceId);
             });
-        } else {
+        } else { 
             // Default: scope to loans created by the user (Loan Consultants) or assigned to them
             $query->where(function ($q) use ($userId) {
                 $q->where('created_by_id', $userId)
@@ -1842,12 +1842,6 @@ $vehicle->save();
             if ($request->has('mvl_next') && $request->mvl_next == '1') {
                 Flash::success(trans('general.successfully_saved'));
                 return redirect()->route('clients.edit-kyc', [$loan->client_id, $loan->id]);
-            }
-            
-            // Check if loan has collateral and redirect to collateral create page
-            if ($request->has('has_collateral') && $request->has_collateral == '1' && $request->has('redirect_to_collateral') && $request->redirect_to_collateral == '1') {
-                Flash::success(trans('general.successfully_saved'));
-                return redirect('collateral/create?loan_id=' . $loan->id);
             }
             
             Flash::success(trans('general.successfully_saved'));
@@ -4054,8 +4048,11 @@ $new_balance = $debit_amount - $credit_amount;
 
                 // Send SMS to client about the transaction (only for enabled offices)
                 $enabledOffices = config('smsoffices.enabled_offices', []);
-                if (in_array($loan->office_id, $enabledOffices)) {
-                    $this->bulkSms->sendToClients([$client], $message);
+
+                if($loan->loan_product_id == 2){
+                    if (in_array($loan->office_id, $enabledOffices) && $loan->loan_product_id == 2) {
+                        $this->bulkSms->sendToClients([$client], $message);
+                    }
                 }
                 
                 
@@ -4066,115 +4063,6 @@ $new_balance = $debit_amount - $credit_amount;
                 Flash::success(trans('general.successfully_saved'));
                 return redirect('loan/' . $loan->id . '/show');
             }
-        }
-    }
-
-    public function store_debt_recovery(Request $request, $loan){
-          
-        try {
-            $loan = Loan::where('id', $loan)->first();
-                        // Get the recovery case
-            $recoveryCase = \App\Models\RecoveryCase::find($request->recovery_case_id);
-            
-            if ($recoveryCase) {
-                // Get payment details from form
-                $amount = $request->amount;
-                
-                // Get attribution details from recovery case (not from form)
-                $recoveriesDeptPct = $recoveryCase->recoveries_dept_attribution_pct ?? 0;
-                $originBranchPct = $recoveryCase->origin_branch_attribution_pct ?? 0;
-                $supportingBranchPct = $recoveryCase->supporting_branch_attribution_pct ?? 0;
-                
-                // Get branch details from recovery case
-                $originBranchId = $recoveryCase->origin_branch_id;
-                $supportingBranchId = $recoveryCase->supporting_branch_id;
-                $assignedSpecialistId = $recoveryCase->assigned_specialist_id;
-                
-                // Get outstanding from recovery case (not from form)
-                $outstandingBefore = $recoveryCase->loan_outstanding_amount;
-                $previousRecovered = $recoveryCase->amount_recovered ?? 0;
-                $outstandingAfter = max(0, $outstandingBefore - $amount);
-                
-                // Calculate attribution amounts from recovery case percentages
-                $recoveriesDeptAmount = $amount * ($recoveriesDeptPct / 100);
-                $originBranchAmount = $amount * ($originBranchPct / 100);
-                $supportingBranchAmount = $amount * ($supportingBranchPct / 100);
-                
-                // Create recovery payment record
-                $recoveryPayment = new \App\Models\RecoveryPayment();
-                $recoveryPayment->recovery_case_id = $recoveryCase->id;
-                $recoveryPayment->transaction_id = null;
-                $recoveryPayment->recorded_by = Sentinel::getUser()->id;
-                $recoveryPayment->receipt_number = $request->receipt_number ?? \App\Models\RecoveryPayment::generateReceiptNumber();
-                $recoveryPayment->amount = $amount;
-                
-                // Handle payment method - validate against allowed enum values
-                $allowedPaymentMethods = ['cash', 'mobile_money', 'bank_transfer', 'cheque', 'payroll_deduction'];
-                $paymentMethodInput = $request->payment_type_id;
-                
-                // If payment_method is numeric, get the actual name from PaymentType
-                if (is_numeric($paymentMethodInput)) {
-                    $paymentType = \App\Models\PaymentType::find($paymentMethodInput);
-                    if ($paymentType) {
-                        $paymentMethodInput = strtolower(str_replace(' ', '_', $paymentType->name));
-                    }
-                }
-                
-                // Validate and set payment method
-                if (in_array($paymentMethodInput, $allowedPaymentMethods)) {
-                    $recoveryPayment->payment_method = $paymentMethodInput;
-                } else {
-                    // Default to 'cash' if invalid value provided
-                    $recoveryPayment->payment_method = 'cash';
-                }
-                $recoveryPayment->payment_date = $request->date ?? date('Y-m-d');
-                $recoveryPayment->payment_reference = $request->payment_reference;
-                $recoveryPayment->bank_name = $request->bank_name;
-                $recoveryPayment->recoveries_dept_amount = $recoveriesDeptAmount;
-                $recoveryPayment->origin_branch_amount = $originBranchAmount;
-                $recoveryPayment->supporting_branch_amount = $supportingBranchAmount;
-                $recoveryPayment->is_settlement = $request->is_settlement ?? false;
-                $recoveryPayment->outstanding_before = $outstandingBefore;
-                $recoveryPayment->outstanding_after = $outstandingAfter;
-                $recoveryPayment->notes = $request->notes;
-                $recoveryPayment->save();
-
-                // Handle dept_share_amount
-                if ($request->filled('dept_share_amount') && $request->dept_share_amount > 0) {
-                    \App\Models\RecoveriesDeptExcalatedShare::create([
-                        'recovery_case_id' => $recoveryCase->id,
-                        'recovery_payment_id' => $recoveryPayment->id,
-                        'dept_share_amount' => $request->dept_share_amount,
-                        'notes' => $request->notes,
-                        'created_by' => Sentinel::getUser()->id,
-                    ]);
-                }
-                
-                // Update recovery case with amount recovered (from case, not form)
-                $recoveryCase->amount_recovered = $previousRecovered + $amount;
-                $recoveryCase->last_payment_date = $request->date ?? date('Y-m-d');
-                $recoveryCase->save();
-                
-                // If settlement, update case status
-                if ($request->is_settlement == 1 || $request->is_settlement == '1') {
-                    $recoveryCase->status = 'recovered_runaway';
-                    $recoveryCase->settlement_amount = $amount;
-                    $recoveryCase->resolved_date = date('Y-m-d');
-                    $recoveryCase->save();
-
-                    $loan->status = 'closed';
-                    $loan->save();
-                }
-                // Log audit for entering a Debt recovery transaction for approval
-                $user = Sentinel::getUser();
-                $this->auditorService->logEntereedRecoveryTransactionForApproval($user, request(), $loan);
-
-                Flash::success(trans('general.successfully_saved'));
-                return redirect('loan/' . $loan->id . '/show');
-            }
-        } catch (\Throwable $th) {
-            dd($th.' Contact IT Support');
-            return null;
         }
     }
 
@@ -5441,3 +5329,4 @@ $new_balance = $debit_amount - $credit_amount;
 
 
 }
+

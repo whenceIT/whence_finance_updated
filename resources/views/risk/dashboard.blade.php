@@ -119,6 +119,20 @@
                     </div>
                 </div>
 
+                <div class="bento-card small outline-card"
+                     style="border-color:#8e44ad;background:linear-gradient(135deg,#f5eeff 0%,#fdfaff 100%);cursor:pointer;"
+                     data-toggle="modal" data-target="#blockingHistoryModal">
+                    <div class="card-top">
+                        <div class="icon-wrap icon-wrap-light"><i class="fa fa-bar-chart" style="color:#8e44ad;"></i></div>
+                        <span class="badge-pill" style="background:#ede0fa;color:#6c2fa0;">Rate</span>
+                    </div>
+                    <div class="card-bottom">
+                        <div class="title" style="color:#555;">Blocking Rate</div>
+                        <div class="value" style="color:#222;">{{ $blockingRate ?? 0 }}%</div>
+                        <div style="font-size:11px;color:#aaa;margin-top:2px;">48 ÷ {{ $totalBlockedCount ?? 0 }} × 100</div>
+                    </div>
+                </div>
+
             </div>
 
             <div class="section-divider">
@@ -184,6 +198,34 @@
                                 </div>
 </div>
 
+    </div>
+</div>
+
+<!-- Blocking History Modal -->
+<div class="modal fade" id="blockingHistoryModal" tabindex="-1" role="dialog" aria-labelledby="blockingHistoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background:linear-gradient(135deg,#8e44ad,#6c2fa0);">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title text-white" id="blockingHistoryModalLabel">
+                    <i class="fa fa-bar-chart"></i>&nbsp;Office Blocking Rate History
+                </h4>
+            </div>
+            <div class="modal-body bh-modal-body">
+                <div id="blockingHistoryContent">
+                    <div class="text-center text-muted" style="padding:40px 0;">
+                        <i class="fa fa-spinner fa-spin fa-2x"></i>
+                        <p style="margin-top:10px;">Loading blocking history...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span class="text-muted small" id="blockingHistorySummary"></span>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -522,10 +564,62 @@
             });
         });
 
+        function formatElapsedMs(ms) {
+            const totalMins = Math.floor(ms / 60000);
+            const hours = Math.floor(totalMins / 60);
+            const mins  = totalMins % 60;
+            if (hours > 0) return hours + 'h ' + mins + 'm';
+            return mins + 'm';
+        }
+
         function renderLateDisbursements(data) {
-            let totalLoans = 0;
+            let totalLoans  = 0;
             let totalAmount = 0;
             let html = '';
+
+            // ── Analytics pass ───────────────────────────────────────────
+            const allElapsedMs = [];                  // every loan's elapsed ms
+            const officeElapsed = {};                 // officeName -> [ms, ms, ...]
+
+            Object.keys(data).forEach(function(provinceName) {
+                Object.keys(data[provinceName]).forEach(function(officeName) {
+                    data[provinceName][officeName].forEach(function(loan) {
+                        if (!loan.created_at) return;
+                        const diffMs = Date.now() - new Date(loan.created_at.replace(' ', 'T')).getTime();
+                        if (diffMs < 0) return;
+                        allElapsedMs.push(diffMs);
+                        if (!officeElapsed[officeName]) officeElapsed[officeName] = [];
+                        officeElapsed[officeName].push(diffMs);
+                    });
+                });
+            });
+
+            const avgMs = allElapsedMs.length
+                ? allElapsedMs.reduce((a, b) => a + b, 0) / allElapsedMs.length
+                : 0;
+
+            let mostLateOffice = '—';
+            let mostLateMs = 0;
+            Object.keys(officeElapsed).forEach(function(name) {
+                const avg = officeElapsed[name].reduce((a, b) => a + b, 0) / officeElapsed[name].length;
+                if (avg > mostLateMs) { mostLateMs = avg; mostLateOffice = name; }
+            });
+
+            // ── Analytics strip ──────────────────────────────────────────
+            if (allElapsedMs.length > 0) {
+                html += '<div class="ld-analytics-bar">';
+                html += '  <div class="ld-analytics-card">';
+                html += '    <div class="ld-analytics-label"><i class="fa fa-clock-o"></i>&nbsp;Average Late Time</div>';
+                html += '    <div class="ld-analytics-value">' + formatElapsedMs(avgMs) + '</div>';
+                html += '  </div>';
+                html += '  <div class="ld-analytics-divider"></div>';
+                html += '  <div class="ld-analytics-card">';
+                html += '    <div class="ld-analytics-label"><i class="fa fa-exclamation-triangle"></i>&nbsp;Most Late Office</div>';
+                html += '    <div class="ld-analytics-value">' + mostLateOffice + '</div>';
+                html += '    <div class="ld-analytics-sub">' + formatElapsedMs(mostLateMs) + ' avg</div>';
+                html += '  </div>';
+                html += '</div>';
+            }
 
             Object.keys(data).sort().forEach(function(provinceName) {
                 const provinceData = data[provinceName];
@@ -626,6 +720,77 @@
 
             $('#lateDisbursementsContent').html(html);
             $('#lateDisbursementsSummary').text(totalLoans + ' loans • K ' + Number(totalAmount).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+        }
+
+        // ── Blocking History Modal ────────────────────────────────────────
+        let blockingHistoryLoaded = false;
+        $('#blockingHistoryModal').on('show.bs.modal', function () {
+            if (blockingHistoryLoaded) return;
+            blockingHistoryLoaded = true;
+
+            $.ajax({
+                url: '{{ route("risk.dashboard.blocking-history") }}',
+                type: 'GET',
+                success: function(res) {
+                    if (!res.success || !res.data || res.data.length === 0) {
+                        $('#blockingHistoryContent').html('<div class="bh-empty">No blocking history found yet.</div>');
+                        $('#blockingHistorySummary').text('');
+                        return;
+                    }
+                    renderBlockingHistory(res.data, res.total_blocked_count);
+                },
+                error: function() {
+                    $('#blockingHistoryContent').html('<div class="bh-empty text-danger">Failed to load blocking history.</div>');
+                }
+            });
+        });
+
+        function renderBlockingHistory(data, totalCount) {
+            const blockingRate = totalCount > 0 ? ((48 / totalCount) * 100).toFixed(1) : 0;
+            const maxCount = data.length > 0 ? data[0].blocked_count : 1;
+
+            let html = '';
+            html += '<div class="bh-summary-bar">';
+            html += '  <div class="bh-rate-display">';
+            html += '    <span class="bh-rate-value">' + blockingRate + '%</span>';
+            html += '    <span class="bh-rate-formula">48 ÷ ' + totalCount + ' × 100</span>';
+            html += '  </div>';
+            html += '  <span class="bh-total-badge">' + data.length + ' offices tracked</span>';
+            html += '</div>';
+
+            html += '<table class="bh-table">';
+            html += '  <thead>';
+            html += '    <tr>';
+            html += '      <th style="width:5%">#</th>';
+            html += '      <th style="width:30%">Office</th>';
+            html += '      <th style="width:35%">Block Frequency</th>';
+            html += '      <th style="width:10%;text-align:center;">Count</th>';
+            html += '      <th style="width:20%">Last Reason</th>';
+            html += '    </tr>';
+            html += '  </thead>';
+            html += '  <tbody>';
+
+            data.forEach(function(row, idx) {
+                const pct = maxCount > 0 ? Math.round((row.blocked_count / maxCount) * 100) : 0;
+                const barClass = pct >= 75 ? 'bh-bar--high' : (pct >= 40 ? 'bh-bar--mid' : 'bh-bar--low');
+                html += '    <tr>';
+                html += '      <td class="bh-rank">' + (idx + 1) + '</td>';
+                html += '      <td class="bh-office">' + (row.office?.name || 'Unknown') + '</td>';
+                html += '      <td>';
+                html += '        <div class="bh-bar-wrap">';
+                html += '          <div class="bh-bar ' + barClass + '" style="width:' + pct + '%"></div>';
+                html += '        </div>';
+                html += '      </td>';
+                html += '      <td style="text-align:center;"><span class="bh-count-badge ' + barClass + '">' + row.blocked_count + '</span></td>';
+                html += '      <td class="bh-reason">' + (row.reason || '—') + '</td>';
+                html += '    </tr>';
+            });
+
+            html += '  </tbody>';
+            html += '</table>';
+
+            $('#blockingHistoryContent').html(html);
+            $('#blockingHistorySummary').text('Total blocks: ' + totalCount + '  •  Rate: ' + blockingRate + '%');
         }
 
         // ── Blockages Modal ───────────────────────────────────────────────
@@ -1111,6 +1276,47 @@
     .ld-date { color: #697386; white-space: nowrap; }
     .ld-empty { text-align: center; color: #8a8fa3; padding: 30px; font-size: 13px; }
 
+    /* ── Late Disbursements analytics strip ────────────────────────────── */
+    .ld-analytics-bar {
+        display: flex;
+        align-items: stretch;
+        gap: 0;
+        background: linear-gradient(135deg, #fff8ec, #fffdf9);
+        border: 1px solid #f5a623;
+        border-radius: 10px;
+        margin-bottom: 16px;
+        overflow: hidden;
+    }
+    .ld-analytics-card {
+        flex: 1;
+        padding: 14px 20px;
+    }
+    .ld-analytics-divider {
+        width: 1px;
+        background: #f5a623;
+        opacity: 0.35;
+        margin: 10px 0;
+    }
+    .ld-analytics-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #b5750a;
+        margin-bottom: 4px;
+    }
+    .ld-analytics-value {
+        font-size: 26px;
+        font-weight: 800;
+        color: #1f2430;
+        line-height: 1.1;
+    }
+    .ld-analytics-sub {
+        font-size: 11px;
+        color: #8a8fa3;
+        margin-top: 2px;
+    }
+
     /* ── Blockages Modal ───────────────────────────────────────────────── */
     .bd-modal-body { max-height: 65vh; overflow-y: auto; padding-right: 8px; }
     .bd-table { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -1128,6 +1334,41 @@
     .bd-badge-active { background: #e8f5e9; color: #2e7d32; }
     .bd-badge-expired { background: #fce4ec; color: #c62828; }
     .bd-empty { text-align: center; color: #8a8fa3; padding: 30px; font-size: 13px; }
+
+    /* ── Blocking History Modal ───────────────────────────────────────── */
+    .bh-modal-body { max-height: 65vh; overflow-y: auto; padding-right: 8px; }
+    .bh-summary-bar {
+        display: flex; align-items: center; justify-content: space-between;
+        background: linear-gradient(135deg, #f0e8ff, #faf5ff);
+        border: 1px solid #d8b4fe;
+        border-radius: 10px;
+        padding: 14px 18px;
+        margin-bottom: 16px;
+    }
+    .bh-rate-display { display: flex; align-items: baseline; gap: 10px; }
+    .bh-rate-value { font-size: 32px; font-weight: 800; color: #6c2fa0; }
+    .bh-rate-formula { font-size: 12px; color: #8e44ad; opacity: 0.8; }
+    .bh-total-badge {
+        font-size: 11px; background: #8e44ad; color: #fff;
+        border-radius: 999px; padding: 4px 12px; font-weight: 600;
+    }
+    .bh-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .bh-table th, .bh-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #eef0f3; }
+    .bh-table th { color: #697386; font-weight: 600; font-size: 11px; text-transform: uppercase; background: #fafbfc; }
+    .bh-table tr:hover td { background: #fdf8ff; }
+    .bh-rank { color: #aaa; font-size: 11px; }
+    .bh-office { font-weight: 600; color: #1f2430; }
+    .bh-reason { color: #697386; font-size: 11px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bh-bar-wrap { background: #f0e8ff; border-radius: 4px; height: 8px; overflow: hidden; }
+    .bh-bar { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+    .bh-bar--high  { background: #c0392b; }
+    .bh-bar--mid   { background: #f39c12; }
+    .bh-bar--low   { background: #27ae60; }
+    .bh-count-badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; color: #fff; }
+    .bh-count-badge.bh-bar--high  { background: #c0392b; }
+    .bh-count-badge.bh-bar--mid   { background: #f39c12; }
+    .bh-count-badge.bh-bar--low   { background: #27ae60; }
+    .bh-empty { text-align: center; color: #8a8fa3; padding: 30px; font-size: 13px; }
     </style>
 
 <!-- Late Disbursements Modal -->

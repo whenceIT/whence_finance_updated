@@ -4,12 +4,25 @@
     Pending Leave Approvals
 @endsection
 
-
-
 @section('content')
     <div class="box box-primary">
         <div class="box-header with-border">
             <h3 class="box-title">Pending Leave Approvals</h3>
+            <div class="box-tools pull-right">
+                @if ($roleNames)
+                    <span class="label label-info">Role: {{ $roleNames }}</span>
+                @endif
+                <span class="label label-default">Scope: {{ $scope }}</span>
+            </div>
+            <div style="clear: both;"></div>
+            <div style="margin-top: 5px;">
+                <strong>Offices you can see ({{ $offices->count() }}):</strong>
+                @if ($offices->isEmpty())
+                    <span class="text-muted">None</span>
+                @else
+                    <span>{{ $offices->implode(', ') }}</span>
+                @endif
+            </div>
         </div>
         <div class="box-body table-responsive">
             @if ($leave->isEmpty())
