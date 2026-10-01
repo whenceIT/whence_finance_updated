@@ -320,11 +320,9 @@ public function myLeavedays(Request $request)
 
         } elseif ($user->inRole(6)) {
             // Provincial Manager — sees leaves from offices in their province
-            $provinceId = Office::find($user->office_id)?->province_id;
             $query->whereIn('office_id', function ($q) use ($provinceId) {
-                $q->select('id')->from('offices')->where('province_id', $provinceId);
+                $q->select('id')->from('offices')->where('province_id', $user->province_id);
             });
-
         } elseif ($user->inRole(12)) {
             // DM Manager — sees leaves from offices in their district
             $districtId = Office::find($user->office_id)?->district_id;
