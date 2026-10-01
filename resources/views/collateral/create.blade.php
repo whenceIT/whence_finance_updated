@@ -3,7 +3,7 @@
 @section('content')
     <div class="box box-primary">
         <div class="box-header with-border">
-            <h3 class="box-title">Add Collateral</h3>
+            <h3 class="box-title" style="color:#e74c3c;font-weight:700;">Add Seized Collateral</h3>
             <div class="box-tools pull-right">
                 <button onclick="window.history.back()" class="btn btn-default btn-sm">Cancel</button>
             </div>
