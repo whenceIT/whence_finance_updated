@@ -302,6 +302,14 @@ class BranchAssetController extends Controller
             ->with('success', 'Asset record updated.');
     }
 
+    public function destroyInventory($id)
+    {
+        $inv = BranchAssetInventory::findOrFail($id);
+        $inv->delete();
+
+        return redirect()->route('goa.asset-manager.inventory')->with('success', 'Asset record deleted successfully.');
+    }
+
     protected function validateInventoryTotals(array $data)
     {
         $sum = $data['working'] + $data['damaged'] + $data['missing'] + $data['under_repair'];
