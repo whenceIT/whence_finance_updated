@@ -183,6 +183,7 @@ Overview - Asset Register
                             <th style="max-width:160px;">Remarks</th>
                             <th style="max-width:160px;">Action Required</th>
                             <th class="text-center" style="width:60px;">Edit</th>
+                            <th class="text-center" style="width:60px;">Delete</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -241,9 +242,19 @@ Overview - Asset Register
                                     <i class="fa fa-pencil"></i>
                                 </button>
                             </td>
+                            <td class="text-center">
+                                <form method="POST" action="{{ route('goa.asset-manager.inventory.destroy', $item->id) }}" style="display:inline;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-xs btn-danger"
+                                            onclick="return confirm('Delete this asset record? This action cannot be undone.')">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
                         @empty
-                        <tr><td colspan="13" class="text-center text-muted" style="padding:20px;">No records found. Adjust filters or seed the data.</td></tr>
+                        <tr><td colspan="14" class="text-center text-muted" style="padding:20px;">No records found. Adjust filters or seed the data.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
