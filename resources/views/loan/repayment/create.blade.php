@@ -68,7 +68,7 @@
                            class="control-label col-md-2">{{trans_choice('general.payment',1)}} {{trans_choice('general.type',1)}}
                     </label>
                     <div class="col-md-3">
-                        <select name="payment_type_id" class="form-control select2"
+                        <select name="payment_type_id" class="form-control"
                                 id="payment_type_id" required>
                             <option></option>
                             @foreach(\App\Models\PaymentType::all() as $key)
@@ -82,7 +82,7 @@
                            class="control-label col-md-2">{{trans_choice('general.payment',1)}} {{trans_choice('general.apply',1)}} {{trans_choice('general.to',1)}}
                     </label>
                     <div class="col-md-3">
-                        <select name="payment_apply_to" class="form-control select2"
+                        <select name="payment_apply_to" class="form-control"
                                 id="payment_apply_to" required>
                             <option value="">--select--</option>
                             <option value="full_payment">Full Payment</option>
