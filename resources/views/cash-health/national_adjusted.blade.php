@@ -945,8 +945,7 @@
         color:#697386;
         margin-bottom:18px;
     ">
-        Number of provinces and branches currently showing
-        issues in each cash-health area.
+        Number of provinces and branches currently falling into each management classification.
     </div>
 
 
@@ -971,7 +970,7 @@
                 color:#697386;
                 text-transform:uppercase;
             ">
-                Disbursement
+                Disbursements — Failing to Meet Loans Target
             </div>
 
             <div style="
@@ -981,7 +980,7 @@
                 color:#b45309;
             ">
 
-                {{ $issues['disbursement']['branch_count'] ?? 0 }}
+                {{ $issues['disbursements']['branch_count'] ?? 0 }}
 
             </div>
 
@@ -1003,7 +1002,7 @@
 
                 Across
                 <strong>
-                    {{ $issues['disbursement']['province_count'] ?? 0 }}
+                    {{ $issues['disbursements']['province_count'] ?? 0 }}
                 </strong>
                 provinces
 
@@ -1026,7 +1025,7 @@
                 color:#697386;
                 text-transform:uppercase;
             ">
-                Collection
+                Collecting — Meeting Loans Target
             </div>
 
             <div style="
@@ -1036,7 +1035,7 @@
                 color:#dc2626;
             ">
 
-                {{ $issues['collection']['branch_count'] ?? 0 }}
+                {{ $issues['collecting']['branch_count'] ?? 0 }}
 
             </div>
 
@@ -1058,7 +1057,7 @@
 
                 Across
                 <strong>
-                    {{ $issues['collection']['province_count'] ?? 0 }}
+                    {{ $issues['collecting']['province_count'] ?? 0 }}
                 </strong>
                 provinces
 
@@ -1081,7 +1080,7 @@
                 color:#697386;
                 text-transform:uppercase;
             ">
-                Residual Cash
+                Meeting Loans Target — Failing to Collect
             </div>
 
             <div style="
@@ -1091,7 +1090,7 @@
                 color:#b45309;
             ">
 
-                {{ $issues['residual_cash']['branch_count'] ?? 0 }}
+                {{ $issues['meeting_loans_target']['branch_count'] ?? 0 }}
 
             </div>
 
@@ -1113,7 +1112,7 @@
 
                 Across
                 <strong>
-                    {{ $issues['residual_cash']['province_count'] ?? 0 }}
+                    {{ $issues['meeting_loans_target']['province_count'] ?? 0 }}
                 </strong>
                 provinces
 
@@ -1373,14 +1372,14 @@
         Branches Requiring Management Attention
     </div>
     <div style="font-size:12px;color:#697386;line-height:1.6;margin-bottom:18px;">
-        Individual branches identified by the API as affected by disbursement, collection, or residual-cash issues.
+        Individual branches identified by the API as belonging to one of the three management classifications: disbursements, collecting, or meeting the loans target but failing to collect.
     </div>
 
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">
         @foreach([
-            'disbursement' => 'Disbursement',
-            'collection' => 'Collection',
-            'residual_cash' => 'Residual Cash'
+            'disbursements' => 'Disbursements — Failing to Meet Loans Target',
+            'collecting' => 'Collecting — Meeting Loans Target',
+            'meeting_loans_target' => 'Meeting Loans Target — Failing to Collect'
         ] as $issueKey => $issueLabel)
             @php
                 $issueData = $branchIssueAnalysis[$issueKey] ?? [];
@@ -2310,9 +2309,9 @@
             color:#9a3412;
         ">
 
-            Disbursement:
+            Disbursements — Failing to Meet Loans Target:
             <strong>
-                {{ $provinceIssues['disbursement']['branch_count'] ?? 0 }}
+                {{ $provinceIssues['disbursements']['branch_count'] ?? 0 }}
             </strong>
             branches
 
@@ -2327,9 +2326,9 @@
             color:#991b1b;
         ">
 
-            Collection:
+            Collecting — Meeting Loans Target:
             <strong>
-                {{ $provinceIssues['collection']['branch_count'] ?? 0 }}
+                {{ $provinceIssues['collecting']['branch_count'] ?? 0 }}
             </strong>
             branches
 
@@ -2344,9 +2343,9 @@
             color:#9a3412;
         ">
 
-            Residual Cash:
+            Meeting Loans Target — Failing to Collect:
             <strong>
-                {{ $provinceIssues['residual_cash']['branch_count'] ?? 0 }}
+                {{ $provinceIssues['meeting_loans_target']['branch_count'] ?? 0 }}
             </strong>
             branches
 
