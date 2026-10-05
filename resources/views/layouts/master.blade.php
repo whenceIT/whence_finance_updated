@@ -2198,7 +2198,7 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
     });
     </script>
 
-    @include('components.vacancy-alert-popup')
+    <!-- @include('components.vacancy-alert-popup') -->
     @include('components.insurance-alert-popup')
     @include('components.conference-countdown')
 
