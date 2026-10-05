@@ -80,7 +80,7 @@ class CollateralController extends Controller
         $query = Collateral::with(['loan.client', 'loan.office', 'type', 'created_by']);
 
         // --- Role-based scope ---
-        if ($roleId == 1) {
+        if ($roleId == 1 || $roleId == 13) {
             // Admin — sees ALL collateral; no additional constraint
         } elseif ($roleId == 4) {
             // Loan Officer / Branch Manager — own office only
