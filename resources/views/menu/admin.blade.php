@@ -227,7 +227,7 @@ if (!Sentinel::check()) {
             @endif
 
             <!-- Collateral Management -->
-            @if(Sentinel::getUser()->isCollateralSupervisor() || Sentinel::getUser()->isCollateralValuator() || $role == 4 || $role == 13)
+            @if(Sentinel::getUser()->isCollateralSupervisor() || Sentinel::getUser()->isCollateralValuator() || $role == 13)
                 <li class="treeview">
                     <a href="#">
                         <i class="fa fa-folder"></i> <span>Collateral Management</span>

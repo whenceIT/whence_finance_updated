@@ -101,12 +101,24 @@
 </div>
 
 <script>
-    $(document).ready(function () {
-        // Delay slightly so the page finishes rendering before the modal appears
-        setTimeout(function () {
-            $('#bmVacancyAlertModal').modal({ backdrop: true, keyboard: true });
-            $('#bmVacancyAlertModal').modal('show');
-        }, 1200);
-    });
+    (function () {
+        function init() {
+            if (!window.jQuery) { return; }
+            var $ = window.jQuery;
+            var $modal = $('#bmVacancyAlertModal');
+            if (!$modal.length) { return; }
+
+            // Show after a short delay so the page finishes rendering
+            window.setTimeout(function () {
+                $modal.modal({ backdrop: true, keyboard: true, show: true });
+            }, 1200);
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    })();
 </script>
 @endif
