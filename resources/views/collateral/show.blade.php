@@ -743,7 +743,7 @@
     </div>
     @endif
 
-    @if($role == 1 $role == 13)
+    @if($role == 1 || $role == 13)
     <!-- Audit History -->
     <div class="cd-panel">
         <div class="cd-panel-header">
