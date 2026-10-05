@@ -43,7 +43,7 @@
 
                 $credit = $credit + $transaction->credit;
                 ?>
-                @endforeach
+@endforeach
                 <?php
                 $balance = $debit - $credit;
                 ?>
@@ -112,9 +112,6 @@
                 @endforeach
                 </tbody>
             </table>
-
-
-
         </div>
     </div>
 @endsection
@@ -153,5 +150,3 @@
     </script>
 @endsection
         
-
-

@@ -748,6 +748,12 @@ Route::group(['prefix' => 'risk'], function () {
      // ── Daily cron: single entry point for AlertService::runAll()
 Route::get('cron/run-all-alerts', [MonitorController::class, 'runAllAlerts'])
            ->name('risk.cron.run-all-alerts');
+
+    // ── Cash Audit Wizard ─────────────────────────────────────────────────────
+    Route::get('cash-audit/config',       [\App\Http\Controllers\CashAuditController::class, 'getConfig'])->name('risk.cash-audit.config');
+    Route::post('cash-audit/toggle',      [\App\Http\Controllers\CashAuditController::class, 'toggle'])->name('risk.cash-audit.toggle');
+    Route::post('cash-audit/submit',      [\App\Http\Controllers\CashAuditController::class, 'store'])->name('risk.cash-audit.store');
+    Route::get('cash-audit/submissions',  [\App\Http\Controllers\CashAuditController::class, 'getSubmissions'])->name('risk.cash-audit.submissions');
 });
 
 // Provincial Ledger Routes

@@ -13,6 +13,7 @@ use App\Models\Office;
 use App\Models\Loan;
 use App\Models\Blockage;
 use App\Models\OfficeBlockingHistory;
+use Sentinel;
 
 class RiskDashboardController extends Controller
 {
@@ -75,6 +76,8 @@ class RiskDashboardController extends Controller
                 $q->where('status', '!=', 'approved')->orWhereNull('status');
             })->count();
             
+        $user = Sentinel::getUser();
+
         return view('risk.dashboard', compact(
             'collectedSetupDebtToday',
             'collectedBuildingToday',
@@ -89,7 +92,8 @@ class RiskDashboardController extends Controller
             'buildingDeadline',
             'adminDeadline',
             'statutoryDeadline',
-            'debtSetupDeadline'
+            'debtSetupDeadline',
+            'user'
         ));
     }
 
