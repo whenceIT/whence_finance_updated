@@ -103,10 +103,10 @@
                     <i class="fa fa-money" style="color:#fff;font-size:1.2rem;"></i>
                 </div>
                 <div>
-                    <h4 id="cashAuditWizardTitle" style="color:#fff;margin:0;font-size:1.15rem;font-weight:700;line-height:1.3;">
+                    <h4 id="cashAuditWizardTitle" style="color:#fff;margin:0;font-size:1.3rem;font-weight:700;line-height:1.3;">
                         Cash Balance &amp; Mobile Money Audit
                     </h4>
-                    <p style="color:rgba(255,255,255,.75);margin:0;font-size:.8rem;">
+                    <p style="color:rgba(255,255,255,.75);margin:0;font-size:.95rem;">
                         Immediate cash count required — submit all sections accurately
                     </p>
                 </div>
@@ -126,10 +126,10 @@
                 "></div>
             </div>
             <div style="display:flex;justify-content:space-between;margin-top:4px;">
-                <span id="cawStepLabel1" style="font-size:.72rem;color:rgba(255,255,255,.9);font-weight:600;text-transform:uppercase;letter-spacing:.06em;">
+                <span id="cawStepLabel1" style="font-size:.85rem;color:rgba(255,255,255,.9);font-weight:600;text-transform:uppercase;letter-spacing:.06em;">
                     Step 1 of 2 — Cash Balance
                 </span>
-                <span id="cawStepLabel2" style="font-size:.72rem;color:rgba(255,255,255,.4);font-weight:600;text-transform:uppercase;letter-spacing:.06em;">
+                <span id="cawStepLabel2" style="font-size:.85rem;color:rgba(255,255,255,.4);font-weight:600;text-transform:uppercase;letter-spacing:.06em;">
                     Step 2 — Mobile Money
                 </span>
             </div>
@@ -147,7 +147,7 @@
                 <div style="
                     background:#fff8e1;border-left:4px solid #f59e0b;
                     border-radius:0 8px 8px 0;padding:10px 14px;
-                    margin-bottom:18px;font-size:.84rem;color:#78450a;line-height:1.5;
+                    margin-bottom:18px;font-size:.98rem;color:#78450a;line-height:1.5;
                 ">
                     <i class="fa fa-exclamation-circle" style="margin-right:6px;"></i>
                     <strong>Action required:</strong>
@@ -156,7 +156,7 @@
 
                 {{-- A. Branch Identification --}}
                 <div style="margin-bottom:20px;">
-                    <h6 style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6b7280;margin-bottom:10px;border-bottom:1px solid #f0f0f0;padding-bottom:6px;">
+                    <h6 style="font-size:.92rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6b7280;margin-bottom:10px;border-bottom:1px solid #f0f0f0;padding-bottom:6px;">
                         A. Branch Identification
                     </h6>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -173,7 +173,7 @@
 
                 {{-- B. Cash Count Breakdown --}}
                 <div style="margin-bottom:20px;">
-                    <h6 style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6b7280;margin-bottom:10px;border-bottom:1px solid #f0f0f0;padding-bottom:6px;">
+                    <h6 style="font-size:.92rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6b7280;margin-bottom:10px;border-bottom:1px solid #f0f0f0;padding-bottom:6px;">
                         B. Cash Count Breakdown — Physical Cash (enter number of notes/coins)
                     </h6>
                     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
@@ -193,8 +193,8 @@
                         border-radius:8px;padding:10px 14px;margin-top:10px;
                         display:flex;justify-content:space-between;align-items:center;
                     ">
-                        <span style="font-size:.85rem;color:#166534;font-weight:600;">Total Cash Balance</span>
-                        <span id="cawCashTotal" style="font-size:1.1rem;font-weight:700;color:#166534;">K 0.00</span>
+                        <span style="font-size:.98rem;color:#166534;font-weight:600;">Total Cash Balance</span>
+                        <span id="cawCashTotal" style="font-size:1.2rem;font-weight:700;color:#166534;">K 0.00</span>
                     </div>
                     <div style="margin-top:10px;">
                         <label class="caw-label" for="cawCashDatetime">Date &amp; Time of Cash Count <span style="color:#e53e3e;">*</span></label>
@@ -204,11 +204,11 @@
 
                 {{-- C. Petty Cash --}}
                 <div>
-                    <h6 style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6b7280;margin-bottom:10px;border-bottom:1px solid #f0f0f0;padding-bottom:6px;">
+                    <h6 style="font-size:.92rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6b7280;margin-bottom:10px;border-bottom:1px solid #f0f0f0;padding-bottom:6px;">
                         C. Petty Cash
                     </h6>
                     <div style="margin-bottom:10px;">
-                        <label style="display:flex;align-items:center;gap:8px;font-size:.85rem;color:#374151;cursor:pointer;">
+                        <label style="display:flex;align-items:center;gap:8px;font-size:.98rem;color:#374151;cursor:pointer;">
                             <input type="checkbox" id="cawPettyViaMobile" style="width:16px;height:16px;cursor:pointer;">
                             Petty cash is held via mobile wallet (skip denomination breakdown)
                         </label>
@@ -231,15 +231,15 @@
                             border-radius:8px;padding:10px 14px;margin-top:10px;
                             display:flex;justify-content:space-between;align-items:center;
                         ">
-                            <span style="font-size:.85rem;color:#166534;font-weight:600;">Total Petty Cash</span>
-                            <span id="cawPettyTotal" style="font-size:1.1rem;font-weight:700;color:#166534;">K 0.00</span>
+                            <span style="font-size:.98rem;color:#166534;font-weight:600;">Total Petty Cash</span>
+                            <span id="cawPettyTotal" style="font-size:1.2rem;font-weight:700;color:#166534;">K 0.00</span>
                         </div>
                     </div>
                     <div id="cawPettyMobileNote" style="display:none;">
                         <div style="
                             background:#eff6ff;border-left:3px solid #3b82f6;
                             border-radius:0 8px 8px 0;padding:10px 14px;
-                            font-size:.83rem;color:#1e40af;
+                            font-size:.95rem;color:#1e40af;
                         ">
                             <i class="fa fa-info-circle"></i>
                             Petty cash via mobile wallet — use the Mobile Money section (Step 2) to confirm the balance.
@@ -257,7 +257,7 @@
                 <div style="
                     background:#eff6ff;border-left:4px solid #3b82f6;
                     border-radius:0 8px 8px 0;padding:10px 14px;
-                    margin-bottom:18px;font-size:.84rem;color:#1e40af;line-height:1.5;
+                    margin-bottom:18px;font-size:.98rem;color:#1e40af;line-height:1.5;
                 ">
                     <i class="fa fa-mobile" style="margin-right:6px;font-size:1rem;"></i>
                     Verify your mobile money balance via <strong>*115#</strong> (Check Balance option),
@@ -304,10 +304,10 @@
                     border-radius:10px;padding:14px;
                     display:none;
                 ">
-                    <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6b7280;margin-bottom:10px;">
+                    <div style="font-size:.92rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6b7280;margin-bottom:10px;">
                         Submission Summary
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:.84rem;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:.97rem;">
                         <div style="color:#6b7280;">Branch:</div>           <div id="cawSumBranch"     style="font-weight:600;color:#1e293b;"></div>
                         <div style="color:#6b7280;">District Manager:</div> <div id="cawSumDM"         style="font-weight:600;color:#1e293b;"></div>
                         <div style="color:#6b7280;">Cash Total:</div>       <div id="cawSumCash"       style="font-weight:600;color:#166534;"></div>
@@ -324,7 +324,7 @@
                 display:none;
                 background:#fef2f2;border:1px solid #fecaca;
                 border-radius:8px;padding:10px 14px;
-                color:#dc2626;font-size:.85rem;margin-top:12px;
+                color:#dc2626;font-size:.98rem;margin-top:12px;
             ">
                 <i class="fa fa-times-circle"></i>
                 <span id="cawErrorMsg"></span>
@@ -399,7 +399,7 @@
             <i class="fa fa-check" style="color:#fff;font-size:1.8rem;"></i>
         </div>
         <h4 style="margin:0 0 8px;color:#1e293b;font-weight:700;">Audit Submitted</h4>
-        <p style="color:#6b7280;font-size:.9rem;margin:0;">
+        <p style="color:#6b7280;font-size:1.05rem;margin:0;">
             Your cash balance and mobile money details have been recorded successfully.
             Thank you.
         </p>
@@ -417,7 +417,7 @@
 
     .caw-label {
         display:block;
-        font-size:.78rem;
+        font-size:.92rem;
         font-weight:600;
         color:#374151;
         margin-bottom:4px;
@@ -430,7 +430,7 @@
         padding:8px 10px;
         border:1px solid #d1d5db;
         border-radius:8px;
-        font-size:.88rem;
+        font-size:1rem;
         color:#1e293b;
         background:#fff;
         transition:border-color .2s,box-shadow .2s;
@@ -451,8 +451,8 @@
         color:#fff;
         border:none;
         border-radius:8px;
-        padding:9px 20px;
-        font-size:.88rem;
+        padding:10px 22px;
+        font-size:1rem;
         font-weight:600;
         cursor:pointer;
         transition:opacity .2s;
@@ -469,8 +469,8 @@
         color:#374151;
         border:1px solid #d1d5db;
         border-radius:8px;
-        padding:9px 16px;
-        font-size:.88rem;
+        padding:10px 18px;
+        font-size:1rem;
         font-weight:600;
         cursor:pointer;
         transition:background .2s;
@@ -576,6 +576,8 @@
                     $('#cashAuditOverlay').css('background', 'rgba(10,14,30,.82)');
                     $('#cashAuditWizardModal').fadeOut(300);
                     $('#cashAuditSuccess').css('display', 'flex').hide().fadeIn(400);
+                    // Reload the page after 3 seconds so the wizard no longer appears
+                    setTimeout(function () { location.reload(); }, 3000);
                 } else {
                     cawShowError(res.message || 'Submission failed. Please try again.');
                 }
