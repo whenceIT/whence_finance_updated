@@ -89,11 +89,6 @@
                         style="border-radius:8px;font-weight:600;">
                     Dismiss
                 </button>
-                <!-- <a href="{{ route('goa.branch-staffing-capacity', ['office_id' => $bmVacancyAlert['office_id'], 'tab' => 'vacancies']) }}"
-                   class="btn btn-danger btn-sm"
-                   style="border-radius:8px;font-weight:600;background:#e53e3e;border-color:#e53e3e;">
-                    <i class="fa fa-briefcase"></i> View Vacancy Register
-                </a> -->
             </div>
 
         </div>
