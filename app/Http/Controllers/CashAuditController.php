@@ -169,7 +169,7 @@ class CashAuditController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // RISK MANAGER: List all submissions (paginated, filterable by office)
+    // RISK MANAGER: List all submissions (JSON — used by dashboard AJAX)
     // GET /risk/cash-audit/submissions
     // ─────────────────────────────────────────────────────────────────────────
     public function getSubmissions(Request $request)
@@ -190,5 +190,68 @@ class CashAuditController extends Controller
         $submissions = $query->paginate(25);
 
         return response()->json(['success' => true, 'data' => $submissions]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // RISK MANAGER: Full results page (HTML view)
+    // GET /risk/cash-audit/results
+    // ─────────────────────────────────────────────────────────────────────────
+    public function results(Request $request)
+    {
+        $user = Sentinel::getUser();
+
+        if (!$user || !in_array((string) $user->id, array_map('strval', config('role.risk', [])))) {
+            abort(403, 'Unauthorised');
+        }
+
+        $officeId = $request->input('office_id');
+        $search   = $request->input('search');
+        $from     = $request->input('from');
+        $to       = $request->input('to');
+
+        $query = CashAuditSubmission::with(['office:id,name', 'user:id,first_name,last_name'])
+            ->orderByDesc('created_at');
+
+        if ($officeId) {
+            $query->where('office_id', $officeId);
+        }
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('branch_name', 'like', "%{$search}%")
+                  ->orWhere('district_manager_name', 'like', "%{$search}%")
+                  ->orWhere('mobile_number', 'like', "%{$search}%");
+            });
+        }
+
+        if ($from) {
+            $query->whereDate('created_at', '>=', $from);
+        }
+        if ($to) {
+            $query->whereDate('created_at', '<=', $to);
+        }
+
+        $submissions = $query->paginate(20)->withQueryString();
+
+        $offices = Office::select('id', 'name')
+            ->where('active', 1)
+            ->whereNotNull('parent_id')
+            ->orderBy('name')
+            ->get();
+
+        // Summary stats (unfiltered totals)
+        $totalCount      = CashAuditSubmission::count();
+        $totalCash       = CashAuditSubmission::sum('cash_total');
+        $totalPettyCash  = CashAuditSubmission::sum('petty_total');
+        $uniqueOffices   = CashAuditSubmission::distinct('office_id')->count('office_id');
+
+        return view('risk.cash-audit-results', compact(
+            'submissions',
+            'offices',
+            'totalCount',
+            'totalCash',
+            'totalPettyCash',
+            'uniqueOffices'
+        ));
     }
 }

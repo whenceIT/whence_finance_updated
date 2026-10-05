@@ -755,6 +755,7 @@ Route::get('cron/run-all-alerts', [MonitorController::class, 'runAllAlerts'])
     Route::post('cash-audit/toggle',      [\App\Http\Controllers\CashAuditController::class, 'toggle'])->name('risk.cash-audit.toggle');
     Route::post('cash-audit/submit',      [\App\Http\Controllers\CashAuditController::class, 'store'])->name('risk.cash-audit.store');
     Route::get('cash-audit/submissions',  [\App\Http\Controllers\CashAuditController::class, 'getSubmissions'])->name('risk.cash-audit.submissions');
+    Route::get('cash-audit/results',      [\App\Http\Controllers\CashAuditController::class, 'results'])->name('risk.cash-audit.results');
 });
 
 // Provincial Ledger Routes
