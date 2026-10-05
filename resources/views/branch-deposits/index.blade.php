@@ -46,8 +46,9 @@
             <div class="box-body" id="depositsContainer">
                 
                 <!-- Payment A -->
+                @if(!in_array(Sentinel::getUser()->office_id, [6,1]))
                 @include('branch-deposits._partials.debt-setup', ['selectedMonth' => $selectedMonth])
-                
+                @endif
                 <br>
                 <hr>
                 <!-- Payment B -->
