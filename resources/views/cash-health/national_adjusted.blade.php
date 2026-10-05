@@ -776,36 +776,28 @@
 
         @php
 
-            $currentContribution =
-                (float)($contributionHistory[0]['contribution']
-                    ?? $contribution['this_month']
-                    ?? 0);
+   $currentContribution = (float)($contributionHistory[0]['contribution'] ?? 0);
+$previousContribution = (float)($contributionHistory[1]['contribution'] ?? 0);
 
-            $previousContribution =
-                (float)($contributionHistory[1]['contribution'] ?? 0);
+$contributionChange = $currentContribution - $previousContribution;
 
-            $contributionChange =
-                $currentContribution - $previousContribution;
+$contributionPercentage = abs($previousContribution) > 0
+    ? ($contributionChange / abs($previousContribution)) * 100
+    : null;
 
-            $contributionPercentage =
-                abs($previousContribution) > 0
-                    ? ($contributionChange / abs($previousContribution)) * 100
-                    : null;
-
-            if ($contributionChange > 0) {
-                $contributionComparisonColor = '#15803d';
-                $contributionComparisonBackground = '#ecfdf5';
-                $contributionComparisonLabel = 'Improved';
-            } elseif ($contributionChange < 0) {
-                $contributionComparisonColor = '#dc2626';
-                $contributionComparisonBackground = '#fef2f2';
-                $contributionComparisonLabel = 'Worsened';
-            } else {
-                $contributionComparisonColor = '#697386';
-                $contributionComparisonBackground = '#f3f4f6';
-                $contributionComparisonLabel = 'No change';
-            }
-
+if ($contributionChange > 0) {
+    $contributionComparisonColor = '#15803d';
+    $contributionComparisonBackground = '#ecfdf5';
+    $contributionComparisonLabel = 'Improved';
+} elseif ($contributionChange < 0) {
+    $contributionComparisonColor = '#dc2626';
+    $contributionComparisonBackground = '#fef2f2';
+    $contributionComparisonLabel = 'Worsened';
+} else {
+    $contributionComparisonColor = '#697386';
+    $contributionComparisonBackground = '#f3f4f6';
+    $contributionComparisonLabel = 'No change';
+}
         @endphp
 
         <div style="
