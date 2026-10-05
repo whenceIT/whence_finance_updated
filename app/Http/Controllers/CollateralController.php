@@ -184,7 +184,7 @@ class CollateralController extends Controller
 
         // Role-based scoping for loans
         $loansQuery = Loan::whereIn('status', ['disbursed', 'defaulted']);
-        if ($roleId == 1) {
+        if ($roleId == 1 || $roleId == 13) {
             // Admin — sees ALL loans
         } elseif ($roleId == 4) {
             // Loan Officer / Branch Manager — own office only
@@ -265,7 +265,7 @@ class CollateralController extends Controller
 
         // Role-based scoping for loans
         $loansQuery = Loan::query();
-        if ($roleId == 1) {
+        if ($roleId == 1 || $roleId == 13) {
             // Admin — sees ALL loans
         } elseif ($roleId == 4) {
             // Loan Officer / Branch Manager — own office only
@@ -429,7 +429,7 @@ class CollateralController extends Controller
         $roleId = $role ? $role->role_id : null;
 
         $loansQuery = Loan::query();
-        if ($roleId == 1) {
+        if ($roleId == 1 || $roleId == 13) {
             // Admin — sees ALL loans
         } elseif ($roleId == 4) {
             $loansQuery->where('office_id', $user->office_id);
@@ -1162,8 +1162,8 @@ class CollateralController extends Controller
 
         // ── Filter options ────────────────────────────────────────────────────
         $collateralTypes = CollateralType::all();
-        $offices         = ($roleId == 1) ? Office::all() : Office::where('province_id', $user->office->province_id ?? 0)->get();
-        $provinces       = ($roleId == 1) ? Province::all() : collect();
+        $offices         = ($roleId == 1 || $roleId == 13) ? Office::all() : Office::where('province_id', $user->office->province_id ?? 0)->get();
+        $provinces       = ($roleId == 1 || $roleId == 13) ? Province::all() : collect();
         $categories      = Collateral::CATEGORIES;
 
         return view('collateral.sales', compact(
