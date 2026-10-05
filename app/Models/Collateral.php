@@ -8,6 +8,17 @@ class Collateral extends Model
 {
     protected $table = 'collaterals';
 
+    public const DEFAULT_STATUS = 'seized_inventory';
+
+    protected static function booted()
+    {
+        static::creating(function ($collateral) {
+            if (!isset($collateral->attributes['status'])) {
+                $collateral->status = self::DEFAULT_STATUS;
+            }
+        });
+    }
+
     public const STATUSES = [
         'seized_inventory'     => 'Seized/Inventory',
         'valuation_completed'  => 'Valuation Completed',

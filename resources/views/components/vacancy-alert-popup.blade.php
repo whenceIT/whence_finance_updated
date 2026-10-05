@@ -89,11 +89,6 @@
                         style="border-radius:8px;font-weight:600;">
                     Dismiss
                 </button>
-                <!-- <a href="{{ route('goa.branch-staffing-capacity', ['office_id' => $bmVacancyAlert['office_id'], 'tab' => 'vacancies']) }}"
-                   class="btn btn-danger btn-sm"
-                   style="border-radius:8px;font-weight:600;background:#e53e3e;border-color:#e53e3e;">
-                    <i class="fa fa-briefcase"></i> View Vacancy Register
-                </a> -->
             </div>
 
         </div>
@@ -101,12 +96,24 @@
 </div>
 
 <script>
-    $(document).ready(function () {
-        // Delay slightly so the page finishes rendering before the modal appears
-        setTimeout(function () {
-            $('#bmVacancyAlertModal').modal({ backdrop: true, keyboard: true });
-            $('#bmVacancyAlertModal').modal('show');
-        }, 1200);
-    });
+    (function () {
+        function init() {
+            if (!window.jQuery) { return; }
+            var $ = window.jQuery;
+            var $modal = $('#bmVacancyAlertModal');
+            if (!$modal.length) { return; }
+
+            // Show after a short delay so the page finishes rendering
+            window.setTimeout(function () {
+                $modal.modal({ backdrop: true, keyboard: true, show: true });
+            }, 1200);
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    })();
 </script>
 @endif

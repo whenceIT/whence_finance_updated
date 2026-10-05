@@ -46,13 +46,14 @@
             <div class="box-body" id="depositsContainer">
                 
                 <!-- Payment A -->
+                @if(!in_array(Sentinel::getUser()->office_id, [6,1]))
                 @include('branch-deposits._partials.debt-setup', ['selectedMonth' => $selectedMonth])
-                
+                @endif
                 <br>
                 <hr>
                 <!-- Payment B -->
                 @if(!$debtBlocker && isset($status[0]) && ($status[0]['status'] === 'unpaid' || $status[0]['status'] === 'partially paid')
-                || in_array(Sentinel::getUser()->office_id, [6]))
+                || in_array(Sentinel::getUser()->office_id, [6,1]))
                     @include('branch-deposits._partials.building', ['selectedMonth' => $selectedMonth])
                 @else
                     @include('branch-deposits._partials.building', ['selectedMonth' => $selectedMonth, 'disabled'=>true] )

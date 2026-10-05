@@ -175,7 +175,7 @@ if (!Sentinel::check()) {
                  GOA MANAGER SECTION
             ============================================ -->
             
-            @hasRole('role.exec', 'role.goa', 'role.risk')
+            @hasRole('role.exec', 'role.goa')
             <li class="treeview @if(Request::is('goa_dashboard*')) active menu-open @endif">
                 <a href="#">
                     <i class="fa fa-building"></i> <span>GOA Manager</span>
@@ -227,7 +227,7 @@ if (!Sentinel::check()) {
             @endif
 
             <!-- Collateral Management -->
-            @if(Sentinel::getUser()->isCollateralSupervisor() || Sentinel::getUser()->isCollateralValuator() || $role == 4 || $role == 13)
+            @if(Sentinel::getUser()->isCollateralSupervisor() || Sentinel::getUser()->isCollateralValuator() || $role == 13)
                 <li class="treeview">
                     <a href="#">
                         <i class="fa fa-folder"></i> <span>Collateral Management</span>
@@ -236,7 +236,12 @@ if (!Sentinel::check()) {
                         </span>
                     </a>
                     <ul class="treeview-menu">
-                        
+                        <li>
+                            <a href="{{ route('collateral.index') }}"><i class="fa fa-circle-o"></i> View All Collateral <span class="label label-success pull-right">{{ $collateralCount }}</span></a>
+                        </li>
+                        <li>
+                            <a href="{{ route('collateral.create') }}"><i class="fa fa-circle-o"></i> Add Collateral</a>
+                        </li>
                         @if(Sentinel::getUser()->isCollateralValuator() || $role == 13)
                         <li><a href="{{ route('collateral.index', ['key' => 'admin']) }}"><i class="fa fa-circle-o"></i>Collateral Dashboard</a></li>
                         <li><a href="{{ route('collateral.sales', ['key' => 'admin']) }}"><i class="fa fa-circle-o"></i>Sales</a></li>

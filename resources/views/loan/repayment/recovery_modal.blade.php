@@ -122,7 +122,7 @@
                     {{ trans_choice('general.close',1) }}
                 </button>
                 <button type="submit"
-                        class="btn btn-primary"  id='recoverySubmitBtn' disabled>{{ trans_choice('general.save',1) }}</button>
+                        class="btn btn-primary"  id='recoverySubmitBtn'>{{ trans_choice('general.save',1) }}</button>
             </div>
         </form>
       </div>
