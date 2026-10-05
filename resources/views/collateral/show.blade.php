@@ -574,17 +574,17 @@
                 'seized_inventory' => [
                     'next' => 'valuation_completed',
                     'label' => 'Mark as Valuation Completed',
-                    'roles' => [1,4,6],
+                    'roles' => [1,13],
                 ],
                 'valuation_completed' => [
                     'next' => 'listed_for_sale',
                     'label' => 'List for Sale',
-                    'roles' => [1,4,6],
+                    'roles' => [1,13],
                 ],
                 'listed_for_sale' => [
                     'next' => 'written_off',
                     'label' => 'Write Off',
-                    'roles' => [1,4,6],
+                    'roles' => [1,13],
                 ],
             ];
             $currentWorkflow = $workflow[$collateral->status] ?? null;
@@ -743,7 +743,7 @@
     </div>
     @endif
 
-    @if($role == 1)
+    @if($role == 1 $role == 13)
     <!-- Audit History -->
     <div class="cd-panel">
         <div class="cd-panel-header">
@@ -776,7 +776,7 @@
     </div>
     @endif
 
-    @if($role == 1)
+    @if($role == 1 || $role == 13 )
     <!-- Status Change History -->
     <div class="cd-panel">
         <div class="cd-panel-header">
