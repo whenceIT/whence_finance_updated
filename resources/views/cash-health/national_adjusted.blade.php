@@ -210,6 +210,28 @@
     $metricDefinitions =
         $nationalHealth['metric_definitions'] ?? [];
 
+    $nationalComparison =
+        $nationalHealth['comparison'] ?? [];
+
+    $comparisonStyle = function ($comparison) {
+        $assessment = strtoupper($comparison['assessment'] ?? 'NEUTRAL');
+        return match ($assessment) {
+            'IMPROVED' => ['color' => '#15803d', 'background' => '#ecfdf5', 'label' => 'Improved'],
+            'WORSENED' => ['color' => '#dc2626', 'background' => '#fef2f2', 'label' => 'Worsened'],
+            default => ['color' => '#697386', 'background' => '#f3f4f6', 'label' => 'No material change']
+        };
+    };
+
+    $formatComparisonChange = function ($comparison, $money = true) {
+        if (empty($comparison)) return 'No previous-cycle data';
+        $change = (float)($comparison['change'] ?? 0);
+        $prefix = $change > 0 ? '+' : ($change < 0 ? '-' : '');
+        $value = number_format(abs($change), $money ? 2 : 0);
+        $percent = $comparison['percentage_change'] ?? null;
+        return ($money ? 'K' : '') . $prefix . $value .
+            ($percent !== null ? ' (' . ($percent > 0 ? '+' : '') . number_format($percent, 1) . '%)' : '');
+    };
+
     /*
     |--------------------------------------------------------------------------
     | STATUS
@@ -752,17 +774,82 @@
 
         </div>
 
+        @php
+
+            $currentContribution =
+                (float)($contributionHistory[0]['contribution']
+                    ?? $contribution['this_month']
+                    ?? 0);
+
+            $previousContribution =
+                (float)($contributionHistory[1]['contribution'] ?? 0);
+
+            $contributionChange =
+                $currentContribution - $previousContribution;
+
+            $contributionPercentage =
+                abs($previousContribution) > 0
+                    ? ($contributionChange / abs($previousContribution)) * 100
+                    : null;
+
+            if ($contributionChange > 0) {
+                $contributionComparisonColor = '#15803d';
+                $contributionComparisonBackground = '#ecfdf5';
+                $contributionComparisonLabel = 'Improved';
+            } elseif ($contributionChange < 0) {
+                $contributionComparisonColor = '#dc2626';
+                $contributionComparisonBackground = '#fef2f2';
+                $contributionComparisonLabel = 'Worsened';
+            } else {
+                $contributionComparisonColor = '#697386';
+                $contributionComparisonBackground = '#f3f4f6';
+                $contributionComparisonLabel = 'No change';
+            }
+
+        @endphp
+
+        <div style="
+            margin-top:6px;
+            display:flex;
+            align-items:center;
+            gap:7px;
+            flex-wrap:wrap;
+        ">
+            <span style="
+                font-size:10px;
+                color:#8a93a3;
+            ">
+                Previous cycle: K{{ number_format(abs($previousContribution), 2) }}
+            </span>
+
+            <span style="
+                padding:3px 6px;
+                border-radius:5px;
+                background:{{ $contributionComparisonBackground }};
+                color:{{ $contributionComparisonColor }};
+                font-size:9px;
+                font-weight:700;
+            ">
+                {{ $contributionComparisonLabel }}
+            </span>
+        </div>
+
         <div style="
             margin-top:5px;
-            font-size:11px;
-            color:#8a93a3;
+            font-size:10px;
+            font-weight:700;
+            color:{{ $contributionComparisonColor }};
         ">
-            This month
+            {{ $contributionChange > 0 ? '+' : ($contributionChange < 0 ? '-' : '') }}K{{ number_format(abs($contributionChange), 2) }}
+            @if($contributionPercentage !== null)
+                ({{ $contributionPercentage > 0 ? '+' : '' }}{{ number_format($contributionPercentage, 1) }}%)
+            @endif
+            vs previous cycle
         </div>
 
         <div class="management-description">
 
-            Collections − Disbursements − Operating Costs.
+            Collections − Disbursements − Operating Costs. A positive net contribution means the institution generated more cash than it consumed during the cycle.
 
         </div>
 
@@ -2165,6 +2252,11 @@
                 $provinceScores['overall'] ?? 0,
                 0
             ) }}
+            @if(!empty($province['comparison']['scores']['overall']))
+                <div style="font-size:9px;color:{{ $comparisonStyle($province['comparison']['scores']['overall'])['color'] }};margin-top:3px;">
+                    {{ $formatComparisonChange($province['comparison']['scores']['overall'], false) }} vs last cycle
+                </div>
+            @endif
 
         </td>
 
@@ -2181,6 +2273,11 @@
             white-space:nowrap;
         ">
             {{ $provinceContribution >= 0 ? '+' : '-' }}K{{ number_format(abs($provinceContribution), 0) }}
+            @if(!empty($province['comparison']['contribution']))
+                <div style="font-size:9px;color:{{ $comparisonStyle($province['comparison']['contribution'])['color'] }};margin-top:3px;">
+                    {{ $formatComparisonChange($province['comparison']['contribution'], true) }} vs last cycle
+                </div>
+            @endif
         </td>
 
         <td style="
@@ -2530,6 +2627,11 @@ $districtStatus = match (strtolower($districtScores['status'] ?? 'red')) {
         $districtScores['overall'] ?? 0,
         0
     ) }}
+    @if(!empty($district['comparison']['scores']['overall']))
+        <div style="font-size:9px;color:{{ $comparisonStyle($district['comparison']['scores']['overall'])['color'] }};margin-top:3px;">
+            {{ $formatComparisonChange($district['comparison']['scores']['overall'], false) }} vs last cycle
+        </div>
+    @endif
 
 </div>
 
@@ -2548,6 +2650,11 @@ $districtStatus = match (strtolower($districtScores['status'] ?? 'red')) {
     white-space:nowrap;
 ">
     {{ $districtContribution >= 0 ? '+' : '-' }}K{{ number_format(abs($districtContribution), 0) }}
+    @if(!empty($district['comparison']['contribution']))
+        <div style="font-size:9px;color:{{ $comparisonStyle($district['comparison']['contribution'])['color'] }};margin-top:3px;">
+            {{ $formatComparisonChange($district['comparison']['contribution'], true) }} vs last cycle
+        </div>
+    @endif
 </div>
 
 
@@ -2888,61 +2995,71 @@ $districtStatus = match (strtolower($districtScores['status'] ?? 'red')) {
         [
             'label' => 'Minimum Loan Target',
             'description' => 'Minimum amount expected to be disbursed.',
-            'value' => $officeFinancials['minimum_loan_target'] ?? 0
+            'value' => $officeFinancials['minimum_loan_target'] ?? 0,
+            'comparison' => $office['comparison']['financials']['minimum_loan_target'] ?? []
         ],
 
         [
             'label' => 'Maximum Repayment',
             'description' => 'Expected maximum amount to be collected.',
-            'value' => $officeFinancials['maximum_expected_repayment'] ?? 0
+            'value' => $officeFinancials['maximum_expected_repayment'] ?? 0,
+            'comparison' => $office['comparison']['financials']['maximum_expected_repayment'] ?? []
         ],
 
         [
             'label' => 'Fixed Costs',
             'description' => 'Essential operating costs that must be paid.',
-            'value' => $officeFinancials['mandatory_fixed_cost'] ?? 0
+            'value' => $officeFinancials['mandatory_fixed_cost'] ?? 0,
+            'comparison' => $office['comparison']['financials']['mandatory_fixed_cost'] ?? []
         ],
 
         [
             'label' => 'Salaries',
             'description' => 'Expected salary costs for the period.',
-            'value' => $officeFinancials['salaries'] ?? 0
+            'value' => $officeFinancials['salaries'] ?? 0,
+            'comparison' => $office['comparison']['financials']['salaries'] ?? []
         ],
 
         [
             'label' => 'Defaults',
             'description' => 'Money that is currently overdue or uncollected.',
-            'value' => $officeFinancials['defaults'] ?? 0
+            'value' => $officeFinancials['defaults'] ?? 0,
+            'comparison' => $office['comparison']['financials']['defaults'] ?? []
         ],
 
         [
             'label' => 'Irregular Reserve',
             'description' => 'Money set aside for irregular costs.',
-            'value' => $officeFinancials['irregular_cost_reserve'] ?? 0
+            'value' => $officeFinancials['irregular_cost_reserve'] ?? 0,
+            'comparison' => $office['comparison']['financials']['irregular_cost_reserve'] ?? []
         ],
 
         [
             'label' => 'Salary Advances',
             'description' => 'Money advanced to staff.',
-            'value' => $officeFinancials['salary_advance_reserve'] ?? 0
+            'value' => $officeFinancials['salary_advance_reserve'] ?? 0,
+            'comparison' => $office['comparison']['financials']['salary_advance_reserve'] ?? []
         ],
 
         [
             'label' => 'Net Cash',
             'description' => 'Collections minus disbursements and operating costs.',
-            'value' => $officeFinancials['net_cash_position'] ?? 0
+            'value' => $officeFinancials['net_cash_position'] ?? 0,
+            'comparison' => $office['comparison']['financials']['net_cash_position'] ?? []
         ],
 
         [
             'label' => 'Residual Cash',
             'description' => 'Cash remaining after expected obligations and reserves.',
-            'value' => $officeFinancials['residual_cash'] ?? 0
+            'value' => $officeFinancials['residual_cash'] ?? 0,
+            'comparison' => $office['comparison']['financials']['residual_cash'] ?? []
         ],
 
         [
             'label' => 'Net Contribution',
             'description' => 'Collections minus disbursements and branch operating costs.',
-            'value' => $office['contribution']['this_month'] ?? 0
+            'value' => $office['contribution']['this_month'] ?? 0,
+            'comparison' => $office['comparison']['contribution'] ?? []
         ],
 
     ];
@@ -2989,6 +3106,19 @@ $districtStatus = match (strtolower($districtScores['status'] ?? 'red')) {
             ) }}
 
         </div>
+
+        @if(!empty($metric['comparison']))
+            @php
+                $metricComparison = $metric['comparison'];
+                $metricStyle = $comparisonStyle($metricComparison);
+                $metricChange = $formatComparisonChange($metricComparison, true);
+            @endphp
+            <div style="margin-top:8px;font-size:9px;line-height:1.5;">
+                <span style="color:{{ $metricStyle['color'] }};font-weight:700;">{{ $metricChange }}</span>
+                <span style="color:#8a93a3;">vs previous cycle</span>
+            </div>
+            <div style="margin-top:3px;font-size:9px;color:{{ $metricStyle['color'] }};font-weight:600;">{{ $metricStyle['label'] }}</div>
+        @endif
 
     </div>
 
