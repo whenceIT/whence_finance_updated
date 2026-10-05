@@ -2202,6 +2202,15 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
     <!-- @include('components.insurance-alert-popup') -->
     @include('components.conference-countdown')
 
+    {{-- ── Cash Audit Wizard ─────────────────────────────────────────────
+         Shown to Branch Managers (role 4) when the Risk Manager has
+         activated the wizard and targeted their specific office.
+         The component performs its own guard checks internally.
+    ──────────────────────────────────────────────────────────────────── --}}
+    @if(isset($role) && (string)$role === '4')
+        @include('components.cash-audit-wizard', ['isPreview' => false])
+    @endif
+
 </body>
 
 

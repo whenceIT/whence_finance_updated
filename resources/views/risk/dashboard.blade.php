@@ -1403,4 +1403,337 @@
 
 @include('components.client-search-bottom-sheet')
 
+{{-- ════════════════════════════════════════════════════════════════════════════
+     CASH AUDIT WIZARD — Risk Manager Control Panel
+     Only visible to users in config('role.risk').
+     Allows enabling/disabling the wizard and selecting the target office.
+     A "Preview" button opens the wizard in read-only mode so the risk manager
+     can see exactly what the targeted DM will experience.
+════════════════════════════════════════════════════════════════════════════ --}}
+@php
+    $isRiskManager = $user && in_array((string) $user->id, array_map('strval', config('role.risk', [])));
+@endphp
+
+@if($isRiskManager)
+
+{{-- ── Toggle Control Card ────────────────────────────────────────────── --}}
+<div class="row" style="margin-top:24px;">
+    <div class="col-lg-12">
+
+        <div class="section-divider">
+            <span><i class="fa fa-toggle-on" style="margin-right:6px;"></i>Cash Audit Wizard Control</span>
+        </div>
+
+        <div style="
+            background:#fff;
+            border:1px solid #e2e8f0;
+            border-radius:14px;
+            padding:20px 24px;
+            box-shadow:0 2px 8px rgba(0,0,0,.06);
+        ">
+            {{-- Status + toggle row --}}
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div id="cawControlStatusDot" style="
+                        width:12px;height:12px;border-radius:50%;
+                        background:#d1d5db;
+                        transition:background .3s;
+                        flex-shrink:0;
+                    "></div>
+                    <div>
+                        <div style="font-size:.95rem;font-weight:700;color:#1e293b;">Cash Balance Audit Wizard</div>
+                        <div id="cawControlStatusText" style="font-size:.8rem;color:#6b7280;margin-top:1px;">
+                            Loading status…
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                    <button type="button" id="cawControlPreviewBtn"
+                            onclick="cawControlOpenPreview()"
+                            style="display:none;"
+                            class="btn btn-default btn-sm" style="border-radius:8px;font-weight:600;">
+                        <i class="fa fa-eye"></i> Preview
+                    </button>
+
+                    <button type="button" id="cawControlEnableBtn"
+                            onclick="cawControlSetActive(true)"
+                            style="display:none;"
+                            class="btn btn-success btn-sm" style="border-radius:8px;font-weight:600;">
+                        <i class="fa fa-toggle-on"></i> Enable Wizard
+                    </button>
+
+                    <button type="button" id="cawControlDisableBtn"
+                            onclick="cawControlSetActive(false)"
+                            style="display:none;"
+                            class="btn btn-danger btn-sm" style="border-radius:8px;font-weight:600;">
+                        <i class="fa fa-toggle-off"></i> Disable Wizard
+                    </button>
+                </div>
+            </div>
+
+            {{-- Office selector --}}
+            <div style="
+                background:#f8fafc;border:1px solid #e2e8f0;
+                border-radius:10px;padding:14px 18px;
+            ">
+                <label style="
+                    display:block;
+                    font-size:.75rem;font-weight:700;
+                    text-transform:uppercase;letter-spacing:.06em;
+                    color:#6b7280;margin-bottom:8px;
+                ">
+                    Target Office (Branch Manager audience)
+                </label>
+                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                    <select id="cawControlOfficeSelect" class="form-control" style="
+                        max-width:340px;border-radius:8px;
+                        font-size:.88rem;height:36px;padding:4px 10px;
+                    ">
+                        <option value="">— Loading offices… —</option>
+                    </select>
+                    <button type="button"
+                            onclick="cawControlSaveOffice()"
+                            class="btn btn-primary btn-sm" style="border-radius:8px;font-weight:600;height:36px;">
+                        <i class="fa fa-save"></i> Save Target
+                    </button>
+                    <span id="cawControlSaveSpin" style="display:none;">
+                        <i class="fa fa-spinner fa-spin" style="color:#1a3a6b;"></i>
+                    </span>
+                </div>
+                <div id="cawControlOfficeName" style="font-size:.8rem;color:#6b7280;margin-top:6px;"></div>
+            </div>
+
+            {{-- Inline feedback --}}
+            <div id="cawControlAlert" style="display:none;margin-top:12px;"></div>
+        </div>
+
+    </div>
+</div>
+
+{{-- ── Preview Modal (renders wizard in read-only mode for risk manager) ─── --}}
+<div class="modal fade" id="cawPreviewModal" tabindex="-1" role="dialog"
+     aria-labelledby="cawPreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="max-width:680px;">
+        <div class="modal-content" style="border-radius:18px;overflow:hidden;border:none;box-shadow:0 24px 64px rgba(0,0,0,.35);">
+
+            <div class="modal-header" style="background:linear-gradient(135deg,#374151 0%,#1f2937 100%);border:none;padding:14px 20px;">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                        style="color:#fff;opacity:.8;font-size:1.4rem;line-height:1;padding:0;margin:0;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title text-white" id="cawPreviewModalLabel" style="font-weight:700;">
+                    <i class="fa fa-eye" style="margin-right:8px;"></i>Wizard Preview — What the DM will see
+                </h4>
+            </div>
+
+            <div class="modal-body" style="padding:0;background:#f1f5f9;">
+                <div style="padding:12px 20px;background:#fef3c7;border-bottom:1px solid #fde68a;">
+                    <i class="fa fa-info-circle" style="color:#b45309;"></i>
+                    <span style="font-size:.85rem;color:#92400e;margin-left:6px;">
+                        <strong>Preview mode</strong> — This is exactly what the targeted Branch Manager will see.
+                        Submitting in preview mode does not save any data.
+                    </span>
+                </div>
+                <div style="padding:20px;" id="cawPreviewContainer">
+                    {{-- Wizard injected here in preview mode --}}
+                    @include('components.cash-audit-wizard', ['isPreview' => true])
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{{-- ── Control-panel JavaScript ─────────────────────────────────────────── --}}
+<script>
+(function () {
+    'use strict';
+
+    var CONFIG_URL  = '{{ route("risk.cash-audit.config") }}';
+    var TOGGLE_URL  = '{{ route("risk.cash-audit.toggle") }}';
+    var CSRF        = '{{ csrf_token() }}';
+
+    var currentOfficeId = null;
+    var currentActive   = false;
+
+    // ── Boot: load current config ─────────────────────────────────────────
+    $(document).ready(function () {
+        cawControlLoadConfig();
+    });
+
+    function cawControlLoadConfig() {
+        $.ajax({
+            url:  CONFIG_URL,
+            type: 'GET',
+            success: function (res) {
+                if (!res.success) return;
+
+                currentActive   = !!res.is_active;
+                currentOfficeId = res.office_id || null;
+
+                // Populate office dropdown
+                var $sel = $('#cawControlOfficeSelect').empty();
+                $sel.append('<option value="">— Select an office —</option>');
+                if (res.offices && res.offices.length) {
+                    res.offices.forEach(function (o) {
+                        var selected = (currentOfficeId && parseInt(currentOfficeId) === parseInt(o.id)) ? ' selected' : '';
+                        $sel.append('<option value="' + o.id + '"' + selected + '>' + o.name + '</option>');
+                    });
+                }
+
+                cawControlRefreshUI(currentActive, res.office);
+            },
+            error: function () {
+                cawControlShowAlert('danger', 'Could not load audit wizard config.');
+            }
+        });
+    }
+
+    function cawControlRefreshUI(isActive, officeName) {
+        var $dot  = $('#cawControlStatusDot');
+        var $text = $('#cawControlStatusText');
+
+        if (isActive) {
+            $dot.css('background', '#22c55e');
+            $text.html(
+                '<span style="color:#16a34a;font-weight:600;">Active</span>' +
+                (officeName ? ' — targeting <strong>' + officeName + '</strong>' : ' — no office set')
+            );
+            $('#cawControlEnableBtn').hide();
+            $('#cawControlDisableBtn').show();
+            $('#cawControlPreviewBtn').show();
+        } else {
+            $dot.css('background', '#d1d5db');
+            $text.html('<span style="color:#9ca3af;">Inactive — no audit will be shown</span>');
+            $('#cawControlEnableBtn').show();
+            $('#cawControlDisableBtn').hide();
+            $('#cawControlPreviewBtn').hide();
+        }
+    }
+
+    // ── Enable / Disable ─────────────────────────────────────────────────
+    window.cawControlSetActive = function (activate) {
+        var officeId = parseInt($('#cawControlOfficeSelect').val()) || null;
+
+        if (activate && !officeId) {
+            cawControlShowAlert('warning', 'Please select a target office before enabling the wizard.');
+            return;
+        }
+
+        $('#cawControlEnableBtn, #cawControlDisableBtn').prop('disabled', true);
+        cawControlShowAlert('info', (activate ? 'Enabling' : 'Disabling') + ' wizard…');
+
+        $.ajax({
+            url:  TOGGLE_URL,
+            type: 'POST',
+            data: JSON.stringify({
+                is_active:        activate ? 1 : 0,
+                target_office_id: activate ? officeId : null,
+            }),
+            contentType: 'application/json',
+            headers: { 'X-CSRF-TOKEN': CSRF },
+            success: function (res) {
+                if (res.success) {
+                    currentActive   = !!res.is_active;
+                    currentOfficeId = res.office_id || null;
+                    var selText = $('#cawControlOfficeSelect option:selected').text();
+                    cawControlRefreshUI(currentActive, currentActive ? selText : null);
+                    cawControlShowAlert(
+                        activate ? 'success' : 'info',
+                        activate
+                            ? 'Wizard enabled — Branch Managers at <strong>' + selText + '</strong> will see it on next page load.'
+                            : 'Wizard disabled — no audit form will be shown.'
+                    );
+                } else {
+                    cawControlShowAlert('danger', res.message || 'Action failed.');
+                }
+            },
+            error: function (xhr) {
+                var msg = 'Could not update wizard status.';
+                try { msg = xhr.responseJSON.message || msg; } catch(e){}
+                cawControlShowAlert('danger', msg);
+            },
+            complete: function () {
+                $('#cawControlEnableBtn, #cawControlDisableBtn').prop('disabled', false);
+            }
+        });
+    };
+
+    // ── Save office only (without toggling active state) ─────────────────
+    window.cawControlSaveOffice = function () {
+        var officeId = parseInt($('#cawControlOfficeSelect').val()) || null;
+        if (!officeId) {
+            cawControlShowAlert('warning', 'Please select an office first.');
+            return;
+        }
+
+        $('#cawControlSaveSpin').show();
+
+        $.ajax({
+            url:  TOGGLE_URL,
+            type: 'POST',
+            data: JSON.stringify({
+                is_active:        currentActive ? 1 : 0,
+                target_office_id: officeId,
+            }),
+            contentType: 'application/json',
+            headers: { 'X-CSRF-TOKEN': CSRF },
+            success: function (res) {
+                if (res.success) {
+                    currentOfficeId = officeId;
+                    var selText = $('#cawControlOfficeSelect option:selected').text();
+                    $('#cawControlOfficeName').html(
+                        '<i class="fa fa-check-circle" style="color:#16a34a;"></i> Target set to <strong>' + selText + '</strong>'
+                    );
+                    cawControlRefreshUI(currentActive, selText);
+                    cawControlShowAlert('success', 'Target office updated.');
+                } else {
+                    cawControlShowAlert('danger', res.message || 'Could not save office.');
+                }
+            },
+            error: function () {
+                cawControlShowAlert('danger', 'Request failed — please try again.');
+            },
+            complete: function () {
+                $('#cawControlSaveSpin').hide();
+            }
+        });
+    };
+
+    // ── Open preview modal ────────────────────────────────────────────────
+    window.cawControlOpenPreview = function () {
+        // Show the wizard inside the preview container
+        $('#cawPreviewModal').modal('show');
+
+        // Open the embedded wizard automatically
+        setTimeout(function () {
+            if (typeof cawOpen === 'function') {
+                // Re-show the wizard panels inside the preview container
+                $('#cawPreviewContainer #cashAuditOverlay').show();
+                $('#cawPreviewContainer #cashAuditWizardModal').css('display', 'flex').show();
+            }
+        }, 300);
+    };
+
+    // ── Alert helper ──────────────────────────────────────────────────────
+    function cawControlShowAlert(type, msg) {
+        var colorMap = {
+            success: { bg:'#f0fdf4', border:'#bbf7d0', color:'#166534' },
+            danger:  { bg:'#fef2f2', border:'#fecaca', color:'#dc2626' },
+            warning: { bg:'#fffbeb', border:'#fde68a', color:'#92400e' },
+            info:    { bg:'#eff6ff', border:'#bfdbfe', color:'#1d4ed8' },
+        };
+        var c = colorMap[type] || colorMap.info;
+        $('#cawControlAlert')
+            .html('<div style="background:' + c.bg + ';border:1px solid ' + c.border + ';border-radius:8px;padding:10px 14px;font-size:.85rem;color:' + c.color + ';">' + msg + '</div>')
+            .show();
+    }
+
+}());
+</script>
+
+@endif
+{{-- /isRiskManager --}}
+
 @endsection

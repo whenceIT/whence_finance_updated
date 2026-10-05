@@ -237,6 +237,9 @@ if (!Sentinel::check()) {
                     </a>
                     <ul class="treeview-menu">
                         <li>
+                            <a href="{{ route('collateral.index') }}"><i class="fa fa-circle-o"></i> View All Collateral <span class="label label-success pull-right">{{ $collateralCount }}</span></a>
+                        </li>
+                        <li>
                             <a href="{{ route('collateral.create') }}"><i class="fa fa-circle-o"></i> Add Collateral</a>
                         </li>
                         @if(Sentinel::getUser()->isCollateralValuator() || $role == 13)
