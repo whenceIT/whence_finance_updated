@@ -416,6 +416,19 @@ if ($lastInterest) {
 
 <script>
 
+    // Fix Select2 inside Bootstrap modal: re-initialize with dropdownParent
+    // so the dropdown is appended inside the modal DOM (not <body>),
+    // preventing Bootstrap's event trapping from swallowing click/keyboard events.
+    $('#recovery_modal').on('shown.bs.modal', function () {
+        $('#recovery_case_id').select2({
+            dropdownParent: $('#recovery_modal'),
+            width: '100%'
+        });
+        $('#payment_method').select2({
+            dropdownParent: $('#recovery_modal'),
+            width: '100%'
+        });
+    });
 
     $(".form-horizontal").validate();
 		function sum() {

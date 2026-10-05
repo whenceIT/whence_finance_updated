@@ -44,7 +44,10 @@ if (jQuery().TouchSpin) {
     });
 }
 if (jQuery().select2) {
-    $(".select2").select2({
+    // Only initialize select2 on elements NOT inside a Bootstrap modal.
+    // Elements inside modals must use dropdownParent to avoid Bootstrap's
+    // event trapping swallowing click/keyboard interactions.
+    $(".select2").not('.modal .select2').select2({
 
     });
 }
@@ -163,7 +166,7 @@ $(document).on("ajaxComplete", function () {
         });
     }
     if (jQuery().select2) {
-        $(".select2").select2({
+        $(".select2").not('.modal .select2').select2({
 
         });
     }

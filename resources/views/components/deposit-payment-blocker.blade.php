@@ -187,9 +187,9 @@
     <script>
         (function() {
             var blocker = document.getElementById('depositPaymentBlocker');
-            var blockageId = {{ $blockageId ? '"' . $blockageId . '"' : 'null' }};
-            var timeToUnlock = {{ $timeToUnlock ? '"' . $timeToUnlock . '"' : 'null' }};
-            var deleteUrl = {{ $deleteUrl ? '"' . $deleteUrl . '"' : 'null' }};
+            var blockageId = {!! $blockageId ? '"' . $blockageId . '"' : 'null' !!};
+            var timeToUnlock = {!! $timeToUnlock ? '"' . $timeToUnlock . '"' : 'null' !!};
+            var deleteUrl = {!! $deleteUrl ? '"' . $deleteUrl . '"' : 'null' !!};
             var timer = null;
 
             function checkBlockageStatus() {
@@ -209,9 +209,18 @@
 
                 if (isExpired && blockageId && deleteUrl) {
                     // Call API to delete expired blockage
-                    axios.delete(deleteUrl)
-                        .then(function(response) {
-                            if (response.data.success) {
+                    var csrfToken = document.querySelector('meta[name="csrf-token"]');
+                    fetch(deleteUrl, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken ? csrfToken.getAttribute('content') : ''
+                        }
+                    })
+                        .then(function(res) { return res.json(); })
+                        .then(function(data) {
+                            if (data.success) {
                                 hideBlocker();
                             }
                         })
