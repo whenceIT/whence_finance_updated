@@ -3155,42 +3155,42 @@ $vehicle->save();
 
           //  1. Withinhere Payment Processing
             if($loan->loan_product->id == 1 || $loan->loan_product->id == 2) {
-                $paymentType = $request->payment_type;
-                if ($paymentType == 'mobile_money') {
-                    $url = 'https://withinheremobileapi.com/api/v1/transfer/withdraw-to/mobile';
-                    $payload = [
-                        'amount' => $request->amount,
-                        'phone' => $request->phone,
-                        'reason' => 'new loan disbursement',
-                        'user_id' => $request->user_id,
-                        'operator'=> $request->hidden_operator,
-                        'payout_type' => 'withinhere_to_mno',
-                        'totalDeducted' => $request->total_deducted
-                    ];
-                } else {
-                    $url = 'https://withinheremobileapi.com/api/v1/transfer/transfer-to/bank';
-                    $payload = [
-                        'amount' => $request->amount,
-                        'user_id' => $request->user_id,
-                        'bankId' => $request->bank_id,
-                        'accountNumber' => $request->account_number,
-                        'reason' => 'new loan disbursement',
-                        'payout_type' => 'withinhere_to_bank',
-                        'totalDeducted' => $request->total_deducted
-                    ];
-                }
+                 $paymentType = $request->payment_type;
+                // if ($paymentType == 'mobile_money') {
+                //     $url = 'https://withinheremobileapi.com/api/v1/transfer/withdraw-to/mobile';
+                //     $payload = [
+                //         'amount' => $request->amount,
+                //         'phone' => $request->phone,
+                //         'reason' => 'new loan disbursement',
+                //         'user_id' => $request->user_id,
+                //         'operator'=> $request->hidden_operator,
+                //         'payout_type' => 'withinhere_to_mno',
+                //         'totalDeducted' => $request->total_deducted
+                //     ];
+                // } else {
+                //     $url = 'https://withinheremobileapi.com/api/v1/transfer/transfer-to/bank';
+                //     $payload = [
+                //         'amount' => $request->amount,
+                //         'user_id' => $request->user_id,
+                //         'bankId' => $request->bank_id,
+                //         'accountNumber' => $request->account_number,
+                //         'reason' => 'new loan disbursement',
+                //         'payout_type' => 'withinhere_to_bank',
+                //         'totalDeducted' => $request->total_deducted
+                //     ];
+                // }
 
-                try {
-                    $response = Http::post($url, $payload);
-                    if (!$response->successful()) {
-                        $body = $response->body();
-                        Flash::success('API Error: ' . $body);
-                    }
-                    $result = $response->json();
-                } catch (\Exception $e) {
-                    Flash::success('Could not connect to payment service.');
-                    return redirect()->back();
-                }
+                // try {
+                //     $response = Http::post($url, $payload);
+                //     if (!$response->successful()) {
+                //         $body = $response->body();
+                //         Flash::success('API Error: ' . $body);
+                //     }
+                //     $result = $response->json();
+                // } catch (\Exception $e) {
+                //     Flash::success('Could not connect to payment service.');
+                //     return redirect()->back();
+                // }
             }
 
 
@@ -4453,10 +4453,10 @@ $new_balance = $debit_amount - $credit_amount;
             Flash::warning(trans_choice('general.future_date_error', 1));
             return redirect()->back()->withInput();
         }
-        if ($request->date < $loan->disbursement_date) {
-            Flash::warning(trans_choice('general.early_date_error', 1));
-            return redirect()->back()->withInput();
-        }
+        // if ($request->date < $loan->disbursement_date) {
+        //     Flash::warning(trans_choice('general.early_date_error', 1));
+        //     return redirect()->back()->withInput();
+        // }
         $waiver_transaction = new WaiverTransactionUnapproved();
         $waiver_transaction->created_by_id = Sentinel::getUser()->id;
         $waiver_transaction->office_id = $loan->office_id;
