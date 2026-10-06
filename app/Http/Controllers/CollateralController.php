@@ -561,6 +561,7 @@ class CollateralController extends Controller
         // }
 
         $request->validate([
+            'name'          => 'required|string|max:255',
             'current_worth' => 'required',
             'condition'     => 'required',
             'description'   => 'nullable',
@@ -574,7 +575,7 @@ class CollateralController extends Controller
             'released_at'   => 'nullable|date',
             'serial_num'    => 'required|string|max:255|unique:collaterals,serial_num,' . $collateral->id,
             'category'      => 'nullable|string|max:255|in:' . implode(',', array_keys(\App\Models\Collateral::CATEGORIES)),
-            'loan_id'       => 'required|integer|unique:collaterals,loan_id,' . $collateral->id,
+            'loan_id'       => 'nullable|integer|unique:collaterals,loan_id,' . $collateral->id,
             'stage_icon'    => 'nullable|string',
             'vetted_valuation'      => 'nullable|numeric|min:0',
             'vetted_valuation_cost' => 'nullable|numeric|min:0',
@@ -587,6 +588,7 @@ class CollateralController extends Controller
 
         $loan = Loan::find($request->loan_id ?? $collateral->loan_id);
 
+        $collateral->name            = $request->name;
         $collateral->serial_num      = $request->serial_num;
         $collateral->category        = $request->category;
         $collateral->current_worth   = $request->current_worth;

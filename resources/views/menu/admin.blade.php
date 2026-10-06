@@ -321,11 +321,13 @@ if (!Sentinel::check()) {
             ->count() }}
             </span></a></li>
             
+            @if(in_array($role, [4]))
             <li class="@if(Request::is('dashboard')) active @endif">
                 <a href="{{ url('user/cycle') }}">
                     <i class="fa fa-dashboard"></i> <span>My Cycle</span>
                 </a>
             </li>
+            @endif
 
             <li class="@if(Request::is('dashboard')) active @endif">
                 <a href="{{ url('client/verify_client_number') }}">

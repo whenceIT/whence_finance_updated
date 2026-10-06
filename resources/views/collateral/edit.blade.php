@@ -30,6 +30,14 @@
                     </div>
                 </div>
 
+                <div class="form-group{{ $errors->has('name') ? ' has-error' : '' }}">
+                    <label class="control-label col-md-2">Name</label>
+                    <div class="col-md-8">
+                        <input type="text" name="name" class="form-control" value="{{ old('name', $collateral->name) }}" required>
+                        {!! $errors->first('name', '<span class="help-block">:message</span>') !!}
+                    </div>
+                </div>
+
                 <div class="form-group{{ $errors->has('serial_num') ? ' has-error' : '' }}">
                     <label class="control-label col-md-2">Serial Number</label>
                     <div class="col-md-8">
