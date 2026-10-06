@@ -29,7 +29,7 @@ if (!Sentinel::check()) {
     $userId = $user->id;
     $roleId = $role;
     $query = \App\Models\Collateral::query();
-    if ($roleId == 1) {
+    if ($roleId == 1 || $roleId == 13) {
         // Admin — sees ALL collateral
     } elseif ($roleId == 4) {
         // Loan Officer / Branch Manager — own office only
@@ -236,19 +236,18 @@ if (!Sentinel::check()) {
                         </span>
                     </a>
                     <ul class="treeview-menu">
+                        @if(Sentinel::getUser()->isCollateralValuator() || $role == 13)
+                        <li><a href="{{ route('collateral.index', ['key' => 'admin']) }}"><i class="fa fa-circle-o"></i>Collateral Dashboard</a></li>
+                        @endif
                         <li>
                             <a href="{{ route('collateral.index') }}"><i class="fa fa-circle-o"></i> View All Collateral <span class="label label-success pull-right">{{ $collateralCount }}</span></a>
                         </li>
                         <li>
                             <a href="{{ route('collateral.create') }}"><i class="fa fa-circle-o"></i> Add Collateral</a>
                         </li>
-                        @if(Sentinel::getUser()->isCollateralValuator() || $role == 13)
-                        <li><a href="{{ route('collateral.index', ['key' => 'admin']) }}"><i class="fa fa-circle-o"></i>Collateral Dashboard</a></li>
-                        <li><a href="{{ route('collateral.sales', ['key' => 'admin']) }}"><i class="fa fa-circle-o"></i>Sales</a></li>
-                        @endif
                         <!-- Temporarily added BM -->
                         @if(Sentinel::getUser()->isCollateralValuator() || $role == 4 || $role == 13)
-                        <li><a href="{{ route('collateral.approvals.queue') }}"><i class="fa fa-circle-o"></i> Seizure Pending</a></li>
+                        <!-- <li><a href="{{ route('collateral.approvals.queue') }}"><i class="fa fa-circle-o"></i> Seizure Pending</a></li> -->
                         @endif       
                         <!-- Temporarily added BM -->
                         @if(Sentinel::getUser()->isCollateralSupervisor() || $role == 4 || $role == 13)
@@ -257,6 +256,12 @@ if (!Sentinel::check()) {
                         <!-- Temporarily added BM -->
                         @if(Sentinel::getUser()->isCollateralValuator() || $role == 4 || $role == 13)
                         <li><a href="{{ route('collateral.index', ['key' => 'valuation']) }}"><i class="fa fa-circle-o"></i> Valuation Pending</a></li>
+                        @endif
+                        @if(Sentinel::getUser()->isCollateralSupervisor() || $role == 1 || $role == 4 || $role == 6 || $role == 13)
+                        <li><a href="{{ route('collateral.release_pending.index') }}"><i class="fa fa-circle-o"></i> Release Pending</a></li>
+                        @endif
+                        @if(Sentinel::getUser()->isCollateralValuator() || $role == 13)
+                        <li><a href="{{ route('collateral.sales', ['key' => 'admin']) }}"><i class="fa fa-circle-o"></i>Sales</a></li>
                         @endif
                         @hasRole('role.exec')
                             <li>

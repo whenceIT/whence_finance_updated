@@ -2209,6 +2209,10 @@ Route::get('collateral/approvals', 'CollateralApprovalController@queue')->name('
     Route::get('collateral/reports/{type}', 'CollateralReportController@form')->name('collateral.reports.form');
     Route::post('collateral/reports/{type}/generate', 'CollateralReportController@generate')->name('collateral.reports.generate');
 
+Route::get('collateral/release-pending', 'CollateralApprovalController@releasePendingQueue')->name('collateral.release_pending.index');
+Route::post('collateral/release-pending/{collateral}/approve', 'CollateralApprovalController@approvePendingRelease')->name('collateral.release_pending.approve');
+Route::post('collateral/release-pending/{collateral}/decline', 'CollateralApprovalController@declinePendingRelease')->name('collateral.release_pending.decline');
+
 Route::get('collateral/{collateral}', 'CollateralController@show')->name('collateral.show');
 Route::get('collateral/{collateral}/edit', 'CollateralController@edit')->name('collateral.edit');
 Route::put('collateral/{collateral}', 'CollateralController@update')->name('collateral.update');

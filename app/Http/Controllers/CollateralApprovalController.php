@@ -536,4 +536,63 @@ class CollateralApprovalController extends Controller
         Flash::success('Release declined. Status reverted to Listed for Sale.');
         return redirect()->route('collateral.approvals.queue');
     }
+
+    // ---------------------------------------------------------------
+    // Release Pending standalone queue
+    // ---------------------------------------------------------------
+
+    public function releasePendingQueue()
+    {
+        $user   = Sentinel::getUser();
+        $role   = \App\Models\UserRole::where('user_id', $user->id)->first();
+        $roleId = $role ? $role->role_id : null;
+
+        $query = Collateral::with(['loan.client', 'loan.office', 'created_by'])
+            ->where('status', 'release_pending')
+            ->orderBy('release_requested_at', 'desc');
+
+        if ($roleId == 4) {
+            $query->where('office_id', $user->office_id);
+        } elseif ($roleId == 6) {
+            $query->where('province_id', optional($user->office)->province_id);
+        }
+
+        $collaterals = $query->paginate(20);
+
+        return view('collateral.release_pending', compact('collaterals', 'roleId'));
+    }
+
+    public function approvePendingRelease(Request $request, Collateral $collateral)
+    {
+        AuditTrail::create([
+            'user_id'    => Sentinel::getUser()->id,
+            'action'     => 'release_pending_approved_deleted',
+            'table_name' => 'collateral',
+            'record_id'  => $collateral->id,
+            'ip_address' => $request->ip(),
+        ]);
+
+        $collateral->delete();
+
+        Flash::success('Release approved. Collateral record has been removed.');
+        return redirect()->route('collateral.release_pending.index');
+    }
+
+    public function declinePendingRelease(Request $request, Collateral $collateral)
+    {
+        $collateral->status    = 'seized_inventory';
+        $collateral->seized_at = Carbon::now();
+        $collateral->save();
+
+        AuditTrail::create([
+            'user_id'    => Sentinel::getUser()->id,
+            'action'     => 'release_pending_declined',
+            'table_name' => 'collateral',
+            'record_id'  => $collateral->id,
+            'ip_address' => $request->ip(),
+        ]);
+
+        Flash::success('Release declined. Collateral moved back to Seized/Inventory.');
+        return redirect()->route('collateral.release_pending.index');
+    }
 }
