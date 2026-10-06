@@ -255,13 +255,13 @@ $userPosition = Sentinel::getUser()->position_name;
                                     <td>{{ $item->loan?->office?->name }}</td>
                                   <td>
                                      <a href="{{ route('collateral.show', $item) }}" class="btn btn-xs btn-primary">View</a>
-                                      @if(request('key') !== 'admin' && ($role == 1 || (Sentinel::getUser()->id == $item->created_by_id && $item->status === 'seized_inventory') || ($role == 4 && in_array($item->status, ['seized_inventory']))))
+                                      @if(request('key') !== 'admin' && ($role == 1 || $role == 13 || (Sentinel::getUser()->id == $item->created_by_id && $item->status === 'seized_inventory') || ($role == 4 && in_array($item->status, ['seized_inventory']))))
                                           <a href="{{ route('collateral.edit', $item) }}" class="btn btn-xs btn-warning">Edit</a>
-                                          <form action="{{ route('collateral.destroy', $item) }}" method="POST" style="display:inline;">
+                                          <!-- <form action="{{ route('collateral.destroy', $item) }}" method="POST" style="display:inline;">
                                               @csrf
                                               @method('DELETE')
                                               <button type="submit" class="btn btn-xs btn-danger" onclick="return confirm('Are you sure you want to delete this collateral?')">Delete</button>
-                                          </form>
+                                          </form> -->
                                       @endif
                                   </td>
                              </tr>
