@@ -3378,7 +3378,7 @@ CURRENT BALANCE DASHBOARD
                                                                     </label>
                                                                     <input type="text" name="balance"
                                                                class="form-control "
-                                                               value="{{$balance}}" readonly
+                                                               value="{{$balance ?? 0}}" readonly
                                                                required id="balance"  onkeyup="sum();">
 
                                                                 </div>

@@ -131,4 +131,12 @@ class Office extends Model
     {
         return $this->hasMany(\App\Models\BranchAssetInventory::class, 'office_id');
     }
+
+    /**
+     * RTI Branch Loans issued to this office.
+     */
+    public function officeLoans()
+    {
+        return $this->hasMany(\App\Models\OfficeLoan::class, 'office_id');
+    }
 }

@@ -2357,3 +2357,38 @@ Route::group(['prefix' => 'admin/policy-quizzes'], function () {
     Route::get('/{id}/report', [App\Http\Controllers\PolicyQuizController::class, 'report'])->name('policy.quizzes.report');
     Route::get('/{id}/completion', [App\Http\Controllers\PolicyQuizController::class, 'completionDashboard'])->name('policy.quizzes.completion-dashboard');
 });
+
+
+// ============================================================================
+// RTI BRANCH LOANS MODULE
+// ============================================================================
+use App\Http\Controllers\Rti\RtiLoanController;
+use App\Http\Controllers\Rti\RtiRepaymentController;
+use App\Http\Controllers\Rti\RtiTransactionController;
+
+Route::group(['prefix' => 'rti-loans', 'middleware' => 'sentinel'], function () {
+
+    // --- Dashboard ---
+    Route::get('dashboard', [RtiLoanController::class, 'dashboard'])->name('rti.loans.dashboard');
+
+    // --- Loan CRUD & lifecycle ---
+    Route::get('/',               [RtiLoanController::class, 'index'])->name('rti.loans.index');
+    Route::get('/create',         [RtiLoanController::class, 'create'])->name('rti.loans.create');
+    Route::post('/',              [RtiLoanController::class, 'store'])->name('rti.loans.store');
+    Route::get('/{id}',           [RtiLoanController::class, 'show'])->name('rti.loans.show');
+    Route::post('/{id}/approve',  [RtiLoanController::class, 'approve'])->name('rti.loans.approve');
+    Route::post('/{id}/decline',  [RtiLoanController::class, 'decline'])->name('rti.loans.decline');
+    Route::post('/{id}/disburse', [RtiLoanController::class, 'disburse'])->name('rti.loans.disburse');
+
+    // --- Repayments ---
+    Route::get('/{loanId}/repayment/create',  [RtiRepaymentController::class, 'create'])->name('rti.repayment.create');
+    Route::post('/{loanId}/repayment',        [RtiRepaymentController::class, 'store'])->name('rti.repayment.store');
+
+    // --- Repayment approvals ---
+    Route::get('/repayments/pending',                          [RtiRepaymentController::class, 'pendingApprovals'])->name('rti.repayment.pending');
+    Route::post('/repayments/{transactionId}/approve',         [RtiRepaymentController::class, 'approve'])->name('rti.repayment.approve');
+    Route::post('/repayments/{transactionId}/decline',         [RtiRepaymentController::class, 'decline'])->name('rti.repayment.decline');
+
+    // --- Transaction history ---
+    Route::get('/transactions/history', [RtiTransactionController::class, 'index'])->name('rti.transactions.index');
+});

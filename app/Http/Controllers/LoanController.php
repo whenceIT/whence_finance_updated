@@ -1996,10 +1996,6 @@ $vehicle->save();
 
     public function show($loan)
     {
-        if (!Sentinel::hasAccess('loans.view')) {
-            Flash::warning("Permission Denied");
-            return redirect()->back();
-        }
 
         // Log audit for accessing and viewing loan details page
         $user = Sentinel::getUser();
@@ -2008,17 +2004,17 @@ $vehicle->save();
         // Get ledger blocker status for debugging
         $ledgerBlocker = \App\Helpers\BlockerHelper::ledger_blocker();
 
-            $office_id = Sentinel::getUser()->office_id;
-$office = Office::find($office_id);
+        $office_id = Sentinel::getUser()->office_id;
+        $office = Office::find($office_id);
 
-if ($office && $office->withinhere_wallet_id == null) {
-    return redirect('/user/verify_wallet');
-}
+        if ($office && $office->withinhere_wallet_id == null) {
+            return redirect('/user/verify_wallet');
+        }
 
-$withinhere_wallet_id = $office->withinhere_wallet_id;
+        $withinhere_wallet_id = $office->withinhere_wallet_id;
 
 
-      $response = Http::timeout(60)
+        $response = Http::timeout(60)
                 ->post(
                     'https://withinheremobileapi.com/api/v1/lmsuser/branch_ledger',
                     [
