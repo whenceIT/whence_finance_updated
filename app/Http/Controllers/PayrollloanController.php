@@ -148,4 +148,52 @@ public function dashboard(Request $request)
 }
 
 
+public function activeLoans(Request $request)
+{
+    $loans = Loan::with(['client', 'office', 'loan_officer'])
+        ->where('loan_product_id', 1)
+        ->where('status', 'disbursed')
+        ->latest()
+        ->get();
+
+    return view('payroll_loans.active', compact('loans'));
+}
+
+
+public function pendingLoans(Request $request)
+{
+    $loans = Loan::with(['client', 'office', 'loan_officer'])
+        ->where('loan_product_id', 1)
+        ->where('status', 'pending')
+        ->latest()
+        ->get();
+
+    return view('payroll_loans.pending', compact('loans'));
+}
+
+
+public function pendingDisbursementLoans(Request $request)
+{
+    $loans = Loan::with(['client', 'office', 'loan_officer'])
+        ->where('loan_product_id', 1)
+        ->where('status', 'approved')
+        ->latest()
+        ->get();
+
+    return view('payroll_loans.pending_disbursement', compact('loans'));
+}
+
+
+public function closedLoans(Request $request)
+{
+    $loans = Loan::with(['client', 'office', 'loan_officer'])
+        ->where('loan_product_id', 1)
+        ->where('status', 'closed')
+        ->latest()
+        ->get();
+
+    return view('payroll_loans.closed', compact('loans'));
+}
+
+
 }

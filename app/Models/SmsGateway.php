@@ -122,6 +122,7 @@ class SmsGateway extends Model
             LEFT JOIN clients c ON c.id = l.client_id
             WHERE l.office_id = ?
             AND l.status = 'disbursed'
+            AND l.created_at >= '2025-01-24'
         ", [$office_id]);
 
         $results = [];

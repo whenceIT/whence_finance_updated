@@ -542,6 +542,10 @@ Route::group(['prefix' => 'vehicles'], function () {
 
 Route::group(['prefix' => 'payrollloans'], function () {
     Route::get('dashboard', 'PayrollloanController@dashboard');
+    Route::get('active', 'PayrollloanController@activeLoans')->name('payrollloans.active');
+    Route::get('pending', 'PayrollloanController@pendingLoans')->name('payrollloans.pending');
+    Route::get('pending-disbursement', 'PayrollloanController@pendingDisbursementLoans')->name('payrollloans.pending-disbursement');
+    Route::get('closed', 'PayrollloanController@closedLoans')->name('payrollloans.closed');
 });
 
 Route::group(['prefix' => 'payroll'], function () {
@@ -2263,6 +2267,7 @@ Route::group(['prefix' => 'recovery'], function () {
         Route::get('legal',                'Recoveries\RecoveryCaseController@legal');
         Route::get('skip_trace',           'Recoveries\RecoveryCaseController@skipTrace');
         Route::get('resolved',             'Recoveries\RecoveryCaseController@resolved');
+        Route::get('expenses',             'Recoveries\RecoveryCaseController@expenses')->name('recovery.case.expenses');
     });
 
     // Client recovery management routes

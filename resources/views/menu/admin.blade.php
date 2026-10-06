@@ -273,6 +273,38 @@ if (!Sentinel::check()) {
             @endif
 
 
+            <!-- Payroll Loan Manager -->
+            <li class="treeview @if(Request::is('payrollloans*')) active menu-open @endif">
+                <a href="#">
+                    <i class="fa fa-money"></i> <span>Payroll Loan Manager</span>
+                    <span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
+                    <li @if(Request::is('payrollloans/dashboard*')) class="active" @endif>
+                        <a href="{{ url('payrollloans/dashboard') }}"><i class="fa fa-circle-o"></i> Dashboard</a>
+                    </li>
+                    <li @if(Request::is('payrollloans/active*')) class="active" @endif>
+                        <a href="{{ url('payrollloans/active') }}"><i class="fa fa-circle-o"></i> Active Loans</a>
+                    </li>
+                    <li @if(Request::is('payrollloans/pending-disbursement*')) class="active" @endif>
+                        <a href="{{ url('payrollloans/pending-disbursement') }}"><i class="fa fa-circle-o"></i> Pending Disbursement</a>
+                    </li>
+                    <li @if(Request::is('payrollloans/pending*') && !Request::is('payrollloans/pending-disbursement*')) class="active" @endif>
+                        <a href="{{ url('payrollloans/pending') }}"><i class="fa fa-circle-o"></i> Pending Loans</a>
+                    </li>
+                    <li @if(Request::is('payrollloans/closed*')) class="active" @endif>
+                        <a href="{{ url('payrollloans/closed') }}"><i class="fa fa-circle-o"></i> Closed Loans</a>
+                    </li>
+                    <li>
+                        <a href="{{ url('loan/create') }}"><i class="fa fa-circle-o"></i> Add Loan</a>
+                    </li>
+                </ul>
+            </li>
+
+
+
             <!-- Audit Trail / Risk Management -->
             @hasRole('role.exec', 'role.risk')
             <li class="treeview @if(Request::is('risk*') || Request::is('audits*')) active menu-open @endif">
@@ -1694,6 +1726,8 @@ if (!Sentinel::check()) {
             </li>
 
 
+            <!-- RTI Loan -->
+
 
             {{-- ====================================================== --}}
             {{-- RECOVERIES MODULE                                        --}}
@@ -1760,6 +1794,13 @@ if (!Sentinel::check()) {
                                             </span>
                                         </a>
                                     </li>
+                                    <li class="@if(Request::is('recovery/case/resolved')) active @endif">
+                                        <a href="{{ url('recovery/case/resolved') }}"><i class="fa fa-circle-o"></i> Closed Cases
+                                            <span class="pull-right-container">
+                                                <span class="label label-success pull-right">{{\App\Models\RecoveryCase::resolved()->count()}}</span>
+                                            </span>
+                                        </a>
+                                    </li>
                                 </ul>
                             </li>
                             <li class="@if(Request::is('recovery/specialist/*')) active @endif">
@@ -1789,13 +1830,11 @@ if (!Sentinel::check()) {
                                     @endif
                                 </ul>
                             </li>
-                            @if(Sentinel::hasAccess('expenses'))
                             <li class="@if(Request::is('loan/recovery/ledger')) active @endif">
                                 <a href="{{ url('loan/recovery/ledger') }}">
                                     <i class="fa fa-book"></i> Recovery Ledger
                                 </a>
                             </li>
-                            @endif
                     </ul>
                 </li>
             </ul>
