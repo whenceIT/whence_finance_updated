@@ -4457,10 +4457,10 @@ $new_balance = $debit_amount - $credit_amount;
             Flash::warning(trans_choice('general.future_date_error', 1));
             return redirect()->back()->withInput();
         }
-        if ($request->date < $loan->disbursement_date) {
-            Flash::warning(trans_choice('general.early_date_error', 1));
-            return redirect()->back()->withInput();
-        }
+        // if ($request->date < $loan->disbursement_date) {
+        //     Flash::warning(trans_choice('general.early_date_error', 1));
+        //     return redirect()->back()->withInput();
+        // }
         $waiver_transaction = new WaiverTransactionUnapproved();
         $waiver_transaction->created_by_id = Sentinel::getUser()->id;
         $waiver_transaction->office_id = $loan->office_id;
