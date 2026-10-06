@@ -700,6 +700,68 @@
             {{ $status }}
         </span>
 
+        @php
+            $overallScoreComparison = $nationalComparison['scores']['overall'] ?? [];
+            $currentOverallScore = (float)($scores['overall'] ?? 0);
+            $previousOverallScore = isset($overallScoreComparison['previous'])
+                ? (float)$overallScoreComparison['previous']
+                : null;
+
+            $overallScoreChange = $previousOverallScore !== null
+                ? $currentOverallScore - $previousOverallScore
+                : null;
+
+            $overallScorePercentage = ($previousOverallScore !== null && abs($previousOverallScore) > 0)
+                ? ($overallScoreChange / abs($previousOverallScore)) * 100
+                : null;
+
+            if ($overallScoreChange > 0) {
+                $overallScoreComparisonColor = '#15803d';
+                $overallScoreComparisonBackground = '#ecfdf5';
+                $overallScoreComparisonLabel = 'Improved';
+            } elseif ($overallScoreChange < 0) {
+                $overallScoreComparisonColor = '#dc2626';
+                $overallScoreComparisonBackground = '#fef2f2';
+                $overallScoreComparisonLabel = 'Worsened';
+            } else {
+                $overallScoreComparisonColor = '#697386';
+                $overallScoreComparisonBackground = '#f3f4f6';
+                $overallScoreComparisonLabel = 'No change';
+            }
+        @endphp
+
+        @if($previousOverallScore !== null)
+            <div style="margin-top:10px;">
+                <div style="font-size:10px;color:#697386;font-weight:600;">
+                    Previous cycle: {{ number_format($previousOverallScore, 0) }}/100
+                    <span style="
+                        margin-left:5px;
+                        padding:3px 6px;
+                        border-radius:5px;
+                        background:{{ $overallScoreComparisonBackground }};
+                        color:{{ $overallScoreComparisonColor }};
+                        font-size:9px;
+                        font-weight:700;
+                    ">
+                        {{ $overallScoreComparisonLabel }}
+                    </span>
+                </div>
+
+                <div style="
+                    margin-top:5px;
+                    font-size:10px;
+                    font-weight:700;
+                    color:{{ $overallScoreComparisonColor }};
+                ">
+                    {{ $overallScoreChange > 0 ? '+' : ($overallScoreChange < 0 ? '-' : '') }}{{ number_format(abs($overallScoreChange), 1) }} points
+                    @if($overallScorePercentage !== null)
+                        ({{ $overallScorePercentage > 0 ? '+' : '' }}{{ number_format($overallScorePercentage, 1) }}%)
+                    @endif
+                    vs previous cycle
+                </div>
+            </div>
+        @endif
+
         <div class="management-description">
             Overall institutional cash health based on
             disbursement, collection and residual cash performance.
@@ -743,95 +805,52 @@
     {{-- ===================================================== --}}
 
     @php
+        $currentContribution = (float)($contribution['this_month'] ?? 0);
+        $previousContribution = (float)($contribution['last_month'] ?? 0);
 
-        $thisMonthContribution =
-            $contribution['this_month'] ?? 0;
+        // Always calculate Current − Previous directly in the Blade.
+        $contributionChange = $currentContribution - $previousContribution;
 
-        $contributionColor =
-            $thisMonthContribution >= 0
-                ? '#15803d'
-                : '#dc2626';
+        $contributionPercentage = abs($previousContribution) > 0
+            ? ($contributionChange / abs($previousContribution)) * 100
+            : null;
 
+        if ($contributionChange > 0) {
+            $contributionComparisonColor = '#15803d';
+            $contributionComparisonBackground = '#ecfdf5';
+            $contributionComparisonLabel = 'Improved';
+        } elseif ($contributionChange < 0) {
+            $contributionComparisonColor = '#dc2626';
+            $contributionComparisonBackground = '#fef2f2';
+            $contributionComparisonLabel = 'Worsened';
+        } else {
+            $contributionComparisonColor = '#697386';
+            $contributionComparisonBackground = '#f3f4f6';
+            $contributionComparisonLabel = 'No change';
+        }
+
+        $contributionColor = $currentContribution >= 0 ? '#15803d' : '#dc2626';
     @endphp
 
-
     <div class="national-management-card">
-
         <div class="management-label">
             Net Contribution
         </div>
 
-        <div
-            class="management-value"
-            style="color:{{ $contributionColor }};"
-        >
-
-            {{ $thisMonthContribution >= 0 ? '+' : '' }}
-            K{{ number_format(
-                abs($thisMonthContribution),
-                2
-            ) }}
-
+        <div class="management-value" style="color:{{ $contributionColor }};">
+            {{ $currentContribution >= 0 ? '+' : '-' }}K{{ number_format(abs($currentContribution), 2) }}
         </div>
 
-        @php
-
-   $currentContribution = (float)($contributionHistory[0]['contribution'] ?? 0);
-$previousContribution = (float)($contributionHistory[1]['contribution'] ?? 0);
-
-$contributionChange = $currentContribution - $previousContribution;
-
-$contributionPercentage = abs($previousContribution) > 0
-    ? ($contributionChange / abs($previousContribution)) * 100
-    : null;
-
-if ($contributionChange > 0) {
-    $contributionComparisonColor = '#15803d';
-    $contributionComparisonBackground = '#ecfdf5';
-    $contributionComparisonLabel = 'Improved';
-} elseif ($contributionChange < 0) {
-    $contributionComparisonColor = '#dc2626';
-    $contributionComparisonBackground = '#fef2f2';
-    $contributionComparisonLabel = 'Worsened';
-} else {
-    $contributionComparisonColor = '#697386';
-    $contributionComparisonBackground = '#f3f4f6';
-    $contributionComparisonLabel = 'No change';
-}
-        @endphp
-
-        <div style="
-            margin-top:6px;
-            display:flex;
-            align-items:center;
-            gap:7px;
-            flex-wrap:wrap;
-        ">
-            <span style="
-                font-size:10px;
-                color:#8a93a3;
-            ">
+        <div style="margin-top:6px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+            <span style="font-size:10px;color:#8a93a3;">
                 Previous cycle: K{{ number_format(abs($previousContribution), 2) }}
             </span>
-
-            <span style="
-                padding:3px 6px;
-                border-radius:5px;
-                background:{{ $contributionComparisonBackground }};
-                color:{{ $contributionComparisonColor }};
-                font-size:9px;
-                font-weight:700;
-            ">
+            <span style="padding:3px 6px;border-radius:5px;background:{{ $contributionComparisonBackground }};color:{{ $contributionComparisonColor }};font-size:9px;font-weight:700;">
                 {{ $contributionComparisonLabel }}
             </span>
         </div>
 
-        <div style="
-            margin-top:5px;
-            font-size:10px;
-            font-weight:700;
-            color:{{ $contributionComparisonColor }};
-        ">
+        <div style="margin-top:5px;font-size:10px;font-weight:700;color:{{ $contributionComparisonColor }};">
             {{ $contributionChange > 0 ? '+' : ($contributionChange < 0 ? '-' : '') }}K{{ number_format(abs($contributionChange), 2) }}
             @if($contributionPercentage !== null)
                 ({{ $contributionPercentage > 0 ? '+' : '' }}{{ number_format($contributionPercentage, 1) }}%)
@@ -840,162 +859,11 @@ if ($contributionChange > 0) {
         </div>
 
         <div class="management-description">
-
             Collections − Disbursements − Operating Costs. A positive net contribution means the institution generated more cash than it consumed during the cycle.
-
         </div>
-
     </div>
-
 
 </div>
-
-
-{{-- ========================================================= --}}
-{{-- NATIONAL SCORE --}}
-{{-- ========================================================= --}}
-
-<div style="
-    background:#fff;
-    border:1px solid #e6e9ef;
-    border-radius:14px;
-    padding:25px;
-    margin-bottom:24px;
-">
-
-    <div style="
-        font-size:16px;
-        font-weight:700;
-        color:#202633;
-        margin-bottom:20px;
-    ">
-        National Score
-    </div>
-
-
-    @php
-
-        $scoreRows = [
-
-            [
-                'name' => 'Disbursement',
-                'value' => $scores['disbursement'] ?? 0,
-                'description' => 'A 0–100 score showing how much of the minimum loan target has been disbursed. A higher score means the institution is closer to meeting its lending target.'
-            ],
-
-            [
-                'name' => 'Collection Quality',
-                'value' => $scores['collection'] ?? 0,
-                'description' => 'A 0–100 score showing the quality of loan collections. It considers outstanding defaults and how consistently customers make full payments.'
-            ],
-
-            [
-                'name' => 'Residual Cash',
-                'value' => $scores['residual_cash'] ?? 0,
-                'description' => 'A 0–100 score showing whether the institution has enough residual cash to cover its expected financial obligations. A higher score means stronger cash coverage.'
-            ],
-
-        ];
-
-    @endphp
-
-
-    @foreach($scoreRows as $score)
-
-    @php
-    $scoreValue = $score['value'];
-
-    $scoreColor = $scoreValue >= 70
-        ? '#15803d'
-        : ($scoreValue >= 40 ? '#b45309' : '#dc2626');
-@endphp
-
-        <div style="
-            margin-bottom:24px;
-        ">
-
-
-            {{-- SCORE HEADER --}}
-
-            <div style="
-                display:flex;
-                justify-content:space-between;
-                align-items:flex-start;
-                gap:20px;
-                margin-bottom:7px;
-            ">
-
-
-                {{-- NAME + DESCRIPTION --}}
-
-                <div style="
-                    flex:1;
-                ">
-
-                    <div style="
-                        font-size:13px;
-                        font-weight:700;
-                        color:#202633;
-                    ">
-                        {{ $score['name'] }}
-                    </div>
-
-
-                    <div style="
-                        margin-top:4px;
-                        font-size:11px;
-                        line-height:1.5;
-                        font-weight:600;
-                        color:#697386;
-                        max-width:850px;
-                    ">
-                        {{ $score['description'] }}
-                    </div>
-
-                </div>
-
-
-                {{-- SCORE VALUE --}}
-
-                <strong style="
-                    font-size:14px;
-                    color:#202633;
-                    white-space:nowrap;
-                ">
-
-                    {{ number_format(
-                        $score['value'],
-                        0
-                    ) }}/100
-
-                </strong>
-
-            </div>
-
-
-            {{-- PROGRESS BAR --}}
-
-            <div style="
-                width:100%;
-                height:8px;
-                background:#edf0f4;
-                border-radius:10px;
-                overflow:hidden;
-                margin-top:9px;
-            ">
-
-                <div style="
-                    width:{{ $score['value'] <= 0 ? '3' : min(100,max(0,$score['value'])) }}%;
-                    height:100%;
-                    background:{{ $scoreColor }};
-                    border-radius:10px;
-                "></div>
-
-            </div>
-
-        </div>
-
-    @endforeach
 
 
     {{-- ========================================================= --}}
@@ -1203,6 +1071,155 @@ if ($contributionChange > 0) {
     </div>
 
 </div>
+
+
+
+{{-- ========================================================= --}}
+{{-- NATIONAL SCORE --}}
+{{-- ========================================================= --}}
+
+<div style="
+    background:#fff;
+    border:1px solid #e6e9ef;
+    border-radius:14px;
+    padding:25px;
+    margin-bottom:24px;
+">
+
+    <div style="
+        font-size:16px;
+        font-weight:700;
+        color:#202633;
+        margin-bottom:20px;
+    ">
+        National Score
+    </div>
+
+
+    @php
+
+        $scoreRows = [
+
+            [
+                'name' => 'Disbursement',
+                'value' => $scores['disbursement'] ?? 0,
+                'description' => 'A 0–100 score showing how much of the minimum loan target has been disbursed. A higher score means the institution is closer to meeting its lending target.'
+            ],
+
+            [
+                'name' => 'Collection Quality',
+                'value' => $scores['collection'] ?? 0,
+                'description' => 'A 0–100 score showing the quality of loan collections. It considers outstanding defaults and how consistently customers make full payments.'
+            ],
+
+            [
+                'name' => 'Residual Cash',
+                'value' => $scores['residual_cash'] ?? 0,
+                'description' => 'A 0–100 score showing whether the institution has enough residual cash to cover its expected financial obligations. A higher score means stronger cash coverage.'
+            ],
+
+        ];
+
+    @endphp
+
+
+    @foreach($scoreRows as $score)
+
+    @php
+    $scoreValue = $score['value'];
+
+    $scoreColor = $scoreValue >= 70
+        ? '#15803d'
+        : ($scoreValue >= 40 ? '#b45309' : '#dc2626');
+@endphp
+
+        <div style="
+            margin-bottom:24px;
+        ">
+
+
+            {{-- SCORE HEADER --}}
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:flex-start;
+                gap:20px;
+                margin-bottom:7px;
+            ">
+
+
+                {{-- NAME + DESCRIPTION --}}
+
+                <div style="
+                    flex:1;
+                ">
+
+                    <div style="
+                        font-size:13px;
+                        font-weight:700;
+                        color:#202633;
+                    ">
+                        {{ $score['name'] }}
+                    </div>
+
+
+                    <div style="
+                        margin-top:4px;
+                        font-size:11px;
+                        line-height:1.5;
+                        font-weight:600;
+                        color:#697386;
+                        max-width:850px;
+                    ">
+                        {{ $score['description'] }}
+                    </div>
+
+                </div>
+
+
+                {{-- SCORE VALUE --}}
+
+                <strong style="
+                    font-size:14px;
+                    color:#202633;
+                    white-space:nowrap;
+                ">
+
+                    {{ number_format(
+                        $score['value'],
+                        0
+                    ) }}/100
+
+                </strong>
+
+            </div>
+
+
+            {{-- PROGRESS BAR --}}
+
+            <div style="
+                width:100%;
+                height:8px;
+                background:#edf0f4;
+                border-radius:10px;
+                overflow:hidden;
+                margin-top:9px;
+            ">
+
+                <div style="
+                    width:{{ $score['value'] <= 0 ? '3' : min(100,max(0,$score['value'])) }}%;
+                    height:100%;
+                    background:{{ $scoreColor }};
+                    border-radius:10px;
+                "></div>
+
+            </div>
+
+        </div>
+
+    @endforeach
+
 
 
 {{-- ========================================================= --}}
