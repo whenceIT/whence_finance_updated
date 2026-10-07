@@ -324,7 +324,7 @@
                                 </td>
                                 <td>
                                     <button type="button" class="btn btn-info btn-xs" onclick="openLoanDetailSheet({{ $loan->id }})">
-                                        <i class="fa fa-eye"></i> Vehicle
+                                        <i class="fa fa-caret-plus"></i> Assign Vehicle
                                     </button>
                                 </td>
 
