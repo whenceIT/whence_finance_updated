@@ -3443,10 +3443,7 @@ $vehicle->save();
                 $date = explode('-', $request->disbursement_date);
                 $loan_transaction->year = $date[0];
                 $loan_transaction->month = $date[1];
-
-                //if the $total_interest = 0 manually calculate 40% of principal, fallback
-                $loan_transaction->debit = $total_interest > 0 ? $total_interest : ($loan->principal * 0.4);
-
+                $loan_transaction->debit = $total_interest;
                 $loan_transaction->save();
             }
 
