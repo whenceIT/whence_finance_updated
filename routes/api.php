@@ -100,3 +100,10 @@ Route::prefix('fund-movements')->group(function () {
     Route::get('/blocked',              [\App\Http\Controllers\API\FundMovementsController::class, 'index']);
     Route::get('/blocked/{blockageId}', [\App\Http\Controllers\API\FundMovementsController::class, 'byBlockage']);
 });
+
+// Payroll Loan Dashboard API
+Route::prefix('payroll-loans')->group(function () {
+    Route::get('/consultants',       [\App\Http\Controllers\PayrollloanController::class, 'apiConsultants']);
+    Route::get('/drilldown',         [\App\Http\Controllers\PayrollloanController::class, 'apiDrilldown']);
+    Route::get('/consultant-loans',  [\App\Http\Controllers\PayrollloanController::class, 'apiConsultantLoans']);
+});
