@@ -422,7 +422,7 @@ public function bulkRepayments(Request $request, $loanId)
             $tx->month            = $date->month;
             $tx->year             = $date->year;
             $tx->reversible       = 1;
-            $tx->notes            = 'Bulk repayment entry (' . $i . ' of ' . $numPayments . ')';
+            $tx->notes            = 'Payroll entry (' . $i . ' of ' . $numPayments . ')';
             $tx->save();
         }
     });

@@ -62,15 +62,17 @@ public function edit($id)
     public function store(Request $request)
     {
         $request->validate([
-            'client_id' => 'required',
+            'loan_id' => 'nullable',
             'make' => 'required',
             'model' => 'required',
             'registration_number' => 'required'
         ]);
 
+        $loan = Loan::where('id', $request->loan_id)->first();
         Vehicle::create([
             'vehicle_code' => 'VH'.time(),
-            'client_id' => $request->client_id,
+            'client_id' => $loan->client_id,
+            'loan_id' => $request->loan_id,
             'make' => $request->make,
             'model' => $request->model,
             'year' => $request->year,
