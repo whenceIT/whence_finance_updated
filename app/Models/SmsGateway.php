@@ -122,7 +122,7 @@ class SmsGateway extends Model
             LEFT JOIN clients c ON c.id = l.client_id
             WHERE l.office_id = ?
             AND l.status = 'disbursed'
-            AND l.created_at >= '2025-01-24'
+            AND l.created_at >= '2026-01-01'
         ", [$office_id]);
 
         $results = [];
@@ -139,7 +139,7 @@ class SmsGateway extends Model
                 $balance = null;
             }
 
-            $principal = $loan->approved_amount ?? $loan->principal;
+            $principal = ($loan->principal ?? $loan->approved_amount) + ( ($loan->principal ?? $loan->approved_amount) * 0.4);
 
             $message = 'Dear Customer, your loan of ZMW ' . number_format($principal, 2);
             if ($balance !== null) {
