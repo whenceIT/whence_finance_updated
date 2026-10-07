@@ -123,6 +123,9 @@
                     <select name="loan_product_id" class="form-control select2" id="loan_product_id">
                         <option></option>
                         @foreach(\App\Models\LoanProduct::get() as $key)
+                            @if(Sentinel::getUser()->role->role_id == 3 && $key->id != 2)
+                                @continue
+                            @endif
                             <option value="{{$key->id}}">
                                 {{$key->name}}
                             </option>
