@@ -366,6 +366,7 @@
             <div class="modal-body">
                 <form id="assignVehicleForm">
                     <input type="hidden" id="loan_id" name="loan_id">
+                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
                     <div class="form-group">
                         <label for="vehicle_code">Vehicle Code</label>
                         <input type="text" class="form-control" id="vehicle_code" name="vehicle_code" required>

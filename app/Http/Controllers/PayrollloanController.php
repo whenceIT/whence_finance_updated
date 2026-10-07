@@ -82,22 +82,32 @@ public function dashboard(Request $request)
 
     $consultants = \DB::table('loans as l')
         ->join('users as u', 'u.id', '=', 'l.loan_officer_id')
-        ->leftJoin('loan_transactions as lt', 'lt.loan_id', '=', 'l.id')
+        ->leftJoin(
+            \DB::raw('(SELECT loan_id,
+                              SUM(debit)             AS tx_debit,
+                              SUM(credit)            AS tx_credit,
+                              SUM(debit)-SUM(credit) AS tx_uncollected
+                       FROM loan_transactions
+                       GROUP BY loan_id) AS lt'),
+            'lt.loan_id', '=', 'l.id'
+        )
         ->where('l.loan_product_id', $PAYROLL)
         ->whereNull('l.deleted_at')
         ->groupBy('l.loan_officer_id', 'u.first_name', 'u.last_name')
         ->select(
             'l.loan_officer_id as consultant_id',
             \DB::raw("CONCAT(u.first_name, ' ', u.last_name) as consultant_name"),
-            \DB::raw('COUNT(DISTINCT l.id) as loans'),
-            \DB::raw('SUM(l.principal) as total_principal'),
-            \DB::raw('SUM(l.principal) * 0.40 as expected_interest'),
-            \DB::raw('SUM(lt.debit) as expected_collections'),
-            \DB::raw('SUM(lt.credit) as collections'),
-            \DB::raw('SUM(lt.debit) - SUM(lt.credit) as uncollected')
+            \DB::raw('COUNT(DISTINCT l.id)        as loans'),
+            \DB::raw('SUM(l.principal)            as total_principal'),
+            \DB::raw('SUM(l.principal) * 0.40     as expected_interest'),
+            \DB::raw('SUM(lt.tx_debit)            as expected_collections'),
+            \DB::raw('SUM(lt.tx_credit)           as collections'),
+            \DB::raw('SUM(lt.tx_uncollected)      as uncollected')
         )
         ->orderByDesc('loans')
         ->get();
+
+        // dd($consultants);
 
     // ─── 3. PROVINCE → OFFICE → CONSULTANT DRILLDOWN ───────────────────────────
 
@@ -105,7 +115,15 @@ public function dashboard(Request $request)
         ->join('offices as o', 'o.id', '=', 'l.office_id')
         ->join('province as p', 'p.id', '=', 'o.province_id')
         ->join('users as u', 'u.id', '=', 'l.loan_officer_id')
-        ->leftJoin('loan_transactions as lt', 'lt.loan_id', '=', 'l.id')
+        ->leftJoin(
+            \DB::raw('(SELECT loan_id,
+                              SUM(debit)             AS tx_debit,
+                              SUM(credit)            AS tx_credit,
+                              SUM(debit)-SUM(credit) AS tx_uncollected
+                       FROM loan_transactions
+                       GROUP BY loan_id) AS lt'),
+            'lt.loan_id', '=', 'l.id'
+        )
         ->where('l.loan_product_id', $PAYROLL)
         ->whereNull('l.deleted_at')
         ->groupBy('p.id', 'p.name', 'o.id', 'o.name', 'l.loan_officer_id', 'u.first_name', 'u.last_name')
@@ -116,11 +134,11 @@ public function dashboard(Request $request)
             'o.name as office_name',
             'l.loan_officer_id as consultant_id',
             \DB::raw("CONCAT(u.first_name, ' ', u.last_name) as consultant_name"),
-            \DB::raw('COUNT(DISTINCT l.id) as loans'),
-            \DB::raw('SUM(l.principal) * 0.40 as expected_interest'),
-            \DB::raw('SUM(lt.debit) as expected_collections'),
-            \DB::raw('SUM(lt.credit) as collections'),
-            \DB::raw('SUM(lt.debit) - SUM(lt.credit) as uncollected')
+            \DB::raw('COUNT(DISTINCT l.id)        as loans'),
+            \DB::raw('SUM(l.principal) * 0.40     as expected_interest'),
+            \DB::raw('SUM(lt.tx_debit)            as expected_collections'),
+            \DB::raw('SUM(lt.tx_credit)           as collections'),
+            \DB::raw('SUM(lt.tx_uncollected)      as uncollected')
         )
         ->orderBy('p.name')
         ->orderBy('o.name')
@@ -203,19 +221,27 @@ public function apiConsultants(Request $request)
 
     $rows = \DB::table('loans as l')
         ->join('users as u', 'u.id', '=', 'l.loan_officer_id')
-        ->leftJoin('loan_transactions as lt', 'lt.loan_id', '=', 'l.id')
+        ->leftJoin(
+            \DB::raw('(SELECT loan_id,
+                              SUM(debit)             AS tx_debit,
+                              SUM(credit)            AS tx_credit,
+                              SUM(debit)-SUM(credit) AS tx_uncollected
+                       FROM loan_transactions
+                       GROUP BY loan_id) AS lt'),
+            'lt.loan_id', '=', 'l.id'
+        )
         ->where('l.loan_product_id', $PAYROLL)
         ->whereNull('l.deleted_at')
         ->groupBy('l.loan_officer_id', 'u.first_name', 'u.last_name')
         ->select(
             'l.loan_officer_id as consultant_id',
             \DB::raw("CONCAT(u.first_name, ' ', u.last_name) as consultant_name"),
-            \DB::raw('COUNT(DISTINCT l.id) as loans'),
-            \DB::raw('SUM(l.principal) as total_principal'),
-            \DB::raw('SUM(l.principal) * 0.40 as expected_interest'),
-            \DB::raw('SUM(lt.debit) as expected_collections'),
-            \DB::raw('SUM(lt.credit) as collections'),
-            \DB::raw('SUM(lt.debit) - SUM(lt.credit) as uncollected')
+            \DB::raw('COUNT(DISTINCT l.id)        as loans'),
+            \DB::raw('SUM(l.principal)            as total_principal'),
+            \DB::raw('SUM(l.principal) * 0.40     as expected_interest'),
+            \DB::raw('SUM(lt.tx_debit)            as expected_collections'),
+            \DB::raw('SUM(lt.tx_credit)           as collections'),
+            \DB::raw('SUM(lt.tx_uncollected)      as uncollected')
         )
         ->orderByDesc('loans')
         ->get()
@@ -242,7 +268,15 @@ public function apiDrilldown(Request $request)
         ->join('offices as o', 'o.id', '=', 'l.office_id')
         ->join('province as p', 'p.id', '=', 'o.province_id')
         ->join('users as u', 'u.id', '=', 'l.loan_officer_id')
-        ->leftJoin('loan_transactions as lt', 'lt.loan_id', '=', 'l.id')
+        ->leftJoin(
+            \DB::raw('(SELECT loan_id,
+                              SUM(debit)             AS tx_debit,
+                              SUM(credit)            AS tx_credit,
+                              SUM(debit)-SUM(credit) AS tx_uncollected
+                       FROM loan_transactions
+                       GROUP BY loan_id) AS lt'),
+            'lt.loan_id', '=', 'l.id'
+        )
         ->where('l.loan_product_id', $PAYROLL)
         ->whereNull('l.deleted_at');
 
@@ -261,11 +295,11 @@ public function apiDrilldown(Request $request)
             'o.name as office_name',
             'l.loan_officer_id as consultant_id',
             \DB::raw("CONCAT(u.first_name, ' ', u.last_name) as consultant_name"),
-            \DB::raw('COUNT(DISTINCT l.id) as loans'),
-            \DB::raw('SUM(l.principal) * 0.40 as expected_interest'),
-            \DB::raw('SUM(lt.debit) as expected_collections'),
-            \DB::raw('SUM(lt.credit) as collections'),
-            \DB::raw('SUM(lt.debit) - SUM(lt.credit) as uncollected')
+            \DB::raw('COUNT(DISTINCT l.id)        as loans'),
+            \DB::raw('SUM(l.principal) * 0.40     as expected_interest'),
+            \DB::raw('SUM(lt.tx_debit)            as expected_collections'),
+            \DB::raw('SUM(lt.tx_credit)           as collections'),
+            \DB::raw('SUM(lt.tx_uncollected)      as uncollected')
         )
         ->orderBy('p.name')
         ->orderBy('o.name')
@@ -337,6 +371,65 @@ public function apiDrilldown(Request $request)
     }, $provinces));
 
     return response()->json(['data' => $result]);
+}
+
+public function bulkRepayments(Request $request, $loanId)
+{
+    $request->validate([
+        'num_payments' => 'required|integer|min:1|max:60',
+    ]);
+
+    $loan = Loan::findOrFail($loanId);
+
+    // Resolve monthly amount from schedule (same logic as loan_schedule_summary.blade.php)
+    $tenure = $loan->loan_term;
+    if ($loan->schedule_type === 'old') {
+        $oldRow = \App\Models\PayrollLoanOldSchedule::where('disbursement_amount', $loan->principal)->first();
+        $colMap = [9 => 'repayment_9_months', 12 => 'repayment_12_months', 18 => 'repayment_18_months', 24 => 'repayment_24_months'];
+        $col = $colMap[$tenure] ?? null;
+        $monthlyAmount = ($oldRow && $col) ? $oldRow->$col : null;
+    } else {
+        $schedule = \DB::table('payroll_loan_schedules')
+            ->where('loan_amount', $loan->principal)
+            ->first();
+        $monthlyAmount = $schedule ? ($schedule->{"months_$tenure"} ?? null) : null;
+    }
+
+    if (!$monthlyAmount) {
+        return back()->with('error', 'No schedule found for this loan. Cannot create repayments.');
+    }
+
+    $numPayments  = (int) $request->num_payments;
+    $user         = Sentinel::getUser();
+    $disbursement = $loan->disbursement_date
+        ? \Carbon\Carbon::parse($loan->disbursement_date)
+        : \Carbon\Carbon::now();
+
+    \DB::transaction(function () use ($loan, $monthlyAmount, $numPayments, $user, $disbursement) {
+        for ($i = 1; $i <= $numPayments; $i++) {
+            $date = $disbursement->copy()->addMonths($i);
+
+            $tx = new \App\Models\LoanTransaction();
+            $tx->loan_id          = $loan->id;
+            $tx->office_id        = $loan->office_id;
+            $tx->client_id        = $loan->client_id;
+            $tx->created_by_id    = $user->id;
+            $tx->transaction_type = 'repayment';
+            $tx->payment_apply_to = 'part_payment';
+            $tx->credit           = $monthlyAmount;
+            $tx->debit            = 0;
+            $tx->date             = $date->toDateString();
+            $tx->month            = $date->month;
+            $tx->year             = $date->year;
+            $tx->reversible       = 1;
+            $tx->notes            = 'Bulk repayment entry (' . $i . ' of ' . $numPayments . ')';
+            $tx->save();
+        }
+    });
+
+    $total = number_format($monthlyAmount * $numPayments, 2);
+    Flash::success("Created {$numPayments} repayment transaction(s) of K{$monthlyAmount} each (total K{$total}).");
+    return redirect('loan/' . $loanId . '/show');
 }
 
 public function activeLoans(Request $request)
