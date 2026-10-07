@@ -1731,7 +1731,7 @@ if (!Sentinel::check()) {
             {{-- ====================================================== --}}
             {{-- RTI BRANCH LOANS MODULE                                  --}}
             {{-- ====================================================== --}}
-            @if($role == 1 || $role != 3 || $role != 2 || $role != 11 || \App\Helpers\GeneralHelper::isSpecialist())
+            @if($role == 1 || $role == 10)
                 <li class="treeview @if(Request::is('rti-loans*')) active @endif">
                     <a href="#">
                         <i class="fa fa-university"></i> <span>RTI Branch Loans</span>
