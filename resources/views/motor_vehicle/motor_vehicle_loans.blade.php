@@ -180,7 +180,7 @@
 
 </form>
 
-</div>
+                </div>
 
                     <table class="table table-bordered table-striped">
 
@@ -188,20 +188,20 @@
 
                          <tr>
 
-                             <th>ID</th>
-                             <th>Image</th>
-                             <th>Client</th>
-                             <th>Office</th>
-                             <th>Principal</th>
-                             <th>Created Date</th>
-                             <th>Status</th>
-                             <th>Received By</th>
-                             <th>Inspector</th>
-                             <th>Valuator</th>
-                             <th>Custodian</th>
-                             <th>Location</th>
-                             <th>Onboarding Progress</th>
-                             <th>Action</th>
+                              <th>ID</th>
+                              <th>Image</th>
+                              <th>Client</th>
+                              <th>Office</th>
+                              <th>Principal</th>
+                              <th>Created Date</th>
+                              <th>Status</th>
+                              <th>Received By</th>
+                              <th>Inspector</th>
+                              <th>Valuator</th>
+                              <th>Custodian</th>
+                              <th>Location</th>
+                              <th>Onboarding Progress</th>
+                              <th>Action</th>
 
                          </tr>
 
@@ -238,7 +238,7 @@
                                      @endif
                                  </td>
 
-                               
+
 
                                 <td>
                                     {{ optional($loan->client)->first_name }}
@@ -320,12 +320,13 @@
                                 </td>
 
                                 <td>
+                                    @if(!empty($loan->vehicle))
                                     <x-onboarding-progress :status="$statuses[$loan->id] ?? ['kyc_completed' => null, 'compliance_screening_completed' => null, 'ownership_completed' => null]" :loan="$loan" />
-                                </td>
-                                <td>
-                                    <button type="button" class="btn btn-info btn-xs" onclick="openLoanDetailSheet({{ $loan->id }})">
-                                        <i class="fa fa-eye"></i> Vehicle
+                                    @else
+                                    <button type="button" class="btn btn-info btn-xs" data-loan-id="{{ $loan->id }}" data-toggle="modal" data-target="#assignVehicleModal">
+                                        <i class="fa fa-caret-plus"></i> Assign Vehicle
                                     </button>
+                                    @endif
                                 </td>
 
                             </tr>
@@ -353,6 +354,48 @@
 
     </div>
 </section>
+
+{{-- Assign Vehicle Modal --}}
+<div class="modal fade" id="assignVehicleModal" tabindex="-1" role="dialog" aria-labelledby="assignVehicleModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title" id="assignVehicleModalLabel">Assign Vehicle to Loan</h4>
+            </div>
+            <div class="modal-body">
+                <form id="assignVehicleForm">
+                    <input type="hidden" id="loan_id" name="loan_id">
+                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                    <div class="form-group">
+                        <label for="vehicle_code">Vehicle Code</label>
+                        <input type="text" class="form-control" id="vehicle_code" name="vehicle_code" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="make">Make</label>
+                        <input type="text" class="form-control" id="make" name="make" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="model">Model</label>
+                        <input type="text" class="form-control" id="model" name="model" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="year">Year</label>
+                        <input type="number" class="form-control" id="year" name="year" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registration_number">Registration Number</label>
+                        <input type="text" class="form-control" id="registration_number" name="registration_number" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveAssignVehicle">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 {{-- Vehicle Detail Bottom Sheet --}}
 <div class="bottom-sheet-overlay" id="vehicleDetailOverlay">
@@ -469,6 +512,46 @@ function attachGalleryNav() {
         photoImg.src = photos[currentIndex];
     };
 }
+
+</script>
+<script>
+$(document).ready(function() {
+    $('#assignVehicleModal').on('show.bs.modal', function(event) {
+        var button = $(event.relatedTarget);
+        var loanId = button.data('loan-id');
+        $(this).find('#loan_id').val(loanId);
+        $(this).find('form')[0].reset();
+    });
+
+    $('#saveAssignVehicle').on('click', function() {
+        var loanId = $('#loan_id').val();
+        var formData = $('#assignVehicleForm').serialize();
+
+        $.ajax({
+            url: '/vehicles/store',
+            method: 'POST',
+            data: formData + '&loan_id=' + loanId,
+            success: function(response) {
+                if (response.success) {
+                    $('#assignVehicleModal').modal('hide');
+                    location.reload();
+                } else {
+                    alert('Error: ' + response.message || 'Failed to assign vehicle');
+                }
+            },
+            error: function() {
+                alert('An error occurred while saving. Please try again.');
+            }
+        });
+    });
+
+    $('#assignVehicleForm').on('keypress', function(e) {
+        if (e.which === 13) {
+            e.preventDefault();
+            $('#saveAssignVehicle').click();
+        }
+    });
+});
 </script>
 
 @endsection

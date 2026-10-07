@@ -27,6 +27,9 @@ return [
     'policy_manager' => [
         0 => '25', //carolkawisha
     ],
+    'payroll' => [
+        0 => '12', //clement
+    ],
     'dev' => [
         0 => '1899', //Andyson
         1 => '2706', //Bremah

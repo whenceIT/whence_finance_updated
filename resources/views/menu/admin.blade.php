@@ -273,6 +273,40 @@ if (!Sentinel::check()) {
             @endif
 
 
+            <!-- Payroll Loan Manager -->
+             
+            @hasRole('role.exec', 'role.payroll')
+            <li class="treeview @if(Request::is('payrollloans*')) active menu-open @endif">
+                <a href="#">
+                    <i class="fa fa-money"></i> <span>Payroll Loan Manager</span>
+                    <span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
+                    <li @if(Request::is('payrollloans/dashboard*')) class="active" @endif>
+                        <a href="{{ url('payrollloans/dashboard') }}"><i class="fa fa-circle-o"></i> Dashboard</a>
+                    </li>
+                    <li @if(Request::is('payrollloans/active*')) class="active" @endif>
+                        <a href="{{ url('payrollloans/active') }}"><i class="fa fa-circle-o"></i> Active Loans</a>
+                    </li>
+                    <li @if(Request::is('payrollloans/pending-disbursement*')) class="active" @endif>
+                        <a href="{{ url('payrollloans/pending-disbursement') }}"><i class="fa fa-circle-o"></i> Pending Disbursement</a>
+                    </li>
+                    <li @if(Request::is('payrollloans/pending*') && !Request::is('payrollloans/pending-disbursement*')) class="active" @endif>
+                        <a href="{{ url('payrollloans/pending') }}"><i class="fa fa-circle-o"></i> Pending Loans</a>
+                    </li>
+                    <li @if(Request::is('payrollloans/closed*')) class="active" @endif>
+                        <a href="{{ url('payrollloans/closed') }}"><i class="fa fa-circle-o"></i> Closed Loans</a>
+                    </li>
+                    <li>
+                        <a href="{{ url('loan/create') }}"><i class="fa fa-circle-o"></i> Add Loan</a>
+                    </li>
+                </ul>
+            </li>
+            @endif
+
+
             <!-- Audit Trail / Risk Management -->
             @hasRole('role.exec', 'role.risk')
             <li class="treeview @if(Request::is('risk*') || Request::is('audits*')) active menu-open @endif">
@@ -1694,6 +1728,77 @@ if (!Sentinel::check()) {
             </li>
 
 
+            {{-- ====================================================== --}}
+            {{-- RTI BRANCH LOANS MODULE                                  --}}
+            {{-- ====================================================== --}}
+            @if($role == 1 || $role == 10)
+                <li class="treeview @if(Request::is('rti-loans*')) active @endif">
+                    <a href="#">
+                        <i class="fa fa-university"></i> <span>RTI Branch Loans</span>
+                        <span class="pull-right-container">
+                            @php
+                                $rtiPendingCount = \App\Models\OfficeLoan::where('status','pending')->count()
+                                                 + \App\Models\OfficeLoanTransaction::where('status','pending')->where('credit','>',0)->count();
+                            @endphp
+                            @if($rtiPendingCount > 0)
+                                <span class="label label-warning pull-right">{{ $rtiPendingCount }}</span>
+                            @endif
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </span>
+                    </a>
+                    <ul class="treeview-menu">
+
+                        {{-- Dashboard --}}
+                        <li class="@if(Request::is('rti-loans/dashboard')) active @endif">
+                            <a href="{{ route('rti.loans.dashboard') }}">
+                                <i class="fa fa-circle-o"></i> RTI Dashboard
+                            </a>
+                        </li>
+
+                        {{-- All Loans --}}
+                        <li class="@if(Request::is('rti-loans') && !Request::is('rti-loans/*')) active @endif">
+                            <a href="{{ route('rti.loans.index') }}">
+                                <i class="fa fa-circle-o"></i> All RTI Loans
+                            </a>
+                        </li>
+
+                        {{-- Create Loan --}}
+                        @if(Sentinel::hasAccess('rti.create'))
+                            <li class="@if(Request::is('rti-loans/create')) active @endif">
+                                <a href="{{ route('rti.loans.create') }}">
+                                    <i class="fa fa-circle-o"></i> Create RTI Loan
+                                </a>
+                            </li>
+                        @endif
+
+                        {{-- Pending Repayment Approvals --}}
+                        @if(Sentinel::hasAccess('rti.approve_repayment'))
+                            <li class="@if(Request::is('rti-loans/repayments/pending')) active @endif">
+                                <a href="{{ route('rti.repayment.pending') }}">
+                                    <i class="fa fa-circle-o"></i> Repayment Approvals
+                                    @php
+                                        $rtiPendingRepayments = \App\Models\OfficeLoanTransaction::where('status','pending')->where('credit','>',0)->count();
+                                    @endphp
+                                    @if($rtiPendingRepayments > 0)
+                                        <span class="pull-right-container">
+                                            <span class="label label-warning pull-right">{{ $rtiPendingRepayments }}</span>
+                                        </span>
+                                    @endif
+                                </a>
+                            </li>
+                        @endif
+
+                        {{-- Transaction History --}}
+                        <li class="@if(Request::is('rti-loans/transactions/history')) active @endif">
+                            <a href="{{ route('rti.transactions.index') }}">
+                                <i class="fa fa-circle-o"></i> Transaction History
+                            </a>
+                        </li>
+
+                    </ul>
+                </li>
+            @endif
+
 
             {{-- ====================================================== --}}
             {{-- RECOVERIES MODULE                                        --}}
@@ -1760,6 +1865,13 @@ if (!Sentinel::check()) {
                                             </span>
                                         </a>
                                     </li>
+                                    <li class="@if(Request::is('recovery/case/resolved')) active @endif">
+                                        <a href="{{ url('recovery/case/resolved') }}"><i class="fa fa-circle-o"></i> Closed Cases
+                                            <span class="pull-right-container">
+                                                <span class="label label-success pull-right">{{\App\Models\RecoveryCase::resolved()->count()}}</span>
+                                            </span>
+                                        </a>
+                                    </li>
                                 </ul>
                             </li>
                             <li class="@if(Request::is('recovery/specialist/*')) active @endif">
@@ -1789,13 +1901,11 @@ if (!Sentinel::check()) {
                                     @endif
                                 </ul>
                             </li>
-                            @if(Sentinel::hasAccess('expenses'))
                             <li class="@if(Request::is('loan/recovery/ledger')) active @endif">
                                 <a href="{{ url('loan/recovery/ledger') }}">
                                     <i class="fa fa-book"></i> Recovery Ledger
                                 </a>
                             </li>
-                            @endif
                     </ul>
                 </li>
             </ul>

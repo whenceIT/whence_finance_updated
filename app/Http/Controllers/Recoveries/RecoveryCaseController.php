@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use Laracasts\Flash\Flash;
 use App\Models\LedgerIncome;
 use App\Models\RecoveriesDeptExcalatedShare;
+use App\Models\RecoveryActivity;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 
 class RecoveryCaseController extends Controller
@@ -325,6 +326,60 @@ class RecoveryCaseController extends Controller
 
         return redirect()->back()
             ->with('success', 'Cost of K' . number_format($request->amount, 2) . ' recorded.');
+    }
+
+    public function expenses(Request $request)
+    {
+        $search    = $request->get('search');
+        $costType  = $request->get('cost_type');
+        $caseId    = $request->get('case_id');
+
+        $query = RecoveryActivity::with(['recoveryCase.client', 'recoveryCase.originBranch', 'performedBy'])
+            ->where('activity_type', 'cost_incurred')
+            ->orderByDesc('created_at');
+
+        if ($search) {
+            $query->whereHas('recoveryCase', function ($q) use ($search) {
+                $q->where('case_number', 'like', "%{$search}%")
+                  ->orWhereHas('client', function ($q2) use ($search) {
+                      $q2->where('first_name', 'like', "%{$search}%")
+                         ->orWhere('last_name',  'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($caseId) {
+            $query->where('recovery_case_id', $caseId);
+        }
+
+        if ($costType) {
+            // description is prefixed with the type label e.g. "Legal: ..." or "General Recovery: ..."
+            $prefixMap = [
+                'recovery_costs'       => 'General Recovery',
+                'legal_costs_incurred' => 'Legal',
+                'skip_trace_costs'     => 'Skip Trace',
+            ];
+            if (isset($prefixMap[$costType])) {
+                $query->where('description', 'like', $prefixMap[$costType] . ':%');
+            }
+        }
+
+        $expenses = $query->paginate(30)->withQueryString();
+
+        // For the "select a case" dropdown in the modal
+        $cases = RecoveryCase::with('client')
+            ->whereNotNull('approved_date')
+            ->orderByDesc('created_at')
+            ->get();
+
+        // Summary totals for the top cards
+        $totals = RecoveryCase::selectRaw(
+            'SUM(recovery_costs) as recovery_costs,
+             SUM(legal_costs_incurred) as legal_costs_incurred,
+             SUM(skip_trace_costs) as skip_trace_costs'
+        )->first();
+
+        return view('recoveries.cases.expenses', compact('expenses', 'cases', 'totals'));
     }
 
     public function uploadDocument(Request $request, $id)
