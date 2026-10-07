@@ -59,6 +59,8 @@ public function edit($id)
         compact('vehicle', 'clients')
     );
 }
+
+// Save vehicle
     public function store(Request $request)
     {
         $request->validate([
