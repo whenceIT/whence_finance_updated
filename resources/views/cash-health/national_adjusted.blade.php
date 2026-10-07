@@ -145,118 +145,17 @@
 
 
     /* =========================================================
-       DECISION DASHBOARD
+       SIMPLE COMPARISON TABLES
        ========================================================= */
-    .cash-decision-grid {
-        display:grid;
-        grid-template-columns:1.15fr 1fr 1fr 1fr;
-        gap:14px;
+    .cash-simple-table {
+        width:100%;
+        border-collapse:collapse;
     }
 
-    .cash-decision-card {
-        background:#fff;
-        border:1px solid #e2e7ed;
-        border-radius:14px;
-        padding:18px;
-        box-shadow:0 2px 8px rgba(20,30,50,.035);
+    @media (max-width: 700px) {
+        .cash-simple-table { min-width:560px; }
     }
 
-    .cash-comparison-grid {
-        display:grid;
-        grid-template-columns:repeat(4,1fr);
-        gap:12px;
-    }
-
-    .cash-comparison-card {
-        background:#fff;
-        border:1px solid #e2e7ed;
-        border-radius:12px;
-        padding:16px;
-        box-shadow:0 2px 8px rgba(20,30,50,.03);
-    }
-
-    .cash-direction {
-        display:inline-flex;
-        align-items:center;
-        gap:4px;
-        padding:4px 7px;
-        border-radius:6px;
-        font-size:9px;
-        font-weight:800;
-    }
-
-    .cash-explanation {
-        font-size:11px;
-        color:#697386;
-        line-height:1.55;
-    }
-
-    .cash-action-grid {
-        display:grid;
-        grid-template-columns:repeat(3,1fr);
-        gap:14px;
-    }
-
-    .cash-action-card {
-        background:#fff;
-        border:1px solid #e2e7ed;
-        border-radius:12px;
-        padding:17px;
-    }
-
-    .cash-progress-track {
-        height:9px;
-        background:#edf1f5;
-        border-radius:20px;
-        overflow:hidden;
-    }
-
-    .cash-progress-fill {
-        height:100%;
-        border-radius:20px;
-    }
-
-    .cash-metric-label {
-        font-size:10px;
-        font-weight:700;
-        letter-spacing:.8px;
-        text-transform:uppercase;
-        color:#7b8494;
-    }
-
-    .cash-small-stat {
-        font-size:11px;
-        color:#697386;
-        line-height:1.5;
-    }
-
-    @media(max-width:1100px) {
-        .cash-decision-grid { grid-template-columns:repeat(2,1fr); }
-        .cash-comparison-grid { grid-template-columns:repeat(2,1fr); }
-        .cash-action-grid { grid-template-columns:1fr; }
-    }
-
-    /* SMALL PHONES */
-    @media (max-width: 480px) {
-
-        .cash-health-title {
-            font-size: 22px !important;
-        }
-
-        .cash-comparison-grid { grid-template-columns:1fr; }
-
-        .cash-cycle-selector {
-            flex-direction: column;
-            align-items: stretch !important;
-            padding: 10px !important;
-        }
-
-        .cash-cycle-select {
-            width: 100%;
-            max-width: 100% !important;
-        }
-
-    }
 </style>
 
 <div style="
@@ -309,11 +208,6 @@
     $nationalComparison =
         $nationalHealth['comparison'] ?? [];
 
-    $managementPlan =
-        $nationalHealth['management_plan'] ?? [];
-
-    $managementQueue =
-        $nationalHealth['management_queue'] ?? [];
 
     $comparisonStyle = function ($comparison) {
         $assessment = strtoupper($comparison['assessment'] ?? 'NEUTRAL');
@@ -435,7 +329,7 @@
             margin-top:5px;
             font-size:13px;
         ">
-            Organization-wide cash position ||   {{ $nationalHealth['office_count'] ?? 0 }} offices
+            Organization-wide cash position
         </div>
     </div>
 
@@ -603,422 +497,672 @@
 
 
 {{-- ========================================================= --}}
-{{-- HOW ARE WE DOING VS LAST CYCLE? --}}
+{{-- ========================================================= --}}
+{{-- CASH HEALTH MANAGEMENT VIEW --}}
 {{-- ========================================================= --}}
 @php
-    $comparisonAvailable = !empty($nationalComparison['available']);
-    $scoreComparison = $nationalComparison['scores']['overall'] ?? [];
-    $disbComparison = $nationalComparison['scores']['disbursement'] ?? [];
-    $collectionComparison = $nationalComparison['scores']['collection'] ?? [];
-    $residualComparison = $nationalComparison['scores']['residual_cash'] ?? [];
-    $defaultsComparison = $nationalComparison['financials']['defaults'] ?? [];
-    $contributionComparison = $nationalComparison['financials']['contribution'] ?? [];
+    $simpleComparison = $nationalComparison ?? [];
+    $overallComparison = $simpleComparison['overall'] ?? [];
+    $scoreComparisons = $simpleComparison['scores'] ?? [];
+    $financialComparisons = $simpleComparison['financials'] ?? [];
+    $institutionComparison = $simpleComparison['institution_type'] ?? [];
+    $currentInstitutionType = $institutionType ?: 'Not classified';
+    $previousInstitutionType = $institutionComparison['cycle_closing'] ?? 'Not available';
+    $todayLastCycleInstitutionType = $institutionComparison['today_last_cycle'] ?? 'Not available';
 
-    $comparisonBadge = function ($item, $positiveWord = 'Improved', $negativeWord = 'Worsened') {
-        $assessment = strtoupper($item['assessment'] ?? 'NO_CHANGE');
-        return match ($assessment) {
-            'IMPROVED' => ['label' => $positiveWord, 'color' => '#15803d', 'background' => '#ecfdf5', 'icon' => '↑'],
-            'WORSENED' => ['label' => $negativeWord, 'color' => '#dc2626', 'background' => '#fef2f2', 'icon' => '↓'],
-            default => ['label' => 'No change', 'color' => '#697386', 'background' => '#f3f4f6', 'icon' => '→']
-        };
-    };
-@endphp
+    $currentOverall = (float)($scores['overall'] ?? 0);
+    $previousClosingOverall = (float)($overallComparison['cycle_closing'] ?? ($scoreComparisons['overall']['previous'] ?? 0));
+    $currentAverageOverall = (float)($overallComparison['cycle_average_current'] ?? $currentOverall);
+    $previousAverageOverall = (float)($overallComparison['cycle_average'] ?? $previousClosingOverall);
+    $previousTodayOverall = (float)($overallComparison['today_last_cycle'] ?? $previousClosingOverall);
 
-<div style="margin-top:22px;margin-bottom:24px;">
+    $overallDirection = $currentOverall > $previousClosingOverall
+        ? 'Improving'
+        : ($currentOverall < $previousClosingOverall ? 'Worsening' : 'No change');
 
-    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:15px;margin-bottom:12px;flex-wrap:wrap;">
-        <div>
-            <div class="cash-metric-label">The simple answer</div>
-            <div style="font-size:20px;font-weight:800;color:#202633;margin-top:4px;">Are we getting better or worse?</div>
-            <div class="cash-explanation" style="margin-top:3px;">
-                We compare this cycle with the previous cycle so management can see the direction, not just the current number.
-            </div>
-        </div>
-        @if($comparisonAvailable)
-            <div style="font-size:10px;color:#697386;background:#fff;border:1px solid #e2e7ed;padding:7px 10px;border-radius:7px;">
-                Compared with the previous cycle
-            </div>
-        @endif
-    </div>
-
-    @if($comparisonAvailable)
-        @php
-            $overallBadge = $comparisonBadge($scoreComparison);
-            $disbBadge = $comparisonBadge($disbComparison);
-            $collectionBadge = $comparisonBadge($collectionComparison);
-            $residualBadge = $comparisonBadge($residualComparison);
-            $defaultsBadge = $comparisonBadge($defaultsComparison, 'Better', 'Worse');
-            $contributionBadge = $comparisonBadge($contributionComparison);
-        @endphp
-
-        <div style="background:#202633;color:#fff;border-radius:14px;padding:18px 20px;margin-bottom:12px;">
-            <div style="font-size:11px;color:#aeb6c3;font-weight:700;text-transform:uppercase;letter-spacing:.8px;">Bottom line</div>
-            <div style="font-size:19px;font-weight:800;margin-top:5px;">
-                {{ $nationalComparison['headline'] ?? 'No material change from the previous cycle.' }}
-            </div>
-            <div style="font-size:11px;color:#c4cad4;margin-top:5px;line-height:1.5;">
-                A higher Cash Health score is better. Lower defaults are better. For the other measures, higher is generally better.
-            </div>
-        </div>
-
-        <div class="cash-comparison-grid">
-
-            <div class="cash-comparison-card">
-                <div class="cash-metric-label">Overall health</div>
-                <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:7px;gap:8px;">
-                    <div>
-                        <strong style="font-size:25px;color:#202633;">{{ number_format($scoreComparison['current'] ?? 0, 0) }}/100</strong>
-                        <div class="cash-explanation">Last cycle: {{ number_format($scoreComparison['previous'] ?? 0, 0) }}/100</div>
-                    </div>
-                    <span class="cash-direction" style="background:{{ $overallBadge['background'] }};color:{{ $overallBadge['color'] }};">
-                        {{ $overallBadge['icon'] }} {{ $overallBadge['label'] }}
-                    </span>
-                </div>
-                <div style="font-size:11px;font-weight:700;color:{{ $overallBadge['color'] }};margin-top:9px;">
-                    {{ ($scoreComparison['change'] ?? 0) >= 0 ? '+' : '' }}{{ number_format($scoreComparison['change'] ?? 0, 1) }} points
-                </div>
-                <div class="cash-explanation" style="margin-top:5px;">This is the quickest answer to “are we improving?”</div>
-            </div>
-
-            <div class="cash-comparison-card">
-                <div class="cash-metric-label">Disbursement</div>
-                <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:7px;gap:8px;">
-                    <div>
-                        <strong style="font-size:25px;color:#202633;">{{ number_format($disbComparison['current'] ?? 0, 0) }}</strong>
-                        <div class="cash-explanation">Previous: {{ number_format($disbComparison['previous'] ?? 0, 0) }}</div>
-                    </div>
-                    <span class="cash-direction" style="background:{{ $disbBadge['background'] }};color:{{ $disbBadge['color'] }};">{{ $disbBadge['icon'] }} {{ $disbBadge['label'] }}</span>
-                </div>
-                <div class="cash-explanation" style="margin-top:9px;">Higher means more of the loan target is being achieved.</div>
-            </div>
-
-            <div class="cash-comparison-card">
-                <div class="cash-metric-label">Collection</div>
-                <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:7px;gap:8px;">
-                    <div>
-                        <strong style="font-size:25px;color:#202633;">{{ number_format($collectionComparison['current'] ?? 0, 0) }}</strong>
-                        <div class="cash-explanation">Previous: {{ number_format($collectionComparison['previous'] ?? 0, 0) }}</div>
-                    </div>
-                    <span class="cash-direction" style="background:{{ $collectionBadge['background'] }};color:{{ $collectionBadge['color'] }};">{{ $collectionBadge['icon'] }} {{ $collectionBadge['label'] }}</span>
-                </div>
-                <div class="cash-explanation" style="margin-top:9px;">Higher means the collection score improved.</div>
-            </div>
-
-            <div class="cash-comparison-card">
-                <div class="cash-metric-label">Cash buffer</div>
-                <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:7px;gap:8px;">
-                    <div>
-                        <strong style="font-size:25px;color:#202633;">{{ number_format($residualComparison['current'] ?? 0, 0) }}</strong>
-                        <div class="cash-explanation">Previous: {{ number_format($residualComparison['previous'] ?? 0, 0) }}</div>
-                    </div>
-                    <span class="cash-direction" style="background:{{ $residualBadge['background'] }};color:{{ $residualBadge['color'] }};">{{ $residualBadge['icon'] }} {{ $residualBadge['label'] }}</span>
-                </div>
-                <div class="cash-explanation" style="margin-top:9px;">Higher residual cash means more room to absorb costs.</div>
-            </div>
-
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
-            <div class="cash-comparison-card">
-                <div class="cash-metric-label">Defaults</div>
-                <div style="display:flex;align-items:center;gap:10px;margin-top:7px;">
-                    <strong style="font-size:22px;color:#202633;">K{{ number_format($defaultsComparison['current'] ?? 0, 0) }}</strong>
-                    <span class="cash-direction" style="background:{{ $defaultsBadge['background'] }};color:{{ $defaultsBadge['color'] }};">{{ $defaultsBadge['icon'] }} {{ $defaultsBadge['label'] }}</span>
-                </div>
-                <div class="cash-explanation" style="margin-top:5px;">Previous cycle: K{{ number_format($defaultsComparison['previous'] ?? 0, 0) }}. For defaults, going down is good.</div>
-            </div>
-
-            <div class="cash-comparison-card">
-                <div class="cash-metric-label">Net contribution</div>
-                <div style="display:flex;align-items:center;gap:10px;margin-top:7px;">
-                    <strong style="font-size:22px;color:#202633;">K{{ number_format($contributionComparison['current'] ?? 0, 0) }}</strong>
-                    <span class="cash-direction" style="background:{{ $contributionBadge['background'] }};color:{{ $contributionBadge['color'] }};">{{ $contributionBadge['icon'] }} {{ $contributionBadge['label'] }}</span>
-                </div>
-                <div class="cash-explanation" style="margin-top:5px;">Previous cycle: K{{ number_format($contributionComparison['previous'] ?? 0, 0) }}. Higher contribution means the institution added more value.</div>
-            </div>
-        </div>
-    @else
-        <div style="background:#fff;border:1px solid #e2e7ed;border-radius:12px;padding:18px;color:#697386;font-size:12px;">
-            This is the first comparison available for this view. Once a previous cycle is available, this section will show what improved and what got worse.
-        </div>
-    @endif
-</div>
-
-{{-- ========================================================= --}}
-{{-- DECISION CENTRE: WHERE ARE WE + WHAT DO WE DO TODAY? --}}
-{{-- ========================================================= --}}
-
-@php
-    $planStatus = $managementPlan['status'] ?? 'IN_PROGRESS';
-    $daysElapsed = (int)($managementPlan['days_elapsed'] ?? 0);
-    $daysRemaining = (int)($managementPlan['days_remaining'] ?? 0);
-    $totalDays = max(1, (int)($managementPlan['total_days'] ?? 1));
-    $elapsedPercent = (float)($managementPlan['elapsed_percent'] ?? 0);
-    $overallScore = (float)($managementPlan['overall_score'] ?? ($scores['overall'] ?? 0));
-    $overallComparison = $nationalComparison['scores']['overall'] ?? [];
-    $overallPreviousScore = isset($overallComparison['previous']) ? (float)$overallComparison['previous'] : null;
-    $overallChange = $overallPreviousScore !== null ? $overallScore - $overallPreviousScore : null;
-    $overallChangeColor = $overallChange === null ? '#697386' : ($overallChange >= 0 ? '#15803d' : '#dc2626');
-
-    $scoreDecisionColor = $overallScore >= 80 ? '#15803d' : ($overallScore >= 50 ? '#b45309' : '#dc2626');
-    $scoreDecisionBackground = $overallScore >= 80 ? '#ecfdf5' : ($overallScore >= 50 ? '#fffbeb' : '#fef2f2');
-
-    $disbPlan = $managementPlan['disbursement'] ?? [];
-    $collectionPlan = $managementPlan['collection'] ?? [];
-    $defaultPlan = $managementPlan['defaults'] ?? [];
-    $residualPlan = $managementPlan['residual_cash'] ?? [];
-
-    $disbTarget = (float)($disbPlan['target'] ?? 0);
-    $disbActual = (float)($disbPlan['actual'] ?? 0);
-    $disbExpected = (float)($disbPlan['expected_to_date'] ?? 0);
-    $disbRemaining = (float)($disbPlan['remaining'] ?? 0);
-    $disbRequiredDaily = (float)($disbPlan['required_per_day'] ?? 0);
-
-    $collectionTarget = (float)($collectionPlan['target'] ?? 0);
-    $collectionActual = (float)($collectionPlan['actual'] ?? 0);
-    $collectionExpected = (float)($collectionPlan['expected_to_date'] ?? 0);
-    $collectionRemaining = (float)($collectionPlan['remaining'] ?? 0);
-    $collectionRequiredDaily = (float)($collectionPlan['required_per_day'] ?? 0);
-
-    $defaultCurrent = (float)($defaultPlan['current'] ?? 0);
-    $defaultExcess = (float)($defaultPlan['excess'] ?? 0);
-    $residualCurrent = (float)($residualPlan['current'] ?? 0);
-    $residualGap = (float)($residualPlan['gap_to_minimum'] ?? 0);
-
-    $disbAchievement = min(100, max(0, $disbTarget > 0 ? ($disbActual / $disbTarget) * 100 : 100));
-    $disbPace = min(100, max(0, $disbExpected > 0 ? ($disbActual / $disbExpected) * 100 : 100));
-    $collectionAchievement = min(100, max(0, $collectionTarget > 0 ? ($collectionActual / $collectionTarget) * 100 : 100));
-    $collectionPace = min(100, max(0, $collectionExpected > 0 ? ($collectionActual / $collectionExpected) * 100 : 100));
-
-    $cycleStatusLabel = match($planStatus) {
-        'COMPLETED' => 'Cycle completed',
-        'UPCOMING' => 'Upcoming cycle',
-        default => 'Cycle in progress'
+    $overallDirectionColor = match($overallDirection) {
+        'Improving' => '#15803d',
+        'Worsening' => '#dc2626',
+        default => '#697386'
     };
 
-    $cycleStatusColor = $planStatus === 'COMPLETED' ? '#697386' : ($planStatus === 'UPCOMING' ? '#2563eb' : '#15803d');
+    /*
+     * Average score across the current cycle's offices.
+     * The API already returns the current overall average. For the
+     * component averages, use the individual office results when
+     * they are available.
+     */
+    $officeResults = $nationalHealth['offices'] ?? [];
+
+    $componentAverages = [
+        'disbursement' => null,
+        'collection' => null,
+        'residual_cash' => null,
+    ];
+
+    if (!empty($officeResults)) {
+        foreach ($componentAverages as $component => $unused) {
+            $values = array_map(
+                fn($office) => (float)($office['scores'][$component] ?? 0),
+                $officeResults
+            );
+
+            $componentAverages[$component] = count($values)
+                ? array_sum($values) / count($values)
+                : null;
+        }
+    }
+
+    $scoreRows = [
+        [
+            'key' => 'overall',
+            'label' => 'Overall score',
+            'current' => $currentOverall,
+            'previous' => $previousClosingOverall,
+            'average' => $currentAverageOverall,
+            'previous_today' => $previousTodayOverall,
+            'weight' => 100,
+        ],
+        [
+            'key' => 'disbursement',
+            'label' => 'Disbursement score',
+            'current' => (float)($scores['disbursement'] ?? 0),
+            'previous' => (float)($scoreComparisons['disbursement']['previous'] ?? 0),
+            'average' => $componentAverages['disbursement'],
+            'previous_today' => (float)($scoreComparisons['disbursement']['previous_to_date'] ?? $scoreComparisons['disbursement']['previous'] ?? 0),
+            'weight' => 35,
+        ],
+        [
+            'key' => 'collection',
+            'label' => 'Collection score',
+            'current' => (float)($scores['collection'] ?? 0),
+            'previous' => (float)($scoreComparisons['collection']['previous'] ?? 0),
+            'average' => $componentAverages['collection'],
+            'previous_today' => (float)($scoreComparisons['collection']['previous_to_date'] ?? $scoreComparisons['collection']['previous'] ?? 0),
+            'weight' => 35,
+        ],
+        [
+            'key' => 'residual_cash',
+            'label' => 'Residual cash score',
+            'current' => (float)($scores['residual_cash'] ?? 0),
+            'previous' => (float)($scoreComparisons['residual_cash']['previous'] ?? 0),
+            'average' => $componentAverages['residual_cash'],
+            'previous_today' => (float)($scoreComparisons['residual_cash']['previous_to_date'] ?? $scoreComparisons['residual_cash']['previous'] ?? 0),
+            'weight' => 30,
+        ],
+    ];
+
+    $financialRows = [
+        [
+            'label' => 'Loan target',
+            'current' => (float)($financials['minimum_loan_target'] ?? 0),
+            'previous' => (float)($financialComparisons['minimum_loan_target']['previous'] ?? 0),
+            'change' => (float)($financialComparisons['minimum_loan_target']['change'] ?? 0),
+            'money' => true,
+        ],
+        [
+            'label' => 'Disbursed',
+            'current' => (float)($nationalHealth['disbursed'] ?? 0),
+            'previous' => (float)($financialComparisons['disbursed']['previous'] ?? 0),
+            'change' => (float)($financialComparisons['disbursed']['change'] ?? 0),
+            'money' => true,
+        ],
+        [
+            'label' => 'Collected',
+            'current' => (float)($nationalHealth['collected'] ?? 0),
+            'previous' => (float)($financialComparisons['collected']['previous'] ?? 0),
+            'change' => (float)($financialComparisons['collected']['change'] ?? 0),
+            'money' => true,
+        ],
+        [
+            'label' => 'Defaults',
+            'current' => (float)($financials['defaults'] ?? 0),
+            'previous' => (float)($financialComparisons['defaults']['previous'] ?? 0),
+            'change' => (float)($financialComparisons['defaults']['change'] ?? 0),
+            'money' => true,
+            'lower_better' => true,
+        ],
+        [
+            'label' => 'Residual cash',
+            'current' => (float)($financials['residual_cash'] ?? 0),
+            'previous' => (float)($financialComparisons['residual_cash']['previous'] ?? 0),
+            'change' => (float)($financialComparisons['residual_cash']['change'] ?? 0),
+            'money' => true,
+        ],
+    ];
+
+    /*
+     * Required component score if only that component improves and
+     * the other two stay unchanged. This answers: "What would it
+     * take to reach the desired score of 80?"
+     */
+    $desiredScore = 80;
+    $weights = [
+        'disbursement' => 0.35,
+        'collection' => 0.35,
+        'residual_cash' => 0.30,
+    ];
+
+    $requiredComponentScores = [];
+
+    foreach ($weights as $component => $weight) {
+        $currentComponent = (float)($scores[$component] ?? 0);
+        $otherWeightedScore = 0;
+
+        foreach ($weights as $other => $otherWeight) {
+            if ($other !== $component) {
+                $otherWeightedScore += (float)($scores[$other] ?? 0) * $otherWeight;
+            }
+        }
+
+        $required = ($desiredScore - $otherWeightedScore) / $weight;
+
+        $requiredComponentScores[$component] = [
+            'current' => $currentComponent,
+            'required' => max(0, min(100, $required)),
+            'raw_required' => $required,
+            'gap' => max(0, $required - $currentComponent),
+            'possible_alone' => $required <= 100,
+        ];
+    }
+
+    $overallGap = max(0, $desiredScore - $currentOverall);
+
+    $disbursementRequiredScore = $requiredComponentScores['disbursement']['raw_required'];
+    $disbursementRequiredAmount = $disbursementRequiredScore <= 100
+        ? max(0, ($disbursementRequiredScore / 100) * (float)($financials['minimum_loan_target'] ?? 0))
+        : null;
+
+    $collectionTarget = max(
+        0,
+        (float)($financials['maximum_expected_repayment'] ?? 0) * 0.90
+    );
+    $collectionRemaining = max(
+        0,
+        $collectionTarget - (float)($nationalHealth['collected'] ?? 0)
+    );
+
+    $residualRequiredScore = $requiredComponentScores['residual_cash']['raw_required'];
+    $averageReserve = (float)($financials['averageMonthlyIrregularCostReserve'] ?? 0);
+    $residualRequiredCash = ($residualRequiredScore <= 100 && $averageReserve > 0)
+        ? max(0, ($residualRequiredScore / 50) * $averageReserve)
+        : null;
 @endphp
 
-<div style="margin-top:22px;margin-bottom:24px;">
+<style>
+    .cash-health-dashboard {
+        margin:22px 0 24px;
+    }
 
-    {{-- BIG PICTURE --}}
-    <div class="cash-decision-grid">
+    .cash-health-card {
+        background:#fff;
+        border:1px solid #e2e7ed;
+        border-radius:14px;
+        overflow:hidden;
+    }
 
-        <div class="cash-decision-card" style="grid-row:span 2;">
-            <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;">
-                <div>
-                    <div class="cash-metric-label">Manager's view</div>
-                    <div style="font-size:19px;font-weight:700;color:#202633;margin-top:6px;">
-                        {{ $planStatus === 'IN_PROGRESS' ? 'What needs attention today?' : 'How did we finish?' }}
-                    </div>
-                </div>
-                <span style="padding:5px 8px;border-radius:7px;background:{{ $scoreDecisionBackground }};color:{{ $scoreDecisionColor }};font-size:9px;font-weight:800;white-space:nowrap;">
-                    {{ $overallScore >= 80 ? 'ON TRACK' : ($overallScore >= 50 ? 'NEEDS ACTION' : 'AT RISK') }}
-                </span>
-            </div>
+    .cash-health-card-header {
+        padding:20px 22px;
+        border-bottom:1px solid #edf0f3;
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:18px;
+        flex-wrap:wrap;
+    }
 
-            <div style="display:flex;align-items:center;gap:16px;margin-top:18px;">
-                <div style="width:94px;height:94px;border-radius:50%;background:conic-gradient({{ $scoreDecisionColor }} {{ min(100,max(0,$overallScore)) }}%,#edf1f5 0);display:flex;align-items:center;justify-content:center;flex:none;">
-                    <div style="width:72px;height:72px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:800;color:#202633;">
-                        {{ number_format($overallScore,0) }}
-                    </div>
-                </div>
-                <div>
-                    <div style="font-size:12px;font-weight:700;color:{{ $scoreDecisionColor }};">
-                        {{ $status }}
-                    </div>
-                    <div style="font-size:11px;color:#697386;margin-top:4px;line-height:1.5;">
-                        Target for a healthy institution: <strong>80/100+</strong>
-                    </div>
-                    @if($overallPreviousScore !== null)
-                        <div style="margin-top:5px;font-size:10px;font-weight:700;color:{{ $overallChangeColor }};">
-                            {{ $overallChange > 0 ? '+' : ($overallChange < 0 ? '-' : '') }}{{ number_format(abs($overallChange),1) }} points vs last cycle
-                            <span style="font-weight:500;color:#8a93a3;">({{ number_format($overallPreviousScore,0) }}/100 previously)</span>
-                        </div>
-                    @endif
-                </div>
-            </div>
+    .cash-health-main-score {
+        display:flex;
+        align-items:center;
+        gap:14px;
+    }
 
-            <div style="margin-top:18px;padding:12px;background:#f8fafc;border-radius:9px;border:1px solid #edf0f3;">
-                <div style="font-size:10px;color:#7b8494;font-weight:700;text-transform:uppercase;">Cycle progress</div>
-                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:5px;">
-                    <strong style="font-size:18px;color:#202633;">{{ $daysElapsed }} / {{ $totalDays }} days</strong>
-                    <span style="font-size:10px;color:{{ $cycleStatusColor }};font-weight:700;">{{ $cycleStatusLabel }}</span>
-                </div>
-                <div class="cash-progress-track" style="margin-top:8px;">
-                    <div class="cash-progress-fill" style="width:{{ min(100,max(0,$elapsedPercent)) }}%;background:{{ $cycleStatusColor }};"></div>
-                </div>
-                @if($planStatus === 'IN_PROGRESS')
-                    <div style="font-size:10px;color:#697386;margin-top:6px;"><strong>{{ $daysRemaining }}</strong> days remaining to close the gaps.</div>
-                @endif
-            </div>
-        </div>
+    .cash-health-score-number {
+        font-size:42px;
+        line-height:1;
+        font-weight:800;
+        color:#202633;
+    }
 
-        {{-- DISBURSEMENT --}}
-        <div class="cash-decision-card">
-            <div style="display:flex;justify-content:space-between;gap:8px;">
-                <div class="cash-metric-label">1 · Disbursements</div>
-                <span style="font-size:9px;font-weight:700;color:{{ $disbPace >= 100 ? '#15803d' : '#b45309' }};">
-                    {{ $disbPace >= 100 ? 'ON PACE' : 'BEHIND PACE' }}
-                </span>
-            </div>
-            <div style="margin-top:8px;font-size:23px;font-weight:800;color:#202633;">K{{ number_format($disbActual,0) }}</div>
-            <div class="cash-small-stat">of <strong>K{{ number_format($disbTarget,0) }}</strong> cycle target</div>
-            <div class="cash-progress-track" style="margin-top:10px;">
-                <div class="cash-progress-fill" style="width:{{ $disbAchievement }}%;background:{{ $disbAchievement >= 100 ? '#15803d' : '#2563eb' }};"></div>
-            </div>
-            <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:#697386;">
-                <span>{{ number_format($disbAchievement,0) }}% achieved</span>
-                <span>Expected by today: K{{ number_format($disbExpected,0) }}</span>
-            </div>
-            <div style="margin-top:12px;padding:9px;background:{{ $disbPace >= 100 ? '#ecfdf5' : '#fffbeb' }};border-radius:7px;font-size:10px;color:{{ $disbPace >= 100 ? '#166534' : '#92400e' }};font-weight:700;">
-                @if($disbRemaining > 0)
-                    K{{ number_format($disbRemaining,0) }} remaining · K{{ number_format($disbRequiredDaily,0) }}/day required
-                @else
-                    Target achieved. Maintain pace.
-                @endif
-            </div>
-        </div>
+    .cash-health-status {
+        display:inline-block;
+        padding:5px 9px;
+        border-radius:6px;
+        font-size:10px;
+        font-weight:800;
+        margin-top:7px;
+    }
 
-        {{-- COLLECTION --}}
-        <div class="cash-decision-card">
-            <div style="display:flex;justify-content:space-between;gap:8px;">
-                <div class="cash-metric-label">2 · Collections</div>
-                <span style="font-size:9px;font-weight:700;color:{{ $collectionPace >= 100 ? '#15803d' : '#b45309' }};">
-                    {{ $collectionPace >= 100 ? 'ON PACE' : 'BEHIND PACE' }}
-                </span>
-            </div>
-            <div style="margin-top:8px;font-size:23px;font-weight:800;color:#202633;">K{{ number_format($collectionActual,0) }}</div>
-            <div class="cash-small-stat">of <strong>K{{ number_format($collectionTarget,0) }}</strong> 90% collection goal</div>
-            <div class="cash-progress-track" style="margin-top:10px;">
-                <div class="cash-progress-fill" style="width:{{ $collectionAchievement }}%;background:{{ $collectionAchievement >= 100 ? '#15803d' : '#2563eb' }};"></div>
-            </div>
-            <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:#697386;">
-                <span>{{ number_format($collectionAchievement,0) }}% achieved</span>
-                <span>Expected by today: K{{ number_format($collectionExpected,0) }}</span>
-            </div>
-            <div style="margin-top:12px;padding:9px;background:{{ $collectionPace >= 100 ? '#ecfdf5' : '#fffbeb' }};border-radius:7px;font-size:10px;color:{{ $collectionPace >= 100 ? '#166534' : '#92400e' }};font-weight:700;">
-                @if($collectionRemaining > 0)
-                    K{{ number_format($collectionRemaining,0) }} remaining · K{{ number_format($collectionRequiredDaily,0) }}/day required
-                @else
-                    Collection goal achieved. Maintain pace.
-                @endif
-            </div>
-        </div>
+    .cash-health-comparison {
+        display:grid;
+        grid-template-columns:1.5fr repeat(4,1fr);
+        min-width:850px;
+    }
 
-        {{-- DEFAULTS --}}
-        <div class="cash-decision-card">
-            <div class="cash-metric-label">3 · Outstanding defaults</div>
-            <div style="margin-top:8px;font-size:23px;font-weight:800;color:{{ $defaultExcess > 0 ? '#dc2626' : '#15803d' }};">K{{ number_format($defaultCurrent,0) }}</div>
-            <div class="cash-small-stat">acceptable ceiling: <strong>K5,000</strong></div>
-            <div class="cash-progress-track" style="margin-top:10px;">
-                <div class="cash-progress-fill" style="width:{{ $defaultCurrent > 0 ? min(100,($defaultCurrent/5000)*100) : 0 }}%;background:{{ $defaultExcess > 0 ? '#dc2626' : '#15803d' }};"></div>
-            </div>
-            <div style="margin-top:8px;font-size:10px;font-weight:700;color:{{ $defaultExcess > 0 ? '#dc2626' : '#15803d' }};">
-                {{ $defaultExcess > 0 ? 'K'.number_format($defaultExcess,0).' above ceiling — collections need attention' : 'Within acceptable ceiling' }}
-            </div>
-        </div>
+    .cash-health-comparison > div {
+        padding:13px 12px;
+        border-right:1px solid #edf0f3;
+        border-bottom:1px solid #edf0f3;
+    }
 
-        {{-- RESIDUAL CASH --}}
-        <div class="cash-decision-card">
-            <div class="cash-metric-label">4 · Cash buffer</div>
-            <div style="margin-top:8px;font-size:23px;font-weight:800;color:{{ $residualCurrent >= 0 ? '#15803d' : '#dc2626' }};">K{{ number_format($residualCurrent,0) }}</div>
-            <div class="cash-small-stat">minimum safe position: <strong>K0</strong></div>
-            <div style="margin-top:12px;padding:9px;background:{{ $residualCurrent >= 0 ? '#ecfdf5' : '#fef2f2' }};border-radius:7px;font-size:10px;color:{{ $residualCurrent >= 0 ? '#166534' : '#991b1b' }};font-weight:700;">
-                {{ $residualCurrent >= 0 ? 'Positive residual cash. Protect the buffer.' : 'K'.number_format($residualGap,0).' short of a zero cash buffer.' }}
-            </div>
-        </div>
+    .cash-health-comparison > div:nth-child(5n) {
+        border-right:none;
+    }
 
-    </div>
+    .cash-health-comparison .head {
+        background:#f8fafc;
+        font-size:9px;
+        font-weight:800;
+        color:#8a93a3;
+        text-transform:uppercase;
+        letter-spacing:.5px;
+    }
 
-    {{-- ACTIONS --}}
-    <div style="margin-top:18px;background:#202633;border-radius:14px;padding:20px 22px;color:#fff;">
-        <div style="display:flex;justify-content:space-between;gap:15px;align-items:flex-start;flex-wrap:wrap;">
+    .cash-health-comparison .metric {
+        font-size:11px;
+        font-weight:700;
+        color:#343b48;
+    }
+
+    .cash-health-comparison .value {
+        font-size:16px;
+        font-weight:800;
+        color:#202633;
+    }
+
+    .cash-health-comparison .sub {
+        margin-top:3px;
+        font-size:9px;
+        color:#8a93a3;
+    }
+
+    .cash-health-progress {
+        height:5px;
+        margin-top:7px;
+        background:#edf0f3;
+        border-radius:10px;
+        overflow:hidden;
+    }
+
+    .cash-health-progress > span {
+        display:block;
+        height:100%;
+        border-radius:10px;
+    }
+
+    .cash-health-lower {
+        display:grid;
+        grid-template-columns:1.15fr 1fr;
+        border-top:1px solid #edf0f3;
+    }
+
+    .cash-health-panel {
+        padding:18px 20px;
+    }
+
+    .cash-health-panel + .cash-health-panel {
+        border-left:1px solid #edf0f3;
+    }
+
+    .cash-health-panel-title {
+        font-size:12px;
+        font-weight:800;
+        color:#202633;
+        margin-bottom:12px;
+    }
+
+    .cash-health-required-row {
+        display:grid;
+        grid-template-columns:1.5fr .8fr .8fr;
+        gap:10px;
+        align-items:center;
+        padding:9px 0;
+        border-bottom:1px solid #f1f3f6;
+    }
+
+    .cash-health-required-row:last-child {
+        border-bottom:none;
+    }
+
+    .cash-health-small {
+        font-size:11px;
+        color:#697386;
+    }
+
+    .cash-health-money-table {
+        width:100%;
+        border-collapse:collapse;
+    }
+
+    .cash-health-money-table td {
+        padding:8px 0;
+        border-bottom:1px solid #f1f3f6;
+        font-size:13px;
+    }
+
+    .cash-health-money-table tr:last-child td {
+        border-bottom:none;
+    }
+
+    @media(max-width:900px) {
+        .cash-health-lower {
+            grid-template-columns:1fr;
+        }
+
+        .cash-health-panel + .cash-health-panel {
+            border-left:none;
+            border-top:1px solid #edf0f3;
+        }
+    }
+
+    @media(max-width:700px) {
+        .cash-health-main-score {
+            align-items:flex-start;
+        }
+
+        .cash-health-score-number {
+            font-size:36px;
+        }
+    }
+</style>
+
+<div class="cash-health-dashboard">
+
+    <div class="cash-health-card">
+
+        {{-- HEADER --}}
+        <div class="cash-health-card-header">
             <div>
-                <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#aeb6c3;font-weight:700;">Decision centre</div>
-                <div style="font-size:20px;font-weight:800;margin-top:4px;">What should we do next?</div>
-                <div style="font-size:11px;color:#c4cad4;margin-top:4px;">This is the work that matters most right now. The recommendations are based on the actual gaps, not just the score.</div>
-            </div>
-            <div style="font-size:10px;color:#c4cad4;padding:7px 10px;border:1px solid #4b5563;border-radius:7px;">
-                {{ count($managementPlan['actions'] ?? []) }} priority action{{ count($managementPlan['actions'] ?? []) === 1 ? '' : 's' }}
-            </div>
-        </div>
+                <div style="font-size:11px;font-weight:800;letter-spacing:1px;color:#7b8494;text-transform:uppercase;">
+                    Cash Health
+                </div>
 
-        <div class="cash-action-grid" style="margin-top:15px;">
-            @foreach(($managementPlan['actions'] ?? []) as $action)
-                @php
-                    $actionHigh = ($action['priority'] ?? '') === 'HIGH';
-                    $actionColor = $actionHigh ? '#fca5a5' : '#fde68a';
-                @endphp
-                <div style="background:#2b3442;border:1px solid #414b5a;border-radius:10px;padding:14px;">
-                    <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;">
-                        <span style="font-size:9px;font-weight:800;color:{{ $actionColor }};letter-spacing:.7px;">{{ $action['priority'] ?? 'ACTION' }}</span>
-                        <span style="font-size:9px;color:#aeb6c3;">{{ $action['type'] ?? '' }}</span>
+                <div class="cash-health-main-score" style="margin-top:8px;">
+                    <div>
+                        <div class="cash-health-score-number">
+                            {{ number_format($currentOverall,0) }}
+                            <span style="font-size:15px;color:#9aa2af;">/100</span>
+                        </div>
+
+                        <span class="cash-health-status"
+                              style="background:{{ $statusBackground }};color:{{ $statusColor }};">
+                            {{ $status }}
+                        </span>
                     </div>
-                    <div style="font-size:13px;font-weight:800;margin-top:7px;">{{ $action['title'] ?? 'Review performance' }}</div>
-                    <div style="font-size:10px;line-height:1.5;color:#c4cad4;margin-top:5px;">{{ $action['message'] ?? '' }}</div>
-                    @if(isset($action['daily_required']))
-                        <div style="margin-top:8px;font-size:10px;font-weight:700;color:#fff;">Required pace: K{{ number_format($action['daily_required'],0) }}/day</div>
+
+                    <div style="padding-bottom:5px;">
+                        <div style="font-size:11px;font-weight:800;color:{{ $overallDirectionColor }};">
+                            {{ $overallDirection }}
+                        </div>
+                        <div style="margin-top:3px;font-size:10px;color:#8a93a3;">
+                            {{ $currentOverall > $previousClosingOverall ? '+' : ($currentOverall < $previousClosingOverall ? '-' : '') }}
+                            {{ number_format(abs($currentOverall - $previousClosingOverall),1) }}
+                            points vs previous closing
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align:right;max-width:330px;">
+                <div style="font-size:10px;font-weight:800;color:#8a93a3;text-transform:uppercase;">
+                    Desired score
+                </div>
+                <div style="font-size:25px;font-weight:800;color:#202633;margin-top:3px;">
+                    {{ $desiredScore }}/100
+                </div>
+                <div style="font-size:10px;color:#697386;margin-top:3px;">
+                    @if($overallGap > 0)
+                        {{ number_format($overallGap,1) }} points still needed
+                    @else
+                        Desired score reached
                     @endif
                 </div>
-            @endforeach
+            </div>
         </div>
-    </div>
 
-    {{-- BRANCH ACTION QUEUE --}}
-    @if(!empty($managementQueue))
-        <div style="margin-top:18px;background:#fff;border:1px solid #e2e7ed;border-radius:14px;padding:20px 22px;">
-            <div style="display:flex;justify-content:space-between;gap:15px;align-items:flex-start;flex-wrap:wrap;margin-bottom:14px;">
-                <div>
-                    <div style="font-size:16px;font-weight:800;color:#202633;">Where is the problem?</div>
-                    <div style="font-size:11px;color:#697386;margin-top:4px;">Branches with the largest measurable gap to address first.</div>
+        {{-- INSTITUTION TYPE --}}
+        <div style="padding:17px 20px;border-bottom:1px solid #edf0f3;">
+            <div style="font-size:11px;font-weight:800;color:#202633;margin-bottom:10px;">
+                Institution Type
+            </div>
+
+            <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:10px;">
+                <div style="padding:12px 14px;background:#f8fafc;border:1px solid #edf0f3;border-radius:8px;">
+                    <div style="font-size:9px;font-weight:800;color:#8a93a3;text-transform:uppercase;letter-spacing:.5px;">Current</div>
+                    <div style="font-size:16px;font-weight:800;color:#202633;margin-top:4px;">{{ $currentInstitutionType }}</div>
                 </div>
-                <span style="font-size:10px;color:#8a93a3;">Top {{ count($managementQueue) }} priority branches</span>
+
+                <div style="padding:12px 14px;background:#fff;border:1px solid #edf0f3;border-radius:8px;">
+                    <div style="font-size:9px;font-weight:800;color:#8a93a3;text-transform:uppercase;letter-spacing:.5px;">Previous cycle closing</div>
+                    <div style="font-size:16px;font-weight:800;color:#202633;margin-top:4px;">{{ $previousInstitutionType }}</div>
+                </div>
+
+                <div style="padding:12px 14px;background:#fff;border:1px solid #edf0f3;border-radius:8px;">
+                    <div style="font-size:9px;font-weight:800;color:#8a93a3;text-transform:uppercase;letter-spacing:.5px;">Today vs last cycle</div>
+                    <div style="font-size:16px;font-weight:800;color:#202633;margin-top:4px;">{{ $todayLastCycleInstitutionType }}</div>
+                </div>
+            </div>
+        </div>
+
+        {{-- SCORE COMPARISON --}}
+        <div style="overflow-x:auto;">
+            <div class="cash-health-comparison">
+
+                <div class="head">Metric</div>
+                <div class="head">Today</div>
+                <div class="head">Last cycle closing</div>
+                <div class="head">Cycle average</div>
+                <div class="head">Today vs last cycle</div>
+
+                @foreach($scoreRows as $row)
+                    @php
+                        $value = $row['current'];
+                        $previous = $row['previous'];
+                        $average = $row['average'];
+                        $previousToday = $row['previous_today'];
+                        $change = $value - $previous;
+                        $changeColor = $change > 0 ? '#15803d' : ($change < 0 ? '#dc2626' : '#697386');
+                        $barColor = $value >= 80 ? '#15803d' : ($value >= 50 ? '#b45309' : '#dc2626');
+                    @endphp
+
+                    <div class="metric">
+                        {{ $row['label'] }}
+
+                        @if($row['key'] !== 'overall')
+                            <div class="cash-health-progress">
+                                <span style="width:{{ min(100,max(0,$value)) }}%;background:{{ $barColor }};"></span>
+                            </div>
+                        @endif
+                    </div>
+
+                    <div>
+                        <div class="value">{{ number_format($value,0) }}</div>
+                        <div class="sub">current</div>
+                    </div>
+
+                    <div>
+                        <div class="value">{{ number_format($previous,0) }}</div>
+                        <div class="sub">
+                            {{ $change > 0 ? '+' : ($change < 0 ? '-' : '') }}{{ number_format(abs($change),1) }} pts
+                        </div>
+                    </div>
+
+                    <div>
+                        @if($average !== null)
+                            <div class="value">{{ number_format($average,0) }}</div>
+                            <div class="sub">average this cycle</div>
+                        @else
+                            <div class="value">—</div>
+                        @endif
+                    </div>
+
+                    <div>
+                        <div class="value" style="color:{{ $value >= $previousToday ? '#15803d' : '#dc2626' }};">
+                            {{ $value >= $previousToday ? '+' : '-' }}{{ number_format(abs($value - $previousToday),1) }}
+                        </div>
+                        <div class="sub">vs same point last cycle</div>
+                    </div>
+                @endforeach
+
+            </div>
+        </div>
+
+        {{-- FINANCIAL COMPARISON --}}
+        <div style="padding:17px 20px;border-top:1px solid #edf0f3;">
+            <div style="font-size:11px;font-weight:800;color:#202633;margin-bottom:9px;">
+                Key financial numbers
             </div>
 
             <div style="overflow-x:auto;">
-                <table style="width:100%;border-collapse:collapse;min-width:700px;">
+                <table class="cash-health-money-table" style="min-width:650px;">
                     <thead>
-                        <tr style="border-bottom:1px solid #edf0f3;">
-                            <th style="padding:9px;text-align:left;font-size:9px;color:#8a93a3;text-transform:uppercase;">Branch</th>
-                            <th style="padding:9px;text-align:left;font-size:9px;color:#8a93a3;text-transform:uppercase;">Main action</th>
-                            <th style="padding:9px;text-align:right;font-size:9px;color:#8a93a3;text-transform:uppercase;">Gap</th>
-                            <th style="padding:9px;text-align:right;font-size:9px;color:#8a93a3;text-transform:uppercase;">Score</th>
+                        <tr>
+                            <th style="text-align:left;color:#8a93a3;font-size:9px;text-transform:uppercase;">Number</th>
+                            <th style="text-align:right;color:#8a93a3;font-size:9px;text-transform:uppercase;">Today</th>
+                            <th style="text-align:right;color:#8a93a3;font-size:9px;text-transform:uppercase;">Last cycle</th>
+                            <th style="text-align:right;color:#8a93a3;font-size:9px;text-transform:uppercase;">Change</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($managementQueue as $queueItem)
+                        @foreach($financialRows as $row)
                             @php
-                                $actionLabel = match($queueItem['action_type'] ?? '') {
-                                    'DISBURSEMENTS' => 'Increase disbursements',
-                                    'COLLECTIONS' => 'Reduce defaults',
-                                    'CASH_BUFFER' => 'Restore cash buffer',
-                                    default => 'Maintain'
-                                };
-                                $gapValue = max(
-                                    (float)($queueItem['disbursement_gap'] ?? 0),
-                                    (float)($queueItem['default_excess'] ?? 0),
-                                    (float)($queueItem['residual_cash_gap'] ?? 0)
-                                );
+                                $financialChange = $row['change'];
+                                $financialColor = !empty($row['lower_better'])
+                                    ? ($financialChange < 0 ? '#15803d' : ($financialChange > 0 ? '#dc2626' : '#697386'))
+                                    : ($financialChange > 0 ? '#15803d' : ($financialChange < 0 ? '#dc2626' : '#697386'));
                             @endphp
-                            <tr style="border-bottom:1px solid #f1f3f6;">
-                                <td style="padding:10px 9px;">
-                                    <div style="font-size:11px;font-weight:800;color:#343b48;">{{ $queueItem['office_name'] ?? 'Unknown branch' }}</div>
-                                    <div style="font-size:9px;color:#8a93a3;margin-top:2px;">{{ $queueItem['province_name'] ?? '' }}{{ !empty($queueItem['district_name']) ? ' · '.$queueItem['district_name'] : '' }}</div>
+                            <tr>
+                                <td style="font-weight:700;color:#343b48;">{{ $row['label'] }}</td>
+                                <td style="text-align:right;font-weight:800;color:#202633;">K{{ number_format($row['current'],0) }}</td>
+                                <td style="text-align:right;color:#697386;">K{{ number_format($row['previous'],0) }}</td>
+                                <td style="text-align:right;font-weight:800;color:{{ $financialColor }};">
+                                    {{ $financialChange > 0 ? '+' : ($financialChange < 0 ? '-' : '') }}K{{ number_format(abs($financialChange),0) }}
                                 </td>
-                                <td style="padding:10px 9px;font-size:10px;font-weight:700;color:#343b48;">{{ $actionLabel }}</td>
-                                <td style="padding:10px 9px;text-align:right;font-size:10px;font-weight:800;color:#dc2626;">K{{ number_format($gapValue,0) }}</td>
-                                <td style="padding:10px 9px;text-align:right;font-size:10px;font-weight:800;color:#343b48;">{{ number_format($queueItem['score'] ?? 0,0) }}/100</td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
             </div>
         </div>
-    @endif
 
+        {{-- WHAT GETS US TO 80 --}}
+        <div class="cash-health-lower">
+
+            <div class="cash-health-panel">
+                <div class="cash-health-panel-title">
+                    What is required to reach {{ $desiredScore }}/100?
+                </div>
+
+                <div class="cash-health-small" style="margin-bottom:8px;">
+                    This shows the score each area would need if the other two areas stayed exactly where they are today.
+                </div>
+
+                @foreach([
+                    'disbursement' => 'Disbursements',
+                    'collection' => 'Collections',
+                    'residual_cash' => 'Residual cash'
+                ] as $component => $label)
+                    @php
+                        $requirement = $requiredComponentScores[$component];
+                        $currentComponent = $requirement['current'];
+                        $requiredComponent = $requirement['raw_required'];
+                        $canDoAlone = $requirement['possible_alone'];
+                        $alreadyEnough = $requiredComponent <= $currentComponent;
+                    @endphp
+
+                    <div class="cash-health-required-row">
+                        <div>
+                            <div style="font-size:10px;font-weight:800;color:#343b48;">{{ $label }}</div>
+                            <div class="cash-health-small">
+                                Current: {{ number_format($currentComponent,0) }}/100
+                            </div>
+                        </div>
+
+                        <div style="text-align:right;">
+                            @if($alreadyEnough)
+                                <strong style="font-size:14px;color:#15803d;">Enough</strong>
+                            @elseif(!$canDoAlone)
+                                <strong style="font-size:14px;color:#dc2626;">Not enough alone</strong>
+                            @else
+                                <strong style="font-size:15px;color:#202633;">
+                                    {{ number_format($requiredComponent,0) }}/100
+                                </strong>
+                                <div class="cash-health-small">
+                                    +{{ number_format($requiredComponent - $currentComponent,0) }} pts
+                                </div>
+                            @endif
+                        </div>
+
+                        <div style="text-align:right;">
+                            <span style="font-size:9px;color:#8a93a3;">
+                                {{ number_format($weights[$component] * 100,0) }}% weight
+                            </span>
+                        </div>
+                    </div>
+                @endforeach
+
+                <div style="margin-top:12px;padding:10px 12px;background:#f8fafc;border-radius:8px;font-size:10px;color:#596273;">
+                    Overall gap: <strong style="color:#202633;">{{ number_format($overallGap,1) }} points</strong>
+                    to reach the desired score.
+                </div>
+            </div>
+
+            <div class="cash-health-panel">
+                <div class="cash-health-panel-title">
+                    What that means in money
+                </div>
+
+                <div class="cash-health-small" style="margin-bottom:10px;">
+                    The clearest actions from the current numbers.
+                </div>
+
+                <div style="padding:10px 0;border-bottom:1px solid #f1f3f6;">
+                    <div style="font-size:10px;font-weight:800;color:#343b48;">Disbursements</div>
+                    @if($disbursementRequiredAmount !== null)
+                        <div style="margin-top:3px;font-size:10px;color:#697386;">
+                            To make Disbursement Score {{ number_format($disbursementRequiredScore,0) }}, disburse about
+                            <strong style="color:#202633;">K{{ number_format($disbursementRequiredAmount,0) }}</strong>
+                            in total.
+                        </div>
+                    @else
+                        <div style="margin-top:3px;font-size:10px;color:#697386;">
+                            Disbursement alone cannot take the overall score to {{ $desiredScore }}.
+                        </div>
+                    @endif
+                </div>
+
+                <div style="padding:10px 0;border-bottom:1px solid #f1f3f6;">
+                    <div style="font-size:10px;font-weight:800;color:#343b48;">Collections</div>
+                    <div style="margin-top:3px;font-size:10px;color:#697386;">
+                        90% collection target:
+                        <strong style="color:#202633;">K{{ number_format($collectionTarget,0) }}</strong>.
+                        Remaining:
+                        <strong style="color:#202633;">K{{ number_format($collectionRemaining,0) }}</strong>.
+                    </div>
+                </div>
+
+                <div style="padding:10px 0;">
+                    <div style="font-size:10px;font-weight:800;color:#343b48;">Residual cash</div>
+                    @if($residualRequiredCash !== null)
+                        <div style="margin-top:3px;font-size:10px;color:#697386;">
+                            To reach the required Residual Cash Score, residual cash would need to be about
+                            <strong style="color:#202633;">K{{ number_format($residualRequiredCash,0) }}</strong>.
+                        </div>
+                    @else
+                        <div style="margin-top:3px;font-size:10px;color:#697386;">
+                            Residual cash alone cannot take the overall score to {{ $desiredScore }}.
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+        </div>
+
+    </div>
 </div>
 
+{{-- ========================================================= --}}
+{{-- QUICK GUIDE --}}
 {{-- ========================================================= --}}
 {{-- QUICK GUIDE --}}
 {{-- ========================================================= --}}
@@ -1074,11 +1218,11 @@
             </span>
 
             <span class="status-band status-attention">
-                60–79 Attention
+                50–79 Attention
             </span>
 
             <span class="status-band status-risk">
-                0–59 At Risk
+                0–49 At Risk
             </span>
 
         </div>
@@ -1122,271 +1266,6 @@
 
 
 {{-- ========================================================= --}}
-{{-- NATIONAL MANAGEMENT SUMMARY --}}
-{{-- ========================================================= --}}
-
-<style>
-
-    .national-management-grid {
-        display:grid;
-        grid-template-columns:repeat(3, 1fr);
-        gap:18px;
-        margin-bottom:24px;
-    }
-
-    .national-management-card {
-        background:#fff;
-        border:1px solid #e6e9ef;
-        border-radius:14px;
-        padding:22px;
-    }
-
-    .management-label {
-        font-size:10px;
-        font-weight:700;
-        color:#8a93a3;
-        letter-spacing:1px;
-        text-transform:uppercase;
-    }
-
-    .management-value {
-        font-size:28px;
-        font-weight:700;
-        margin-top:10px;
-        color:#202633;
-    }
-
-    .management-description {
-        margin-top:10px;
-        font-size:12px;
-        line-height:1.6;
-        color:#697386;
-    }
-
-    .management-badge {
-        display:inline-block;
-        margin-top:8px;
-        padding:5px 9px;
-        border-radius:20px;
-        font-size:10px;
-        font-weight:700;
-    }
-
-    @media(max-width:900px) {
-
-        .national-management-grid {
-            grid-template-columns:1fr;
-        }
-
-    }
-
-</style>
-
-
-<div class="national-management-grid">
-
-
-    {{-- ===================================================== --}}
-    {{-- CASH HEALTH --}}
-    {{-- ===================================================== --}}
-
-    <div class="national-management-card">
-
-        <div class="management-label">
-            Institution Cash Health
-        </div>
-
-        <div class="management-value">
-            {{ number_format(
-                $scores['overall'] ?? 0,
-                0
-            ) }}
-            <span style="
-                font-size:13px;
-                color:#9aa2af;
-                font-weight:500;
-            ">
-                / 100
-            </span>
-        </div>
-
-        <span
-            class="management-badge"
-            style="
-                background:{{ $statusBackground }};
-                color:{{ $statusColor }};
-            "
-        >
-            {{ $status }}
-        </span>
-
-        @php
-            $overallScoreComparison = $nationalComparison['scores']['overall'] ?? [];
-            $currentOverallScore = (float)($scores['overall'] ?? 0);
-            $previousOverallScore = isset($overallScoreComparison['previous'])
-                ? (float)$overallScoreComparison['previous']
-                : null;
-
-            $overallScoreChange = $previousOverallScore !== null
-                ? $currentOverallScore - $previousOverallScore
-                : null;
-
-            $overallScorePercentage = ($previousOverallScore !== null && abs($previousOverallScore) > 0)
-                ? ($overallScoreChange / abs($previousOverallScore)) * 100
-                : null;
-
-            if ($overallScoreChange > 0) {
-                $overallScoreComparisonColor = '#15803d';
-                $overallScoreComparisonBackground = '#ecfdf5';
-                $overallScoreComparisonLabel = 'Improved';
-            } elseif ($overallScoreChange < 0) {
-                $overallScoreComparisonColor = '#dc2626';
-                $overallScoreComparisonBackground = '#fef2f2';
-                $overallScoreComparisonLabel = 'Worsened';
-            } else {
-                $overallScoreComparisonColor = '#697386';
-                $overallScoreComparisonBackground = '#f3f4f6';
-                $overallScoreComparisonLabel = 'No change';
-            }
-        @endphp
-
-        @if($previousOverallScore !== null)
-            <div style="margin-top:10px;">
-                <div style="font-size:10px;color:#697386;font-weight:600;">
-                    Previous cycle: {{ number_format($previousOverallScore, 0) }}/100
-                    <span style="
-                        margin-left:5px;
-                        padding:3px 6px;
-                        border-radius:5px;
-                        background:{{ $overallScoreComparisonBackground }};
-                        color:{{ $overallScoreComparisonColor }};
-                        font-size:9px;
-                        font-weight:700;
-                    ">
-                        {{ $overallScoreComparisonLabel }}
-                    </span>
-                </div>
-
-                <div style="
-                    margin-top:5px;
-                    font-size:10px;
-                    font-weight:700;
-                    color:{{ $overallScoreComparisonColor }};
-                ">
-                    {{ $overallScoreChange > 0 ? '+' : ($overallScoreChange < 0 ? '-' : '') }}{{ number_format(abs($overallScoreChange), 1) }} points
-                    @if($overallScorePercentage !== null)
-                        ({{ $overallScorePercentage > 0 ? '+' : '' }}{{ number_format($overallScorePercentage, 1) }}%)
-                    @endif
-                    vs previous cycle
-                </div>
-            </div>
-        @endif
-
-        <div class="management-description">
-            Overall institutional cash health based on
-            disbursement, collection and residual cash performance.
-        </div>
-
-    </div>
-
-
-    {{-- ===================================================== --}}
-    {{-- INSTITUTION TYPE --}}
-    {{-- ===================================================== --}}
-
-    <div class="national-management-card">
-
-        <div class="management-label">
-            Institution Type
-        </div>
-
-        <div class="management-value"
-             style="font-size:22px;">
-
-            {{ $institutionType }}
-
-        </div>
-
-        @if(!empty($institutionTypeReason))
-
-            <div class="management-description">
-
-                {{ $institutionTypeReason }}
-
-            </div>
-
-        @endif
-
-    </div>
-
-
-    {{-- ===================================================== --}}
-    {{-- NET CONTRIBUTION --}}
-    {{-- ===================================================== --}}
-
-    @php
-        $currentContribution = (float)($contribution['this_month'] ?? 0);
-        $previousContribution = (float)($contribution['last_month'] ?? 0);
-
-        // Always calculate Current − Previous directly in the Blade.
-        $contributionChange = $currentContribution - $previousContribution;
-
-        $contributionPercentage = abs($previousContribution) > 0
-            ? ($contributionChange / abs($previousContribution)) * 100
-            : null;
-
-        if ($contributionChange > 0) {
-            $contributionComparisonColor = '#15803d';
-            $contributionComparisonBackground = '#ecfdf5';
-            $contributionComparisonLabel = 'Improved';
-        } elseif ($contributionChange < 0) {
-            $contributionComparisonColor = '#dc2626';
-            $contributionComparisonBackground = '#fef2f2';
-            $contributionComparisonLabel = 'Worsened';
-        } else {
-            $contributionComparisonColor = '#697386';
-            $contributionComparisonBackground = '#f3f4f6';
-            $contributionComparisonLabel = 'No change';
-        }
-
-        $contributionColor = $currentContribution >= 0 ? '#15803d' : '#dc2626';
-    @endphp
-
-    <div class="national-management-card">
-        <div class="management-label">
-            Net Contribution
-        </div>
-
-        <div class="management-value" style="color:{{ $contributionColor }};">
-            {{ $currentContribution >= 0 ? '+' : '-' }}K{{ number_format(abs($currentContribution), 2) }}
-        </div>
-
-        <div style="margin-top:6px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
-            <span style="font-size:10px;color:#8a93a3;">
-                Previous cycle: K{{ number_format(abs($previousContribution), 2) }}
-            </span>
-            <span style="padding:3px 6px;border-radius:5px;background:{{ $contributionComparisonBackground }};color:{{ $contributionComparisonColor }};font-size:9px;font-weight:700;">
-                {{ $contributionComparisonLabel }}
-            </span>
-        </div>
-
-        <div style="margin-top:5px;font-size:10px;font-weight:700;color:{{ $contributionComparisonColor }};">
-            {{ $contributionChange > 0 ? '+' : ($contributionChange < 0 ? '-' : '') }}K{{ number_format(abs($contributionChange), 2) }}
-            @if($contributionPercentage !== null)
-                ({{ $contributionPercentage > 0 ? '+' : '' }}{{ number_format($contributionPercentage, 1) }}%)
-            @endif
-            vs previous cycle
-        </div>
-
-        <div class="management-description">
-            Collections − Disbursements − Operating Costs. A positive net contribution means the institution generated more cash than it consumed during the cycle.
-        </div>
-    </div>
-
-</div>
-
-
-    {{-- ========================================================= --}}
 {{-- ISSUES REQUIRING ATTENTION --}}
 {{-- ========================================================= --}}
 
@@ -1591,154 +1470,6 @@
     </div>
 
 </div>
-
-
-
-{{-- ========================================================= --}}
-{{-- NATIONAL SCORE --}}
-{{-- ========================================================= --}}
-
-<div style="
-    background:#fff;
-    border:1px solid #e6e9ef;
-    border-radius:14px;
-    padding:25px;
-    margin-bottom:24px;
-">
-
-    <div style="
-        font-size:16px;
-        font-weight:700;
-        color:#202633;
-        margin-bottom:20px;
-    ">
-        National Score
-    </div>
-
-
-    @php
-
-        $scoreRows = [
-
-            [
-                'name' => 'Disbursement',
-                'value' => $scores['disbursement'] ?? 0,
-                'description' => 'A 0–100 score showing how much of the minimum loan target has been disbursed. A higher score means the institution is closer to meeting its lending target.'
-            ],
-
-            [
-                'name' => 'Collection Quality',
-                'value' => $scores['collection'] ?? 0,
-                'description' => 'A 0–100 score showing the quality of loan collections. It considers outstanding defaults and how consistently customers make full payments.'
-            ],
-
-            [
-                'name' => 'Residual Cash',
-                'value' => $scores['residual_cash'] ?? 0,
-                'description' => 'A 0–100 score showing whether the institution has enough residual cash to cover its expected financial obligations. A higher score means stronger cash coverage.'
-            ],
-
-        ];
-
-    @endphp
-
-
-    @foreach($scoreRows as $score)
-
-    @php
-    $scoreValue = $score['value'];
-
-    $scoreColor = $scoreValue >= 70
-        ? '#15803d'
-        : ($scoreValue >= 40 ? '#b45309' : '#dc2626');
-@endphp
-
-        <div style="
-            margin-bottom:24px;
-        ">
-
-
-            {{-- SCORE HEADER --}}
-
-            <div style="
-                display:flex;
-                justify-content:space-between;
-                align-items:flex-start;
-                gap:20px;
-                margin-bottom:7px;
-            ">
-
-
-                {{-- NAME + DESCRIPTION --}}
-
-                <div style="
-                    flex:1;
-                ">
-
-                    <div style="
-                        font-size:13px;
-                        font-weight:700;
-                        color:#202633;
-                    ">
-                        {{ $score['name'] }}
-                    </div>
-
-
-                    <div style="
-                        margin-top:4px;
-                        font-size:11px;
-                        line-height:1.5;
-                        font-weight:600;
-                        color:#697386;
-                        max-width:850px;
-                    ">
-                        {{ $score['description'] }}
-                    </div>
-
-                </div>
-
-
-                {{-- SCORE VALUE --}}
-
-                <strong style="
-                    font-size:14px;
-                    color:#202633;
-                    white-space:nowrap;
-                ">
-
-                    {{ number_format(
-                        $score['value'],
-                        0
-                    ) }}/100
-
-                </strong>
-
-            </div>
-
-
-            {{-- PROGRESS BAR --}}
-
-            <div style="
-                width:100%;
-                height:8px;
-                background:#edf0f4;
-                border-radius:10px;
-                overflow:hidden;
-                margin-top:9px;
-            ">
-
-                <div style="
-                    width:{{ $score['value'] <= 0 ? '3' : min(100,max(0,$score['value'])) }}%;
-                    height:100%;
-                    background:{{ $scoreColor }};
-                    border-radius:10px;
-                "></div>
-
-            </div>
-
-        </div>
-
-    @endforeach
 
 
 
