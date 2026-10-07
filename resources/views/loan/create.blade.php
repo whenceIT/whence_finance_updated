@@ -114,8 +114,6 @@
             </div>
 
 
-
-
             <div class="form-group" id="">
                 <label for="loan_product_id"
                        class="control-label col-md-3">{{trans_choice('general.product',1)}}</label>

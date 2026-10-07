@@ -35,185 +35,147 @@ public function dashboard(Request $request)
         $end_date   = $request->input('end_date',   date('Y-m-d'));
 
         // ── Fetch all payroll loans (product 1) disbursed within the period ──
+        // Eager-load repayment transactions only to avoid pulling every type
         $loans = Loan::with([
-                'loan_officer',          // users (first_name, last_name)
-                'office',                // offices (name, province_id)
-                'office.province',       // provinces (name)
-                'client',                // clients (firstname, lastname)
-                'transactions',          // loan_transactions
+                'loan_officer',   // users: first_name, last_name
+                'office',         // offices: name, province_id
+                'office.province',// province: name
+                'client',         // clients: firstname, lastname
+                'transactions' => function ($q) {
+                    // Only approved, non-reversed repayment transactions
+                    $q->where('transaction_type', 'repayment')
+                      ->where('status', 'approved')
+                      ->where('reversed', 0);
+                },
             ])
             ->where('loan_product_id', 1)
             ->whereIn('status', ['disbursed', 'closed'])
-            ->whereBetween('disbursement_date', [$start_date . ' 00:00:00', $end_date . ' 23:59:59'])
+            ->whereBetween('disbursement_date', [
+                $start_date . ' 00:00:00',
+                $end_date   . ' 23:59:59',
+            ])
             ->get();
 
-        // ── Helper: sum approved repayment transactions for a loan ───────────
-        $getCollections = function ($loan) {
-            return $loan->transactions
-                ->where('transaction_type', 'repayment')
-                ->where('status', 'approved')
-                ->where('reversed', 0)
-                ->sum('amount');
-        };
+        // ── Per-loan helpers ──────────────────────────────────────────────────
+        // Expected Collections = SUM(loan_transactions.debit)
+        // Total Collections    = SUM(loan_transactions.credit)
+        // Total Uncollected    = SUM(debit - credit)
+        // Total Given Out      = loans.principal
+        // Expected Interest    = loans.principal * 0.40
+        $txDebit  = fn($loan) => (float) $loan->transactions->sum('debit');
+        $txCredit = fn($loan) => (float) $loan->transactions->sum('credit');
 
-        // ── Build per-consultant rows ─────────────────────────────────────────
+        // ── Accumulator factory ───────────────────────────────────────────────
+        $emptyBucket = fn() => [
+            'number_of_loans'      => 0,
+            'expected_collections' => 0.0,   // SUM(debit)
+            'expected_interest'    => 0.0,   // SUM(principal * 0.40)
+            'total_collections'    => 0.0,   // SUM(credit)
+            'total_uncollected'    => 0.0,   // SUM(debit - credit)
+        ];
+
+        // ── Build consultant map & province hierarchy in one pass ─────────────
         $consultantMap = [];
-        $today = \Carbon\Carbon::today();
+        $provinceMap   = [];
 
         foreach ($loans as $loan) {
-            $officerId  = $loan->loan_officer_id ?? 0;
-            $officer    = $loan->loan_officer;
-            $office     = $loan->office;
-            $province   = $office ? $office->province : null;
+            $officerId   = $loan->loan_officer_id ?? 0;
+            $officer     = $loan->loan_officer;
+            $office      = $loan->office;
+            $province    = $office ? $office->province : null;
 
-            $givenOut          = (float) ($loan->approved_amount ?? 0);
-            $expectedInterest  = (float) ($loan->interest_derived ?? 0);
-            $expectedCollect   = $givenOut + $expectedInterest;
-            $collected         = $getCollections($loan);
-            $uncollected       = max(0, $expectedCollect - $collected);
-
-            $dueDate   = $loan->expected_maturity_date ?? $loan->final_due_date ?? null;
-            $daysDefault = 0;
-            if ($dueDate && \Carbon\Carbon::parse($dueDate)->lt($today) && $uncollected > 0) {
-                $daysDefault = \Carbon\Carbon::parse($dueDate)->diffInDays($today);
-            }
-
-            // Loan detail row
-            $loanRow = [
-                'loan_id'              => $loan->id,
-                'client_name'          => $loan->client
-                                            ? trim(($loan->client->firstname ?? '') . ' ' . ($loan->client->lastname ?? ''))
-                                            : 'Unknown',
-                'referrer_name'        => $officer
-                                            ? trim(($officer->first_name ?? '') . ' ' . ($officer->last_name ?? ''))
-                                            : 'Unknown',
-                'given_out'            => $givenOut,
-                'expected_interest'    => $expectedInterest,
-                'expected_collections' => $expectedCollect,
-                'total_collections'    => $collected,
-                'total_uncollected'    => $uncollected,
-                'status'               => $loan->status,
-                'date'                 => $loan->disbursement_date
-                                            ? \Carbon\Carbon::parse($loan->disbursement_date)->format('d/m/Y')
-                                            : '',
-                'due_date'             => $dueDate
-                                            ? \Carbon\Carbon::parse($dueDate)->format('d/m/Y')
-                                            : '',
-                'days_in_default'      => $daysDefault,
-            ];
-
-            if (!isset($consultantMap[$officerId])) {
-                $consultantMap[$officerId] = [
-                    'consultant_name'      => $officer
-                                                ? trim(($officer->first_name ?? '') . ' ' . ($officer->last_name ?? ''))
-                                                : 'Unknown',
-                    'branch_name'          => $office   ? $office->name         : 'Unknown',
-                    'province_name'        => $province ? $province->name        : 'Unknown',
-                    'number_of_loans'      => 0,
-                    'given_out'            => 0,
-                    'expected_interest'    => 0,
-                    'expected_collections' => 0,
-                    'total_collections'    => 0,
-                    'total_uncollected'    => 0,
-                    'loans_list'           => [],
-                ];
-            }
-
-            $consultantMap[$officerId]['number_of_loans']++;
-            $consultantMap[$officerId]['given_out']            += $givenOut;
-            $consultantMap[$officerId]['expected_interest']    += $expectedInterest;
-            $consultantMap[$officerId]['expected_collections'] += $expectedCollect;
-            $consultantMap[$officerId]['total_collections']    += $collected;
-            $consultantMap[$officerId]['total_uncollected']    += $uncollected;
-            $consultantMap[$officerId]['loans_list'][]          = $loanRow;
-        }
-
-        $consultants = array_values($consultantMap);
-
-        // ── Build province → branch → consultant hierarchy ────────────────────
-        $provinceMap = [];
-
-        foreach ($loans as $loan) {
-            $officerId = $loan->loan_officer_id ?? 0;
-            $office    = $loan->office;
-            $province  = $office ? $office->province : null;
-
-            $provinceId  = $province  ? $province->id   : 0;
-            $provinceName = $province ? $province->name  : 'Unknown';
-            $officeId    = $office    ? $office->id      : 0;
-            $officeName  = $office    ? $office->name    : 'Unknown';
-
-            $givenOut         = (float) ($loan->approved_amount ?? 0);
-            $expectedInterest = (float) ($loan->interest_derived ?? 0);
-            $expectedCollect  = $givenOut + $expectedInterest;
-            $collected        = $getCollections($loan);
-            $uncollected      = max(0, $expectedCollect - $collected);
-
-            $officer      = $loan->loan_officer;
+            $provinceId   = $province ? $province->id   : 0;
+            $provinceName = $province ? $province->name : 'Unknown';
+            $officeId     = $office   ? $office->id     : 0;
+            $officeName   = $office   ? $office->name   : 'Unknown';
             $officerName  = $officer
                 ? trim(($officer->first_name ?? '') . ' ' . ($officer->last_name ?? ''))
                 : 'Unknown';
+            $clientName   = $loan->client
+                ? trim(($loan->client->firstname ?? '') . ' ' . ($loan->client->lastname ?? ''))
+                : 'Unknown';
 
-            // Province level
-            if (!isset($provinceMap[$provinceId])) {
-                $provinceMap[$provinceId] = [
-                    'province_name'        => $provinceName,
-                    'number_of_loans'      => 0,
-                    'expected_collections' => 0,
-                    'expected_interest'    => 0,
-                    'total_collections'    => 0,
-                    'total_uncollected'    => 0,
-                    'branches'             => [],
-                ];
+            $principal       = (float) ($loan->principal ?? 0);
+            $expInterest     = round($principal * 0.40, 4);
+            $expCollections  = $txDebit($loan);
+            $totalCollected  = $txCredit($loan);
+            $uncollected     = max(0, $expCollections - $totalCollected);
+
+            // ── Consultant map ────────────────────────────────────────────────
+            if (!isset($consultantMap[$officerId])) {
+                $consultantMap[$officerId] = array_merge($emptyBucket(), [
+                    'consultant_name' => $officerName,
+                    'branch_name'     => $officeName,
+                    'province_name'   => $provinceName,
+                    'loans_list'      => [],
+                ]);
             }
 
+            $consultantMap[$officerId]['number_of_loans']++;
+            $consultantMap[$officerId]['expected_collections'] += $expCollections;
+            $consultantMap[$officerId]['expected_interest']    += $expInterest;
+            $consultantMap[$officerId]['total_collections']    += $totalCollected;
+            $consultantMap[$officerId]['total_uncollected']    += $uncollected;
+
+            // Loan detail row attached to consultant
+            $consultantMap[$officerId]['loans_list'][] = [
+                'loan_id'              => $loan->id,
+                'client_name'          => $clientName,
+                'principal'            => $principal,
+                'expected_interest'    => $expInterest,
+                'expected_collections' => $expCollections,
+                'total_collections'    => $totalCollected,
+                'total_uncollected'    => $uncollected,
+                'status'               => $loan->status,
+                'date'                 => $loan->disbursement_date
+                                            ? Carbon::parse($loan->disbursement_date)->format('d/m/Y')
+                                            : '—',
+                'due_date'             => $loan->expected_maturity_date
+                                            ? Carbon::parse($loan->expected_maturity_date)->format('d/m/Y')
+                                            : '—',
+            ];
+
+            // ── Province map ──────────────────────────────────────────────────
+            if (!isset($provinceMap[$provinceId])) {
+                $provinceMap[$provinceId] = array_merge($emptyBucket(), [
+                    'province_name' => $provinceName,
+                    'branches'      => [],
+                ]);
+            }
             $provinceMap[$provinceId]['number_of_loans']++;
-            $provinceMap[$provinceId]['expected_collections'] += $expectedCollect;
-            $provinceMap[$provinceId]['expected_interest']    += $expectedInterest;
-            $provinceMap[$provinceId]['total_collections']    += $collected;
+            $provinceMap[$provinceId]['expected_collections'] += $expCollections;
+            $provinceMap[$provinceId]['expected_interest']    += $expInterest;
+            $provinceMap[$provinceId]['total_collections']    += $totalCollected;
             $provinceMap[$provinceId]['total_uncollected']    += $uncollected;
 
             // Branch level
             if (!isset($provinceMap[$provinceId]['branches'][$officeId])) {
-                $provinceMap[$provinceId]['branches'][$officeId] = [
-                    'branch_name'          => $officeName,
-                    'number_of_loans'      => 0,
-                    'expected_collections' => 0,
-                    'expected_interest'    => 0,
-                    'total_collections'    => 0,
-                    'total_uncollected'    => 0,
-                    'consultants'          => [],
-                ];
+                $provinceMap[$provinceId]['branches'][$officeId] = array_merge($emptyBucket(), [
+                    'branch_name'  => $officeName,
+                    'consultants'  => [],
+                ]);
             }
-
             $provinceMap[$provinceId]['branches'][$officeId]['number_of_loans']++;
-            $provinceMap[$provinceId]['branches'][$officeId]['expected_collections'] += $expectedCollect;
-            $provinceMap[$provinceId]['branches'][$officeId]['expected_interest']    += $expectedInterest;
-            $provinceMap[$provinceId]['branches'][$officeId]['total_collections']    += $collected;
+            $provinceMap[$provinceId]['branches'][$officeId]['expected_collections'] += $expCollections;
+            $provinceMap[$provinceId]['branches'][$officeId]['expected_interest']    += $expInterest;
+            $provinceMap[$provinceId]['branches'][$officeId]['total_collections']    += $totalCollected;
             $provinceMap[$provinceId]['branches'][$officeId]['total_uncollected']    += $uncollected;
 
-            // Consultant level inside branch
+            // Consultant inside branch
             if (!isset($provinceMap[$provinceId]['branches'][$officeId]['consultants'][$officerId])) {
-                $provinceMap[$provinceId]['branches'][$officeId]['consultants'][$officerId] = [
-                    'consultant_name'      => $officerName,
-                    'number_of_loans'      => 0,
-                    'given_out'            => 0,
-                    'expected_collections' => 0,
-                    'expected_interest'    => 0,
-                    'total_collections'    => 0,
-                    'total_uncollected'    => 0,
-                ];
+                $provinceMap[$provinceId]['branches'][$officeId]['consultants'][$officerId] = array_merge($emptyBucket(), [
+                    'consultant_name' => $officerName,
+                ]);
             }
-
             $provinceMap[$provinceId]['branches'][$officeId]['consultants'][$officerId]['number_of_loans']++;
-            $provinceMap[$provinceId]['branches'][$officeId]['consultants'][$officerId]['given_out']            += $givenOut;
-            $provinceMap[$provinceId]['branches'][$officeId]['consultants'][$officerId]['expected_collections'] += $expectedCollect;
-            $provinceMap[$provinceId]['branches'][$officeId]['consultants'][$officerId]['expected_interest']    += $expectedInterest;
-            $provinceMap[$provinceId]['branches'][$officeId]['consultants'][$officerId]['total_collections']    += $collected;
+            $provinceMap[$provinceId]['branches'][$officeId]['consultants'][$officerId]['expected_collections'] += $expCollections;
+            $provinceMap[$provinceId]['branches'][$officeId]['consultants'][$officerId]['expected_interest']    += $expInterest;
+            $provinceMap[$provinceId]['branches'][$officeId]['consultants'][$officerId]['total_collections']    += $totalCollected;
             $provinceMap[$provinceId]['branches'][$officeId]['consultants'][$officerId]['total_uncollected']    += $uncollected;
         }
 
-        // Re-index branches and consultants to plain arrays
+        // Re-index to plain arrays for the blade
+        $consultants = array_values($consultantMap);
         foreach ($provinceMap as &$prov) {
             foreach ($prov['branches'] as &$branch) {
                 $branch['consultants'] = array_values($branch['consultants']);
@@ -223,18 +185,17 @@ public function dashboard(Request $request)
         unset($prov, $branch);
 
         // ── National totals ───────────────────────────────────────────────────
+        $totalPrincipal      = (float) $loans->sum('principal');
+        $totalExpCollections = (float) $loans->sum(fn($l) => $txDebit($l));
+        $totalCollections    = (float) $loans->sum(fn($l) => $txCredit($l));
+
         $national = [
             'number_of_loans'      => $loans->count(),
-            'total_loan_portfolion' => $loans->sum('approved_amount'),
-            'expected_collections'  => $loans->sum(fn($l) => (float)($l->approved_amount ?? 0) + (float)($l->interest_derived ?? 0)),
-            'total_collections'     => $loans->sum(fn($l) => $getCollections($l)),
-        ];
-        $national['total_uncollected'] = max(0, $national['expected_collections'] - $national['total_collections']);
-
-        $consultantNational = [
-            'given_out'         => $loans->sum('approved_amount'),
-            'expected_interest' => $loans->sum('interest_derived'),
-            'total_uncollected' => $national['total_uncollected'],
+            'total_given_out'       => $totalPrincipal,
+            'expected_interest'     => round($totalPrincipal * 0.40, 2),
+            'expected_collections'  => $totalExpCollections,
+            'total_collections'     => $totalCollections,
+            'total_uncollected'     => max(0, $totalExpCollections - $totalCollections),
         ];
 
         $data = [
@@ -242,20 +203,15 @@ public function dashboard(Request $request)
             'provinces' => array_values($provinceMap),
         ];
 
-        $consultantData = [
-            'national' => $consultantNational,
-        ];
-
         return view('payroll_loans.dashboard', compact(
             'data',
-            'consultantData',
             'consultants',
             'start_date',
             'end_date'
         ));
 
     } catch (\Exception $e) {
-        Log::error('Payroll Dashboard Error: ' . $e->getMessage());
+        Log::error('Payroll Dashboard Error: ' . $e->getMessage() . ' | ' . $e->getFile() . ':' . $e->getLine());
         return back()->withErrors(['error' => 'Failed to load dashboard: ' . $e->getMessage()]);
     }
 }
