@@ -323,7 +323,7 @@
                                     @if(!empty($loan->vehicle))
                                     <x-onboarding-progress :status="$statuses[$loan->id] ?? ['kyc_completed' => null, 'compliance_screening_completed' => null, 'ownership_completed' => null]" :loan="$loan" />
                                     @else
-                                    <button type="button" class="btn btn-info btn-xs" data-loan-id="{{ $loan->id }}" data-toggle="modal" data-target="#assignVehicleModal">
+                                    <button type="button" class="btn btn-info btn-xs" data-loan-id="{{ $loan->id }}" data-client-id="{{ $loan->client_id }}" data-toggle="modal" data-target="#assignVehicleModal">
                                         <i class="fa fa-caret-plus"></i> Assign Vehicle
                                     </button>
                                     @endif
@@ -543,6 +543,7 @@ $(document).ready(function() {
                 alert('An error occurred while saving. Please try again.');
             }
         });
+        location.reload();
     });
 
     $('#assignVehicleForm').on('keypress', function(e) {

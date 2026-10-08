@@ -44,7 +44,15 @@ public function dashboard(Request $request)
 
     $total_count     = $allLoans->total_count ?? 0;
     $total_given_out = $allLoans->total_given_out ?? 0;
-    $expected_interest = $total_given_out * 0.40; // 40% of principal
+
+    // Expected interest = sum of interest_initial debits recorded at disbursement
+    // (calculated from the loan schedule table, not a flat 40% rate)
+    $expected_interest = \DB::table('loan_transactions as lt')
+        ->join('loans as l', 'l.id', '=', 'lt.loan_id')
+        ->where('l.loan_product_id', $PAYROLL)
+        ->whereNull('l.deleted_at')
+        ->where('lt.transaction_type', 'interest_initial')
+        ->sum('lt.debit');
 
     // Transaction totals — only for payroll loans
     $txTotals = \DB::table('loan_transactions as lt')
@@ -91,6 +99,14 @@ public function dashboard(Request $request)
                        GROUP BY loan_id) AS lt'),
             'lt.loan_id', '=', 'l.id'
         )
+        ->leftJoin(
+            \DB::raw('(SELECT loan_id,
+                              SUM(debit) AS interest_debit
+                       FROM loan_transactions
+                       WHERE transaction_type = \'interest_initial\'
+                       GROUP BY loan_id) AS li'),
+            'li.loan_id', '=', 'l.id'
+        )
         ->where('l.loan_product_id', $PAYROLL)
         ->whereNull('l.deleted_at')
         ->groupBy('l.loan_officer_id', 'u.first_name', 'u.last_name')
@@ -99,7 +115,7 @@ public function dashboard(Request $request)
             \DB::raw("CONCAT(u.first_name, ' ', u.last_name) as consultant_name"),
             \DB::raw('COUNT(DISTINCT l.id)        as loans'),
             \DB::raw('SUM(l.principal)            as total_principal'),
-            \DB::raw('SUM(l.principal) * 0.40     as expected_interest'),
+            \DB::raw('SUM(li.interest_debit)      as expected_interest'),
             \DB::raw('SUM(lt.tx_debit)            as expected_collections'),
             \DB::raw('SUM(lt.tx_credit)           as collections'),
             \DB::raw('SUM(lt.tx_uncollected)      as uncollected')
@@ -124,6 +140,14 @@ public function dashboard(Request $request)
                        GROUP BY loan_id) AS lt'),
             'lt.loan_id', '=', 'l.id'
         )
+        ->leftJoin(
+            \DB::raw('(SELECT loan_id,
+                              SUM(debit) AS interest_debit
+                       FROM loan_transactions
+                       WHERE transaction_type = \'interest_initial\'
+                       GROUP BY loan_id) AS li'),
+            'li.loan_id', '=', 'l.id'
+        )
         ->where('l.loan_product_id', $PAYROLL)
         ->whereNull('l.deleted_at')
         ->groupBy('p.id', 'p.name', 'o.id', 'o.name', 'l.loan_officer_id', 'u.first_name', 'u.last_name')
@@ -135,7 +159,7 @@ public function dashboard(Request $request)
             'l.loan_officer_id as consultant_id',
             \DB::raw("CONCAT(u.first_name, ' ', u.last_name) as consultant_name"),
             \DB::raw('COUNT(DISTINCT l.id)        as loans'),
-            \DB::raw('SUM(l.principal) * 0.40     as expected_interest'),
+            \DB::raw('SUM(li.interest_debit)      as expected_interest'),
             \DB::raw('SUM(lt.tx_debit)            as expected_collections'),
             \DB::raw('SUM(lt.tx_credit)           as collections'),
             \DB::raw('SUM(lt.tx_uncollected)      as uncollected')
@@ -167,14 +191,31 @@ public function apiConsultantLoans(Request $request)
     $loans = \DB::table('loans as l')
         ->join('clients as c', 'c.id', '=', 'l.client_id')
         ->join('offices as o', 'o.id', '=', 'l.office_id')
-        ->leftJoin('loan_transactions as lt', 'lt.loan_id', '=', 'l.id')
+        ->leftJoin(
+            \DB::raw('(SELECT loan_id,
+                              SUM(debit)             AS tx_debit,
+                              SUM(credit)            AS tx_credit,
+                              SUM(debit)-SUM(credit) AS tx_uncollected
+                       FROM loan_transactions
+                       GROUP BY loan_id) AS lt'),
+            'lt.loan_id', '=', 'l.id'
+        )
+        ->leftJoin(
+            \DB::raw('(SELECT loan_id,
+                              SUM(debit) AS interest_debit
+                       FROM loan_transactions
+                       WHERE transaction_type = \'interest_initial\'
+                       GROUP BY loan_id) AS li'),
+            'li.loan_id', '=', 'l.id'
+        )
         ->where('l.loan_product_id', $PAYROLL)
         ->where('l.loan_officer_id', $consultant_id)
         ->whereNull('l.deleted_at')
         ->groupBy(
             'l.id', 'l.account_number', 'l.principal', 'l.status',
             'l.disbursement_date', 'o.name',
-            'c.first_name', 'c.last_name', 'c.phone'
+            'c.first_name', 'c.last_name', 'c.phone',
+            'lt.tx_debit', 'lt.tx_credit', 'lt.tx_uncollected', 'li.interest_debit'
         )
         ->select(
             'l.id',
@@ -185,10 +226,10 @@ public function apiConsultantLoans(Request $request)
             'o.name as office_name',
             \DB::raw("CONCAT(c.first_name, ' ', c.last_name) as client_name"),
             'c.phone as client_phone',
-            \DB::raw('SUM(lt.debit)  as expected_collections'),
-            \DB::raw('SUM(lt.credit) as collections'),
-            \DB::raw('SUM(lt.debit) - SUM(lt.credit) as uncollected'),
-            \DB::raw('SUM(l.principal) * 0.40 as expected_interest')
+            'lt.tx_debit   as expected_collections',
+            'lt.tx_credit  as collections',
+            'lt.tx_uncollected as uncollected',
+            'li.interest_debit as expected_interest'
         )
         ->orderBy('l.disbursement_date', 'desc')
         ->get()
@@ -202,7 +243,7 @@ public function apiConsultantLoans(Request $request)
                 'client_phone'         => $row->client_phone,
                 'office_name'          => $row->office_name,
                 'principal'            => round($row->principal ?? 0, 2),
-                'expected_interest'    => round($row->principal * 0.40, 2),
+                'expected_interest'    => round($row->expected_interest ?? 0, 2),
                 'expected_collections' => round($expCol, 2),
                 'collections'          => round($col, 2),
                 'uncollected'          => round($row->uncollected ?? 0, 2),
@@ -230,6 +271,14 @@ public function apiConsultants(Request $request)
                        GROUP BY loan_id) AS lt'),
             'lt.loan_id', '=', 'l.id'
         )
+        ->leftJoin(
+            \DB::raw('(SELECT loan_id,
+                              SUM(debit) AS interest_debit
+                       FROM loan_transactions
+                       WHERE transaction_type = \'interest_initial\'
+                       GROUP BY loan_id) AS li'),
+            'li.loan_id', '=', 'l.id'
+        )
         ->where('l.loan_product_id', $PAYROLL)
         ->whereNull('l.deleted_at')
         ->groupBy('l.loan_officer_id', 'u.first_name', 'u.last_name')
@@ -238,7 +287,7 @@ public function apiConsultants(Request $request)
             \DB::raw("CONCAT(u.first_name, ' ', u.last_name) as consultant_name"),
             \DB::raw('COUNT(DISTINCT l.id)        as loans'),
             \DB::raw('SUM(l.principal)            as total_principal'),
-            \DB::raw('SUM(l.principal) * 0.40     as expected_interest'),
+            \DB::raw('SUM(li.interest_debit)      as expected_interest'),
             \DB::raw('SUM(lt.tx_debit)            as expected_collections'),
             \DB::raw('SUM(lt.tx_credit)           as collections'),
             \DB::raw('SUM(lt.tx_uncollected)      as uncollected')
@@ -277,6 +326,14 @@ public function apiDrilldown(Request $request)
                        GROUP BY loan_id) AS lt'),
             'lt.loan_id', '=', 'l.id'
         )
+        ->leftJoin(
+            \DB::raw('(SELECT loan_id,
+                              SUM(debit) AS interest_debit
+                       FROM loan_transactions
+                       WHERE transaction_type = \'interest_initial\'
+                       GROUP BY loan_id) AS li'),
+            'li.loan_id', '=', 'l.id'
+        )
         ->where('l.loan_product_id', $PAYROLL)
         ->whereNull('l.deleted_at');
 
@@ -296,7 +353,7 @@ public function apiDrilldown(Request $request)
             'l.loan_officer_id as consultant_id',
             \DB::raw("CONCAT(u.first_name, ' ', u.last_name) as consultant_name"),
             \DB::raw('COUNT(DISTINCT l.id)        as loans'),
-            \DB::raw('SUM(l.principal) * 0.40     as expected_interest'),
+            \DB::raw('SUM(li.interest_debit)      as expected_interest'),
             \DB::raw('SUM(lt.tx_debit)            as expected_collections'),
             \DB::raw('SUM(lt.tx_credit)           as collections'),
             \DB::raw('SUM(lt.tx_uncollected)      as uncollected')
@@ -422,7 +479,7 @@ public function bulkRepayments(Request $request, $loanId)
             $tx->month            = $date->month;
             $tx->year             = $date->year;
             $tx->reversible       = 1;
-            $tx->notes            = 'Bulk repayment entry (' . $i . ' of ' . $numPayments . ')';
+            $tx->notes            = 'Payroll entry (' . $i . ' of ' . $numPayments . ')';
             $tx->save();
         }
     });

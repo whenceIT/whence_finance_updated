@@ -425,7 +425,7 @@ $(document).on('click', '.consultant-row', function () {
         var rows = loans.map(function (l) {
             var uncClass = l.uncollected > 0 ? 'text-danger' : 'text-success';
             return '<tr style="font-size:12px;">' +
-                '<td><a href="/loan/' + l.id + '" target="_blank">' + (l.account_number || l.id) + '</a></td>' +
+                '<td><a href="/loan/' + l.id + '/show" target="_blank">' + (l.account_number || l.id) + '</a></td>' +
                 '<td>' + l.client_name + '<br><small class="text-muted">' + (l.client_phone || '') + '</small></td>' +
                 '<td>' + l.office_name + '</td>' +
                 '<td class="text-right">' + fmt(l.principal) + '</td>' +
