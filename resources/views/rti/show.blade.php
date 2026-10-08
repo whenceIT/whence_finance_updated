@@ -1,3 +1,19 @@
+@php
+
+    use Illuminate\Support\Facades\Redirect;
+    use App\Models\AppraisalForm;
+    use App\Models\Ticket;
+
+    if (!Sentinel::check()) {
+        redirect()->route('login')->send();
+        exit;
+    }
+
+    $userInfo = \App\Helpers\GeneralHelper::get_user_info();
+    $user = $userInfo->user;
+    $role = $userInfo->role;
+@endphp
+
 @extends('layouts.master')
 
 @section('title')
@@ -24,55 +40,57 @@
                         </span>
                     </h4>
                     <div class="heading-elements">
-                        <a href="{{ route('rti.loans.index') }}" class="btn btn-default btn-sm">
-                            <i class="fa fa-arrow-left"></i> Back
-                        </a>
+                        @if($role == 10)
+                            <a href="{{ route('rti.loans.index') }}" class="btn btn-default btn-sm">
+                                <i class="fa fa-arrow-left"></i> Back
+                            </a>
 
-                        <div class="pull-right">
-                            {{-- Approve --}}
-                            @if($loan->status === 'pending')
-                                <form method="POST" action="{{ route('rti.loans.approve', $loan->id) }}"
-                                      style="display:inline;"
-                                      onsubmit="return confirm('Approve this RTI loan?')">
-                                    {{ csrf_field() }}
-                                    <button type="submit" class="btn btn-success btn-sm">
-                                        <i class="fa fa-check"></i> Approve
-                                    </button>
-                                </form>
-                            @endif
+                            <div class="pull-right">
+                                {{-- Approve --}}
+                                @if($loan->status === 'pending')
+                                    <form method="POST" action="{{ route('rti.loans.approve', $loan->id) }}"
+                                        style="display:inline;"
+                                        onsubmit="return confirm('Approve this RTI loan?')">
+                                        {{ csrf_field() }}
+                                        <button type="submit" class="btn btn-success btn-sm">
+                                            <i class="fa fa-check"></i> Approve
+                                        </button>
+                                    </form>
+                                @endif
 
-                            {{-- Disburse --}}
-                            @if($loan->status === 'approved')
-                                <form method="POST" action="{{ route('rti.loans.disburse', $loan->id) }}"
-                                      style="display:inline;"
-                                      onsubmit="return confirm('Disburse K{{ number_format($loan->total_payable, 2) }} to {{ optional($loan->office)->name }}?')">
-                                    {{ csrf_field() }}
-                                    <button type="submit" class="btn btn-primary btn-sm">
-                                        <i class="fa fa-paper-plane"></i> Disburse
-                                    </button>
-                                </form>
-                            @endif
+                                {{-- Disburse --}}
+                                @if($loan->status === 'approved')
+                                    <form method="POST" action="{{ route('rti.loans.disburse', $loan->id) }}"
+                                        style="display:inline;"
+                                        onsubmit="return confirm('Disburse K{{ number_format($loan->total_payable, 2) }} to {{ optional($loan->office)->name }}?')">
+                                        {{ csrf_field() }}
+                                        <button type="submit" class="btn btn-primary btn-sm">
+                                            <i class="fa fa-paper-plane"></i> Disburse
+                                        </button>
+                                    </form>
+                                @endif
 
-                            {{-- Decline --}}
-                            @if(in_array($loan->status, ['pending','approved']))
-                                <form method="POST" action="{{ route('rti.loans.decline', $loan->id) }}"
-                                      style="display:inline;"
-                                      onsubmit="return confirm('Decline this RTI loan?')">
-                                    {{ csrf_field() }}
-                                    <button type="submit" class="btn btn-danger btn-sm">
-                                        <i class="fa fa-times"></i> Decline
-                                    </button>
-                                </form>
-                            @endif
+                                {{-- Decline --}}
+                                @if(in_array($loan->status, ['pending','approved']))
+                                    <form method="POST" action="{{ route('rti.loans.decline', $loan->id) }}"
+                                        style="display:inline;"
+                                        onsubmit="return confirm('Decline this RTI loan?')">
+                                        {{ csrf_field() }}
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="fa fa-times"></i> Decline
+                                        </button>
+                                    </form>
+                                @endif
 
-                            {{-- Record Repayment --}}
-                            @if(in_array($loan->status, ['disbursed','partially_paid']))
-                                <a href="{{ route('rti.repayment.create', $loan->id) }}"
-                                   class="btn btn-warning btn-sm">
-                                    <i class="fa fa-credit-card"></i> Record Repayment
-                                </a>
-                            @endif
-                        </div>
+                                {{-- Record Repayment --}}
+                                @if(in_array($loan->status, ['disbursed','partially_paid']))
+                                    <a href="{{ route('rti.repayment.create', $loan->id) }}"
+                                    class="btn btn-warning btn-sm">
+                                        <i class="fa fa-credit-card"></i> Record Repayment
+                                    </a>
+                                @endif
+                            </div>
+                        @endif
                     </div>
                 </div>
 

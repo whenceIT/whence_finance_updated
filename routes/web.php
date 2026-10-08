@@ -2380,6 +2380,7 @@ Route::group(['prefix' => 'rti-loans', 'middleware' => 'sentinel'], function () 
     Route::post('/{id}/approve',  [RtiLoanController::class, 'approve'])->name('rti.loans.approve');
     Route::post('/{id}/decline',  [RtiLoanController::class, 'decline'])->name('rti.loans.decline');
     Route::post('/{id}/disburse', [RtiLoanController::class, 'disburse'])->name('rti.loans.disburse');
+    Route::get('/office',         [RtiLoanController::class, 'office'])->name('rti.loans.office');
 
     // --- Repayments ---
     Route::get('/{loanId}/repayment/create',  [RtiRepaymentController::class, 'create'])->name('rti.repayment.create');

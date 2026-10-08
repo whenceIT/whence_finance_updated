@@ -4,10 +4,10 @@ use Illuminate\Support\Facades\Redirect;
 use App\Models\AppraisalForm;
 use App\Models\Ticket;
 
-if (!Sentinel::check()) {
-    redirect()->route('login')->send();
-    exit;
-}
+    if (!Sentinel::check()) {
+        redirect()->route('login')->send();
+        exit;
+    }
 
     $userInfo = \App\Helpers\GeneralHelper::get_user_info();
     $user = $userInfo->user;
@@ -1731,10 +1731,12 @@ if (!Sentinel::check()) {
             {{-- ====================================================== --}}
             {{-- RTI BRANCH LOANS MODULE                                  --}}
             {{-- ====================================================== --}}
-            @if($role == 1 || $role == 10)
+            @if($role == 1 || $role == 10 || $role == 4)
                 <li class="treeview @if(Request::is('rti-loans*')) active @endif">
                     <a href="#">
                         <i class="fa fa-university"></i> <span>RTI Branch Loans</span>
+                        
+                        @if($role == 1 || $role == 10 )
                         <span class="pull-right-container">
                             @php
                                 $rtiPendingCount = \App\Models\OfficeLoan::where('status','pending')->count()
@@ -1745,9 +1747,21 @@ if (!Sentinel::check()) {
                             @endif
                             <i class="fa fa-angle-left pull-right"></i>
                         </span>
+                        @endif
                     </a>
                     <ul class="treeview-menu">
 
+
+                        @if($role == 4)
+                        {{-- All Loans belonging to Office --}}
+                        <li class="@if(Request::is('rti-loans') && !Request::is('rti-loans/*')) active @endif">
+                            <a href="{{ route('rti.loans.office') }}">
+                                <i class="fa fa-circle-o"></i> Office RTI Loans
+                            </a>
+                        </li>
+                        @endif
+
+                        @if($role == 1 || $role == 10 )
                         {{-- Dashboard --}}
                         <li class="@if(Request::is('rti-loans/dashboard')) active @endif">
                             <a href="{{ route('rti.loans.dashboard') }}">
@@ -1761,7 +1775,6 @@ if (!Sentinel::check()) {
                                 <i class="fa fa-circle-o"></i> All RTI Loans
                             </a>
                         </li>
-
                         {{-- Create Loan --}}
                         <li class="@if(Request::is('rti-loans/create')) active @endif">
                             <a href="{{ route('rti.loans.create') }}">
@@ -1805,6 +1818,7 @@ if (!Sentinel::check()) {
                                 <i class="fa fa-circle-o"></i> Transaction History
                             </a>
                         </li>
+                        @endif
 
                     </ul>
                 </li>

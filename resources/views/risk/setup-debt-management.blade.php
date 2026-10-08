@@ -397,7 +397,7 @@ function viewTransactions(costId, officeName) {
                         '<td style="font-weight:700;color:#27ae60;">' + parseFloat(trans.amount).toLocaleString() + '</td>' +
                         '<td>' + (trans.notes || '—') + '</td>' +
                         '<td><small>' + (trans.creator ? trans.creator.first_name + ' ' + trans.creator.last_name : 'N/A') + '</small></td>' +
-                        '<td><button class="btn btn-xs btn-danger" onclick="deleteTransaction(' + trans.id + ')" title="Delete"><i class="fa fa-trash"></i></button></td>' +
+                        '<td>' + (Number.isInteger(trans.id) ? '<button class="btn btn-xs btn-danger" onclick="deleteTransaction(' + trans.id + ')" title="Delete"><i class="fa fa-trash"></i></button>' : '<span class="label label-default">Auto</span>') + '</td>' +
                         '</tr>';
             });
             

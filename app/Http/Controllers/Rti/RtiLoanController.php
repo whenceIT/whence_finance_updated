@@ -113,6 +113,33 @@ class RtiLoanController extends Controller
     }
 
     // -------------------------------------------------------------------------
+    // Office Loans — loans for the current user's office
+    // -------------------------------------------------------------------------
+
+    public function office(Request $request)
+    {
+        $user    = Sentinel::getUser();
+        $offices = Office::where('active', 1)->orderBy('name')->get();
+
+        $query = OfficeLoan::with(['office', 'staff'])->where('office_id', $user->office_id);
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $loans    = $query->latest()->paginate(25)->withQueryString();
+        $statuses = OfficeLoan::statuses();
+
+        return view('rti.index', compact('loans', 'offices', 'statuses'));
+    }
+
+    // -------------------------------------------------------------------------
     // Create / Store
     // -------------------------------------------------------------------------
 
