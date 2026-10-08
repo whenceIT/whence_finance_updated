@@ -76,59 +76,79 @@ class SmsController extends Controller
         }
     }
 
+    public function getOfficeUsers(int $officeId): JsonResponse
+    {
+        $users = User::where('office_id', $officeId)
+            ->orderBy('first_name')
+            ->get(['id', 'first_name', 'last_name']);
+
+        return response()->json(
+            $users->map(fn($u) => [
+                'id'   => $u->id,
+                'name' => trim($u->first_name . ' ' . $u->last_name),
+            ])
+        );
+    }
+
     public function sendToOfficersClients(Request $request): JsonResponse
     {
         $request->validate([
-            'office_id' => 'required|integer',
-            'user_id' => 'required|integer',
+            'office_id'    => 'required|integer',
+            'user_id'      => 'required|integer',
+            'message_type' => 'required|in:overdue,balances',
         ]);
 
         try {
             $officer = User::findOrFail($request->user_id);
-            
+
             // Get loans for this officer with remainder details
             $loans = Loan::loan_remainder($request->user_id);
-            
+
             if (empty($loans)) {
                 return response()->json([
                     'success' => false,
-                    'error' => 'No active loans found for this officer'
+                    'error'   => 'No active loans found for this officer',
                 ], 400);
             }
 
             $messagesSent = 0;
-            $errors = [];
+            $errors       = [];
 
-            // Process each loan and send individual SMS
             foreach ($loans as $loanData) {
                 try {
-                    // Get the loan model to use calculateBalance
                     $loan = Loan::with(['client', 'transactions'])->find($loanData->id);
-                    
+
                     if (!$loan || !$loan->client) {
                         continue;
                     }
 
-                    // Calculate balance
-                    $balanceInfo = $loan->calculateBalance();
-                    $balance = $balanceInfo['balance'] ?? 0;
-                    
-                    // Format message with loan details
-                    $formattedMessage = sprintf(
-                        'Loan Balance: Principal %s, Balance %s',
-                        number_format($loanData->principal, 2),
-                        number_format($balance, 2)
-                    );
+                    $client      = $loan->client;
+                    $phone       = $client->phone ?: $client->mobile;
 
-                    // Get client phone
-                    $client = $loan->client;
-                    $phone = $client->phone ?: $client->mobile;
-                    
-                    if ($phone) {
-                        $mockClient = (object) ['mobile' => $phone, 'phone' => $phone];
-                        $this->bulkSms->sendToClients([$mockClient], $formattedMessage);
-                        $messagesSent++;
+                    if (!$phone) {
+                        continue;
                     }
+
+                    $balanceInfo = $loan->calculateBalance();
+                    $balance     = $balanceInfo['balance'] ?? 0;
+                    $principal   = $loanData->principal ?? $loan->approved_amount ?? 0;
+
+                    if ($request->message_type === 'overdue') {
+                        $message  = 'Dear Customer, this is a reminder that your loan of ZMW ' . number_format($principal, 2);
+                        $message .= ' with outstanding balance of ZMW ' . number_format($balance, 2);
+                        $message .= ' is overdue. Kindly make your payment to avoid penalties or further legal action. For assistance, contact 0773425477.';
+                    } else {
+                        // balances
+                        $principalWithInterest = $principal + ($principal * 0.4);
+                        $message  = 'Dear Customer, your loan of ZMW ' . number_format($principalWithInterest, 2);
+                        $message .= ' has an outstanding balance of ZMW ' . number_format($balance, 2);
+                        $message .= '. Please make your payment on time to avoid penalties. For assistance, contact 0773425477.';
+                    }
+
+                    $mockClient = (object) ['mobile' => $phone, 'phone' => $phone];
+                    $this->bulkSms->sendToClients([$mockClient], $message);
+                    $messagesSent++;
+
                 } catch (\Exception $e) {
                     $errors[] = $e->getMessage();
                     continue;
@@ -136,16 +156,16 @@ class SmsController extends Controller
             }
 
             return response()->json([
-                'success' => true,
+                'success'       => true,
                 'messages_sent' => $messagesSent,
-                'total_loans' => count($loans),
-                'errors' => $errors
+                'total_loans'   => count($loans),
+                'errors'        => $errors,
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }

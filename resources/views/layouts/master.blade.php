@@ -1759,7 +1759,7 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
         style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1001;">
         <div
             style="background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
-            <h4 style="margin: 0 0 15px 0; color: #333;">Send SMS </h4>
+            <h4 style="margin: 0 0 15px 0; color: #333;">Send SMS</h4>
             <form id="sms-form">
                 <div style="margin-bottom: 15px;">
                     <label for="sms-type" style="display: block; margin-bottom: 5px; font-weight: bold;">Message
@@ -1789,13 +1789,32 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
                     </div>
                 </div>
                 <div id="bulk-sms-fields" style="display: none;">
-                    <label for="sms-office"
-                        style="display: block; margin-bottom: 5px; font-weight: bold;">Office:</label>
-                    <select id="sms-office" name="office_id"
-                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
-                        >
-                        Options will be populated via JS
-                    </select>
+                    <div style="margin-bottom: 10px;">
+                        <label for="sms-office"
+                            style="display: block; margin-bottom: 5px; font-weight: bold;">Office:</label>
+                        <select id="sms-office" name="office_id"
+                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                            <option value="">Select Office</option>
+                        </select>
+                    </div>
+                    <div id="user-select-loader" style="display: none; margin-top: 10px; text-align: center; padding: 8px 0;">
+                        <span style="display: inline-flex; align-items: center; gap: 8px; color: #555; font-size: 13px;">
+                            <svg style="animation: sms-spin 0.8s linear infinite; width: 16px; height: 16px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="10" stroke="#ccc" stroke-width="3"/>
+                                <path d="M12 2a10 10 0 0 1 10 10" stroke="#00a65a" stroke-width="3" stroke-linecap="round"/>
+                            </svg>
+                            Loading users...
+                        </span>
+                    </div>
+                    <style>@keyframes sms-spin { to { transform: rotate(360deg); } }</style>
+                    <div id="user-select" style="display: none; margin-bottom: 10px;">
+                        <label for="sms-user"
+                            style="display: block; margin-bottom: 5px; font-weight: bold;">User:</label>
+                        <select id="sms-user" name="user_id"
+                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                            <option value="">Select User</option>
+                        </select>
+                    </div>
                 </div>
                 <p class="sample-text" style="display: none; padding:2px;">Dear Customer, this is a reminder that your loan of ZMW 0
                     is overdue. Kindly make your payment to avoid penalties or further legal action. For assistance,
@@ -1803,7 +1822,7 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
                 <div style="display: flex; justify-content: flex-end; gap: 10px;">
                     <button type="button" id="sms-cancel"
                         style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Cancel</button>
-                    <button type="submit"
+                    <button type="submit" id="sms-submit"
                         style="padding: 10px 20px; background: #00a65a; color: white; border: none; border-radius: 5px; cursor: pointer;">Send</button>
                 </div>
             </form>
@@ -1815,29 +1834,45 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
     <script>
         // SMS Modal Script
         $(document).ready(function () {
+
+            function resetSmsModal() {
+                $('#sms-form')[0].reset();
+                $('#user-select').hide();
+                $('#user-select-loader').hide();
+                $('#sms-user').empty().append('<option value="">Select User</option>').removeAttr('required');
+                $('#sms-response').hide().empty();
+                // Restore to single-SMS defaults
+                $('#single-sms-fields').show();
+                $('#bulk-sms-fields').hide();
+                $('#sms-phone').attr('required', 'required');
+                $('#sms-message').attr('required', 'required');
+                $('#sms-office').removeAttr('required');
+                $('.sample-text').hide();
+            }
+
             $('#sms-floating-btn').on('click', function () {
                 $('#sms-modal').css('display', 'flex');
             });
 
             $('#sms-cancel').on('click', function () {
                 $('#sms-modal').hide();
-                $('#sms-form')[0].reset();
-                $('#sms-response').hide();
+                resetSmsModal();
             });
 
             $('#sms-modal').on('click', function (e) {
                 if (e.target === this) {
                     $(this).hide();
-                    $('#sms-form')[0].reset();
-                    $('#sms-response').hide();
+                    resetSmsModal();
                 }
             });
 
-            // Load offices for the select
-            $('#sms-office').empty().append('<option value="">Select Office</option>');
-            offices.forEach(function (office) {
-                $('#sms-office').append('<option value="' + office.id + '">' + office.name + '</option>');
-            });
+            // Populate office dropdown from the already-loaded offices variable
+            if (typeof offices !== 'undefined' && offices.length) {
+                var $officeSelect = $('#sms-office');
+                offices.forEach(function (office) {
+                    $officeSelect.append('<option value="' + office.id + '">' + office.name + '</option>');
+                });
+            }
 
             // Toggle fields based on message type
             $('#sms-type').on('change', function () {
@@ -1848,6 +1883,10 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
                     $('#sms-message').removeAttr('required');
                     $('#sms-office').attr('required', 'required');
                     $('.sample-text').show();
+                    // Reset dependent user select when switching type
+                    $('#user-select').hide();
+                    $('#sms-user').empty().append('<option value="">Select User</option>').removeAttr('required');
+                    $('#sms-office').val('');
                 } else {
                     $('#single-sms-fields').show();
                     $('#bulk-sms-fields').hide();
@@ -1855,17 +1894,70 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
                     $('#sms-message').attr('required', 'required');
                     $('#sms-office').removeAttr('required');
                     $('.sample-text').hide();
+                    $('#user-select').hide();
+                    $('#sms-user').removeAttr('required');
+                }
+            });
+
+            // Fetch users when an office is selected
+            $('#sms-office').on('change', function () {
+                var officeId = $(this).val();
+                if (officeId) {
+                    $('#user-select').hide();
+                    $('#user-select-loader').show();
+                    $('#sms-user').empty().append('<option value="">Select User</option>').removeAttr('required');
+
+                    $.ajax({
+                        url: '/api/get-office-users/' + officeId,
+                        method: 'GET',
+                        success: function (users) {
+                            var $userSelect = $('#sms-user');
+                            $userSelect.empty().append('<option value="">Select User</option>');
+                            if (users.length === 0) {
+                                $userSelect.append('<option value="" disabled>No users found</option>');
+                            } else {
+                                $.each(users, function (i, user) {
+                                    $userSelect.append('<option value="' + user.id + '">' + user.name + '</option>');
+                                });
+                            }
+                            $userSelect.attr('required', 'required');
+                            $('#user-select-loader').hide();
+                            $('#user-select').show();
+                        },
+                        error: function () {
+                            $('#user-select-loader').hide();
+                            $('#sms-user').empty().append('<option value="">Select User</option>');
+                            $('#user-select').show();
+                            alert('Failed to load users for this office. Please try again.');
+                        }
+                    });
+                } else {
+                    $('#user-select-loader').hide();
+                    $('#user-select').hide();
+                    $('#sms-user').empty().append('<option value="">Select User</option>').removeAttr('required');
                 }
             });
 
             $('#sms-form').on('submit', function (e) {
                 e.preventDefault();
-                console.log('Form submitted');
-                var formData = $(this).serialize();
-                var url = ($('#sms-type').val() === 'overdue' || $('#sms-type').val() === 'balances') ? '/api/send-bulk-sms' : '/api/send-sms';
-                console.log('URL:', url, 'Data:', formData);
 
-                $('#sms-response').html('<div style="color: #007bff;">Sending...</div>').show();
+                var messageType = $('#sms-type').val();
+                var userId      = $('#sms-user').val();
+                var formData    = $(this).serialize();
+                var url;
+
+                if (messageType === 'single') {
+                    url = '/api/send-sms';
+                } else if (userId) {
+                    // User selected — send to that officer's clients only
+                    url = '/api/send-officer-sms';
+                } else {
+                    // Office only — send to whole office
+                    url = '/api/send-bulk-sms';
+                }
+
+                $('#sms-response').html('<div style="color: #007bff;"><i class="fa fa-spinner fa-spin"></i> Sending...</div>').show();
+                $('#sms-submit').prop('disabled', true);
 
                 $.ajax({
                     url: url,
@@ -1876,14 +1968,22 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
                     },
                     success: function (response) {
                         if (response.success) {
-                            $('#sms-response').html('<div style="color: #28a745;">SMS sent successfully!</div>');
-                            $('#sms-form')[0].reset();
+                            var detail = response.messages_sent !== undefined
+                                ? ' (' + response.messages_sent + ' of ' + response.total_loans + ' sent)'
+                                : '';
+                            $('#sms-response').html('<div style="color: #28a745;"><i class="fa fa-check"></i> SMS sent successfully!' + detail + '</div>');
+                            resetSmsModal();
+                            setTimeout(function () { $('#sms-modal').hide(); }, 1500);
                         } else {
-                            $('#sms-response').html('<div style="color: #dc3545;">Error: ' + (response.error || 'Unknown error') + '</div>');
+                            $('#sms-response').html('<div style="color: #dc3545;"><i class="fa fa-times"></i> Error: ' + (response.error || 'Unknown error') + '</div>');
                         }
                     },
                     error: function (xhr) {
-                        $('#sms-response').html('<div style="color: #dc3545;">Error: ' + xhr.responseJSON?.message || 'Failed to send SMS' + '</div>');
+                        var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Failed to send SMS';
+                        $('#sms-response').html('<div style="color: #dc3545;"><i class="fa fa-times"></i> Error: ' + msg + '</div>');
+                    },
+                    complete: function () {
+                        $('#sms-submit').prop('disabled', false);
                     }
                 });
             });

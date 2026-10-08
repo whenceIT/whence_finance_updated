@@ -7,7 +7,11 @@
 @section('content')
 
 <section class="content-header">
-    <h3>Overview Statistics</h3>
+    <h1>Payroll Loan Portfolio Dashboard</h1>
+    <ol class="breadcrumb">
+        <li><a href="{{ url('/') }}"><i class="fa fa-home"></i> Home</a></li>
+        <li class="active">Payroll Loans Dashboard</li>
+    </ol>
 </section>
 
 <section class="content">

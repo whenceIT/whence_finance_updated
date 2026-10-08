@@ -17,12 +17,14 @@ class OfficeLoanTransaction extends Model
         'status',
         'notes',
         'approved_at',
+        'transaction_type',
     ];
 
     protected $casts = [
         'debit'       => 'float',
         'credit'      => 'float',
         'approved_at' => 'datetime',
+        'transaction_type' => 'string',
     ];
 
     // -------------------------------------------------------------------------
@@ -40,6 +42,43 @@ class OfficeLoanTransaction extends Model
             self::STATUS_APPROVED => 'Approved',
             self::STATUS_DECLINED => 'Declined',
         ];
+    }
+
+    // -------------------------------------------------------------------------
+    // Transaction Types
+    // -------------------------------------------------------------------------
+
+    const TYPE_DISBURSEMENT     = 'disbursement';
+    const TYPE_INTEREST_INITIAL = 'interest_initial';
+    const TYPE_PENALTY          = 'penalty';
+    const TYPE_TOPUP            = 'topup';
+    const TYPE_WAIVER           = 'waiver';
+
+    public static function transactionTypes(): array
+    {
+        return [
+            self::TYPE_DISBURSEMENT     => 'Disbursement',
+            self::TYPE_INTEREST_INITIAL => 'Interest Initial',
+            self::TYPE_PENALTY          => 'Penalty',
+            self::TYPE_TOPUP            => 'Top-up',
+            self::TYPE_WAIVER           => 'Waiver',
+        ];
+    }
+
+    public function getTransactionTypeLabelAttribute(): string
+    {
+        return self::transactionTypes()[$this->transaction_type] ?? ucfirst(str_replace('_', ' ', $this->transaction_type));
+    }
+
+    public function getTransactionTypeBadgeClassAttribute(): string
+    {
+        return [
+            self::TYPE_DISBURSEMENT     => 'label-primary',
+            self::TYPE_INTEREST_INITIAL => 'label-info',
+            self::TYPE_PENALTY          => 'label-danger',
+            self::TYPE_TOPUP            => 'label-warning',
+            self::TYPE_WAIVER           => 'label-success',
+        ][$this->transaction_type] ?? 'label-default';
     }
 
     public function getStatusLabelAttribute(): string

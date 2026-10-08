@@ -53,7 +53,7 @@
                 <hr>
                 <!-- Payment B -->
                 @if(!$debtBlocker && isset($status[0]) && ($status[0]['status'] === 'unpaid' || $status[0]['status'] === 'partially paid')
-                || in_array(Sentinel::getUser()->office_id, [6,1]))
+                || in_array(Sentinel::getUser()->office_id, [6,1,46]))
                     @include('branch-deposits._partials.building', ['selectedMonth' => $selectedMonth])
                 @else
                     @include('branch-deposits._partials.building', ['selectedMonth' => $selectedMonth, 'disabled'=>true] )
