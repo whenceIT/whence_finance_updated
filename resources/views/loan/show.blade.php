@@ -2737,8 +2737,8 @@ CURRENT BALANCE DASHBOARD
                             </div>
                         </div>
                     @endif
-                    @if($loan->loan_product_id != 1 && $loan->status=="disbursed" || $loan->status=="closed" || $loan->status=="written_off" || $loan->status=="rescheduled" )
-                        @if(Sentinel::hasAccess('loans.view_repayment_schedule'))
+                    @if($loan->status=="disbursed" || $loan->status=="closed" || $loan->status=="written_off" || $loan->status=="rescheduled" )
+                        @if($loan->loan_product_id != 1 && Sentinel::hasAccess('loans.view_repayment_schedule'))
                             <div class="tab-pane" id="repayment_schedule">
                                 <div class="row">
                                     <div class="col-md-12">
