@@ -8,6 +8,7 @@ class CreateOfficeLoanTransactionsTable extends Migration
 {
     public function up()
     {
+        Schema::dropIfExists('office_loan_transactions');
         Schema::create('office_loan_transactions', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedInteger('loan_id');
@@ -19,23 +20,6 @@ class CreateOfficeLoanTransactionsTable extends Migration
             $table->text('notes')->nullable();
             $table->timestamp('approved_at')->nullable();
             $table->timestamps();
-
-            $table->index('loan_id');
-            $table->index('office_id');
-            $table->index('approved_by');
-            $table->index('status');
-
-            $table->foreign('loan_id')
-                  ->references('id')->on('office_loans')
-                  ->onDelete('cascade');
-
-            $table->foreign('office_id')
-                  ->references('id')->on('offices')
-                  ->onDelete('restrict');
-
-            $table->foreign('approved_by')
-                  ->references('id')->on('users')
-                  ->onDelete('set null');
         });
     }
 

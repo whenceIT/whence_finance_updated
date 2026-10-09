@@ -59,7 +59,7 @@ class RtiLoanController extends Controller
             OfficeLoan::STATUS_DISBURSED,
             OfficeLoan::STATUS_PARTIALLY_PAID,
             OfficeLoan::STATUS_FULLY_PAID,
-        ])->sum(DB::raw('principal + interest'));
+        ])->sum(DB::raw('principal'));
 
         $totalPayable     = OfficeLoan::sum(DB::raw('principal + interest'));
         $totalRepaid      = OfficeLoanTransaction::approved()->repayments()->sum('credit');
@@ -113,14 +113,38 @@ class RtiLoanController extends Controller
     }
 
     // -------------------------------------------------------------------------
+    // Office Loans — loans for the current user's office
+    // -------------------------------------------------------------------------
+
+    public function office(Request $request)
+    {
+        $user    = Sentinel::getUser();
+        $offices = Office::where('active', 1)->orderBy('name')->get();
+
+        $query = OfficeLoan::with(['office', 'staff'])->where('office_id', $user->office_id);
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $loans    = $query->latest()->paginate(25)->withQueryString();
+        $statuses = OfficeLoan::statuses();
+
+        return view('rti.index', compact('loans', 'offices', 'statuses'));
+    }
+
+    // -------------------------------------------------------------------------
     // Create / Store
     // -------------------------------------------------------------------------
 
     public function create()
     {
-        if (!Sentinel::hasAccess('rti.create')) {
-            return redirect()->back()->with('error', 'You are not authorised to create RTI loans.');
-        }
 
         $offices = Office::where('active', 1)->orderBy('name')->get();
         $staff   = User::orderBy('first_name')->get();
@@ -131,9 +155,6 @@ class RtiLoanController extends Controller
 
     public function store(Request $request)
     {
-        if (!Sentinel::hasAccess('rti.create')) {
-            return redirect()->back()->with('error', 'You are not authorised to create RTI loans.');
-        }
 
         $validator = Validator::make($request->all(), [
             'office_id' => 'required|exists:offices,id',
@@ -197,9 +218,7 @@ class RtiLoanController extends Controller
 
     public function approve(Request $request, $id)
     {
-        if (!Sentinel::hasAccess('rti.approve')) {
-            return redirect()->back()->with('error', 'You are not authorised to approve RTI loans.');
-        }
+
 
         $loan = OfficeLoan::findOrFail($id);
 
@@ -221,9 +240,7 @@ class RtiLoanController extends Controller
 
     public function decline(Request $request, $id)
     {
-        if (!Sentinel::hasAccess('rti.approve')) {
-            return redirect()->back()->with('error', 'You are not authorised to decline RTI loans.');
-        }
+
 
         $loan = OfficeLoan::findOrFail($id);
 
@@ -244,9 +261,7 @@ class RtiLoanController extends Controller
 
     public function disburse(Request $request, $id)
     {
-        if (!Sentinel::hasAccess('rti.disburse')) {
-            return redirect()->back()->with('error', 'You are not authorised to disburse RTI loans.');
-        }
+
 
         $loan = OfficeLoan::findOrFail($id);
 
@@ -263,11 +278,23 @@ class RtiLoanController extends Controller
             OfficeLoanTransaction::create([
                 'loan_id'     => $loan->id,
                 'office_id'   => $loan->office_id,
-                'debit'       => $loan->principal + $loan->interest,
+                'transaction_type'   => OfficeLoanTransaction::TYPE_DISBURSEMENT,
+                'debit'       => $loan->principal,
                 'credit'      => 0,
                 'approved_by' => Sentinel::getUser()->id,
                 'status'      => OfficeLoanTransaction::STATUS_APPROVED,
                 'notes'       => 'RTI loan disbursement',
+                'approved_at' => Carbon::now(),
+            ]);
+            OfficeLoanTransaction::create([
+                'loan_id'     => $loan->id,
+                'office_id'   => $loan->office_id,
+                'transaction_type'   => OfficeLoanTransaction::TYPE_INTEREST_INITIAL,
+                'debit'       => $loan->interest,
+                'credit'      => 0,
+                'approved_by' => Sentinel::getUser()->id,
+                'status'      => OfficeLoanTransaction::STATUS_APPROVED,
+                'notes'       => 'RTI loan initial interest',
                 'approved_at' => Carbon::now(),
             ]);
         });

@@ -2053,13 +2053,19 @@ class RiskController extends Controller
             // Get Savings deposits for 13/07/2026
             $targetDate = '2026-07-13';
 
-            $depositAmount = \App\Models\BankDepositLog::where('deposit_type', 6)
+            $savingsDeposit = \App\Models\BankDepositLog::where('deposit_type', 6)
                 ->where('office_id', $cost->office_id)
                 ->whereDate('created_date', $targetDate)
                 ->sum('amount');
 
+            $buildingDeposit = \App\Models\BankDepositLog::where('deposit_type', 3)
+                ->where('office_id', $cost->office_id)
+                ->whereDate('created_date','>','2026-10-01')
+                ->sum('amount');
+
             // Add deposit amount to total paid
-            $totalPaid += $depositAmount;
+            $totalPaid += $savingsDeposit;
+            $totalPaid += $buildingDeposit;
             
             // Paid in current month
             $paidCurrentMonth = $cost->transactions->whereBetween('transaction_date', [
@@ -2083,7 +2089,8 @@ class RiskController extends Controller
                 'description' => $cost->description,
                 'created_at' => $cost->created_at,
                 'transactions' => $cost->transactions,
-                'deposit_amount' => $depositAmount,
+                'savings_deposit' => $savingsDeposit,
+                'building_deposit' => $buildingDeposit,
                 'float_amount' => $floatAmount,
             ];
         }
@@ -2218,6 +2225,24 @@ class RiskController extends Controller
                 ];
 
                 $transactions->push($depositTransaction);
+            }
+
+            $depositAmount = \App\Models\BankDepositLog::where('deposit_type', 3)
+                ->where('office_id', $cost->office_id)
+                ->whereDate('created_date','>', '2026-10-01')
+                ->sum('amount');
+
+            if ($depositAmount > 0) {
+                // Create a fake transaction for the deposit
+                $depositTransaction2 = (object) [
+                    'id' => 'building_deposit_' . $costId,
+                    'amount' => $depositAmount,
+                    'transaction_date' => '2026-07-13',
+                    'notes' => 'Buildings Deposit',
+                    'creator' => null,
+                ];
+
+                $transactions->push($depositTransaction2);
             }
 
             /*

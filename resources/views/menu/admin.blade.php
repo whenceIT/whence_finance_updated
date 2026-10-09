@@ -4,10 +4,10 @@ use Illuminate\Support\Facades\Redirect;
 use App\Models\AppraisalForm;
 use App\Models\Ticket;
 
-if (!Sentinel::check()) {
-    redirect()->route('login')->send();
-    exit;
-}
+    if (!Sentinel::check()) {
+        redirect()->route('login')->send();
+        exit;
+    }
 
     $userInfo = \App\Helpers\GeneralHelper::get_user_info();
     $user = $userInfo->user;
@@ -175,7 +175,7 @@ if (!Sentinel::check()) {
                  GOA MANAGER SECTION
             ============================================ -->
             
-            @hasRole('role.exec', 'role.goa')
+            
             <li class="treeview @if(Request::is('goa_dashboard*')) active menu-open @endif">
                 <a href="#">
                     <i class="fa fa-building"></i> <span>GOA Manager</span>
@@ -185,7 +185,19 @@ if (!Sentinel::check()) {
                 </a>
                 <ul class="treeview-menu">
                     <li><a href="{{ route('goa.index') }}"><i class="fa fa-circle-o"></i> Dashboard</a></li>
-                    <li><a href="{{ route('goa.fleet-management') }}"><i class="fa fa-circle-o"></i> Fleet Management</a></li>
+                    <li class="treeview @if(Request::is('goa_dashboard/fleet-management*')) active menu-open @endif">
+                        <a href="#">
+                            <i class="fa fa-circle-o"></i> Fleet Management
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="{{ route('goa.fleet.vehicle-inventory') }}"><i class="fa fa-circle-o"></i> Vehicle Inventory</a></li>
+                            <li><a href="{{ route('goa.fleet.statistics') }}"><i class="fa fa-circle-o"></i> Fleet Statistics</a></li>
+                            <li><a href="{{ route('goa.fleet.upcoming-maintenance') }}"><i class="fa fa-circle-o"></i> Upcoming Maintenance</a></li>
+                        </ul>
+                    </li>
                     <li class="treeview @if(Request::is('goa_dashboard/asset-manager*')) active menu-open @endif">
                         <a href="#">
                             <i class="fa fa-circle-o"></i> Asset Manager
@@ -216,6 +228,7 @@ if (!Sentinel::check()) {
                     </li>
                 </ul>
             </li>
+            @hasRole('role.exec', 'role.goa')
             @endif
 
             @if($role == 4 || $role == 6)
@@ -355,13 +368,13 @@ if (!Sentinel::check()) {
             ->count() }}
             </span></a></li>
             
-            @if(in_array($role, [4]))
+          
             <li class="@if(Request::is('dashboard')) active @endif">
                 <a href="{{ url('user/cycle') }}">
                     <i class="fa fa-dashboard"></i> <span>My Cycle</span>
                 </a>
             </li>
-            @endif
+          
 
             <li class="@if(Request::is('dashboard')) active @endif">
                 <a href="{{ url('client/verify_client_number') }}">
@@ -1731,10 +1744,12 @@ if (!Sentinel::check()) {
             {{-- ====================================================== --}}
             {{-- RTI BRANCH LOANS MODULE                                  --}}
             {{-- ====================================================== --}}
-            @if($role == 1 || $role == 10)
+            @if($role == 1 || $role == 10 || $role == 4)
                 <li class="treeview @if(Request::is('rti-loans*')) active @endif">
                     <a href="#">
                         <i class="fa fa-university"></i> <span>RTI Branch Loans</span>
+                        
+                        @if($role == 1 || $role == 10 )
                         <span class="pull-right-container">
                             @php
                                 $rtiPendingCount = \App\Models\OfficeLoan::where('status','pending')->count()
@@ -1745,9 +1760,21 @@ if (!Sentinel::check()) {
                             @endif
                             <i class="fa fa-angle-left pull-right"></i>
                         </span>
+                        @endif
                     </a>
                     <ul class="treeview-menu">
 
+
+                        @if($role == 4)
+                        {{-- All Loans belonging to Office --}}
+                        <li class="@if(Request::is('rti-loans') && !Request::is('rti-loans/*')) active @endif">
+                            <a href="{{ route('rti.loans.office') }}">
+                                <i class="fa fa-circle-o"></i> Office RTI Loans
+                            </a>
+                        </li>
+                        @endif
+
+                        @if($role == 1 || $role == 10 )
                         {{-- Dashboard --}}
                         <li class="@if(Request::is('rti-loans/dashboard')) active @endif">
                             <a href="{{ route('rti.loans.dashboard') }}">
@@ -1761,32 +1788,42 @@ if (!Sentinel::check()) {
                                 <i class="fa fa-circle-o"></i> All RTI Loans
                             </a>
                         </li>
-
                         {{-- Create Loan --}}
-                        @if(Sentinel::hasAccess('rti.create'))
-                            <li class="@if(Request::is('rti-loans/create')) active @endif">
-                                <a href="{{ route('rti.loans.create') }}">
-                                    <i class="fa fa-circle-o"></i> Create RTI Loan
-                                </a>
-                            </li>
-                        @endif
+                        <li class="@if(Request::is('rti-loans/create')) active @endif">
+                            <a href="{{ route('rti.loans.create') }}">
+                                <i class="fa fa-circle-o"></i> Create RTI Loan
+                            </a>
+                        </li>  
+
+                        {{-- Pending RTI Loans --}}
+                        <li class="@if(Request::is('rti-loans') && Request::get('status') == 'pending') active @endif">
+                            <a href="{{ route('rti.loans.index', ['status' => 'pending']) }}">
+                                <i class="fa fa-circle-o"></i> Pending RTI Loans
+                                @php
+                                    $rtiPendingLoans = \App\Models\OfficeLoan::where('status','pending')->count();
+                                @endphp
+                                @if($rtiPendingLoans > 0)
+                                    <span class="pull-right-container">
+                                        <span class="label label-warning pull-right">{{ $rtiPendingLoans }}</span>
+                                    </span>
+                                @endif
+                            </a>
+                        </li>
 
                         {{-- Pending Repayment Approvals --}}
-                        @if(Sentinel::hasAccess('rti.approve_repayment'))
-                            <li class="@if(Request::is('rti-loans/repayments/pending')) active @endif">
-                                <a href="{{ route('rti.repayment.pending') }}">
-                                    <i class="fa fa-circle-o"></i> Repayment Approvals
-                                    @php
-                                        $rtiPendingRepayments = \App\Models\OfficeLoanTransaction::where('status','pending')->where('credit','>',0)->count();
-                                    @endphp
-                                    @if($rtiPendingRepayments > 0)
-                                        <span class="pull-right-container">
-                                            <span class="label label-warning pull-right">{{ $rtiPendingRepayments }}</span>
-                                        </span>
-                                    @endif
-                                </a>
-                            </li>
-                        @endif
+                        <li class="@if(Request::is('rti-loans/repayments/pending')) active @endif">
+                            <a href="{{ route('rti.repayment.pending') }}">
+                                <i class="fa fa-circle-o"></i> Repayment Approvals
+                                @php
+                                    $rtiPendingRepayments = \App\Models\OfficeLoanTransaction::where('status','pending')->where('credit','>',0)->count();
+                                @endphp
+                                @if($rtiPendingRepayments > 0)
+                                    <span class="pull-right-container">
+                                        <span class="label label-warning pull-right">{{ $rtiPendingRepayments }}</span>
+                                    </span>
+                                @endif
+                            </a>
+                        </li>
 
                         {{-- Transaction History --}}
                         <li class="@if(Request::is('rti-loans/transactions/history')) active @endif">
@@ -1794,6 +1831,7 @@ if (!Sentinel::check()) {
                                 <i class="fa fa-circle-o"></i> Transaction History
                             </a>
                         </li>
+                        @endif
 
                     </ul>
                 </li>
@@ -1911,12 +1949,7 @@ if (!Sentinel::check()) {
             </ul>
             @endif
             
-            <!-- Sticky Logout Button -->
-            <!-- <div class="sidebar-footer" style="position: fixed; bottom: 0; left: 0; background: linear-gradient(135deg, #667eea 0%, #100E3D 100%); padding: 15px; width: 230px; border-radius: 0 0 0 8px; z-index: 1000;">
-                <a href="{{ url('logout') }}" class="btn btn-danger btn-block" style="color: #fff; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); font-weight: bold;">
-                    <i class="fa fa-sign-out"></i> Logout
-                </a>
-            </div> -->
+            
 
         </section>
         <!-- /.sidebar -->

@@ -62,7 +62,8 @@
                                 <option value="">-- Select Staff Member --</option>
                                 @foreach($staff as $member)
                                     <option value="{{ $member->id }}"
-                                        {{ old('staff_id') == $member->id ? 'selected' : '' }}>
+                                        {{ old('staff_id') == $member->id ? 'selected' : '' }}
+                                        data-office-id="{{ $member->office_id }}">
                                         {{ $member->first_name }} {{ $member->last_name }}
                                     </option>
                                 @endforeach
@@ -146,5 +147,41 @@
             document.getElementById('summaryInterest').textContent  = 'K' + interest.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
             document.getElementById('summaryTotal').textContent     = 'K' + total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
         });
+
+        function loadStaffByOffice(officeId) {
+            var $staff = $('#staff_id');
+            $staff.prop('disabled', true);
+
+            if (!officeId) {
+                $staff.empty().append('<option value="">-- Select Staff Member --</option>').prop('disabled', false);
+                return;
+            }
+
+            $.ajax({
+                url: '/api/users-by-office/' + officeId,
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    $staff.empty().append('<option value="">-- Select Staff Member --</option>');
+                    $.each(data, function (key, value) {
+                        $staff.append('<option value="' + value.id + '">' + value.name + '</option>');
+                    });
+                    $staff.prop('disabled', false);
+                },
+                error: function () {
+                    $staff.empty().append('<option value="">-- Select Staff Member --</option>').prop('disabled', false);
+                }
+            });
+        }
+
+        $('#office_id').change(function () {
+            loadStaffByOffice($(this).val());
+        });
+
+        @if(old('office_id'))
+            loadStaffByOffice('{{ old('office_id') }}');
+        @else
+            $('#staff_id').empty().append('<option value="">-- Select Staff Member --</option>');
+        @endif
     </script>
 @endsection

@@ -42,4 +42,24 @@ class Fleet extends Model
     {
         return $this->belongsTo(Office::class, 'office_id', 'id');
     }
+
+    public function accidents()
+    {
+        return $this->hasMany(FleetAccident::class)->latest('accident_date');
+    }
+
+    public function serviceRecords()
+    {
+        return $this->hasMany(FleetServiceRecord::class)->latest('service_date');
+    }
+
+    public function expenses()
+    {
+        return $this->hasMany(FleetExpense::class)->latest('expense_date');
+    }
+
+    public function maintenanceSchedules()
+    {
+        return $this->hasMany(FleetMaintenanceSchedule::class);
+    }
 }
