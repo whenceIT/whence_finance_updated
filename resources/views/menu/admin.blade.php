@@ -175,7 +175,7 @@ use App\Models\Ticket;
                  GOA MANAGER SECTION
             ============================================ -->
             
-            @hasRole('role.exec', 'role.goa')
+            
             <li class="treeview @if(Request::is('goa_dashboard*')) active menu-open @endif">
                 <a href="#">
                     <i class="fa fa-building"></i> <span>GOA Manager</span>
@@ -185,7 +185,19 @@ use App\Models\Ticket;
                 </a>
                 <ul class="treeview-menu">
                     <li><a href="{{ route('goa.index') }}"><i class="fa fa-circle-o"></i> Dashboard</a></li>
-                    <li><a href="{{ route('goa.fleet-management') }}"><i class="fa fa-circle-o"></i> Fleet Management</a></li>
+                    <li class="treeview @if(Request::is('goa_dashboard/fleet-management*')) active menu-open @endif">
+                        <a href="#">
+                            <i class="fa fa-circle-o"></i> Fleet Management
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="{{ route('goa.fleet.vehicle-inventory') }}"><i class="fa fa-circle-o"></i> Vehicle Inventory</a></li>
+                            <li><a href="{{ route('goa.fleet.statistics') }}"><i class="fa fa-circle-o"></i> Fleet Statistics</a></li>
+                            <li><a href="{{ route('goa.fleet.upcoming-maintenance') }}"><i class="fa fa-circle-o"></i> Upcoming Maintenance</a></li>
+                        </ul>
+                    </li>
                     <li class="treeview @if(Request::is('goa_dashboard/asset-manager*')) active menu-open @endif">
                         <a href="#">
                             <i class="fa fa-circle-o"></i> Asset Manager
@@ -216,6 +228,7 @@ use App\Models\Ticket;
                     </li>
                 </ul>
             </li>
+            @hasRole('role.exec', 'role.goa')
             @endif
 
             @if($role == 4 || $role == 6)

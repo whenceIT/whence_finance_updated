@@ -415,6 +415,9 @@ Route::group(['prefix' => 'recovery'], function () {
 Route::group(['prefix' => 'goa_dashboard'], function () {
     Route::get('/', 'GOAController@index')->name('goa.index');
     Route::get('fleet-management', 'GOAController@fleetManagement')->name('goa.fleet-management');
+    Route::get('fleet-management/vehicle-inventory', 'GOAController@vehicleInventory')->name('goa.fleet.vehicle-inventory');
+    Route::get('fleet-management/fleet-statistics', 'GOAController@fleetStatistics')->name('goa.fleet.statistics');
+    Route::get('fleet-management/upcoming-maintenance', 'GOAController@upcomingMaintenance')->name('goa.fleet.upcoming-maintenance');
     Route::get('vacancies-and-staffing', 'GOAController@vacanciesAndStaffing')->name('goa.vacancies-and-staffing');
     Route::post('branch-staffing-capacity/store', 'GOAController@storeBranchCapacity')->name('goa.branch-capacity.store');
     Route::get('branch-staffing-capacity', 'GOAController@branchStaffingCapacity')->name('goa.branch-staffing-capacity');
@@ -426,6 +429,13 @@ Route::group(['prefix' => 'goa_dashboard'], function () {
     Route::put('fleets/{fleet}/insurance', 'FleetController@updateInsurance')->name('fleets.update-insurance');
     Route::post('maintenance/store', 'FleetController@storeMaintenance')->name('maintenance.store');
     Route::post('maintenance/{id}/complete', 'FleetController@completeMaintenance')->name('maintenance.complete');
+    // Fleet lifecycle history
+    Route::post('fleets/{fleet}/accidents', 'FleetController@storeAccident')->name('fleets.accidents.store');
+    Route::delete('fleets/{fleet}/accidents/{accident}', 'FleetController@destroyAccident')->name('fleets.accidents.destroy');
+    Route::post('fleets/{fleet}/service-records', 'FleetController@storeServiceRecord')->name('fleets.service-records.store');
+    Route::delete('fleets/{fleet}/service-records/{record}', 'FleetController@destroyServiceRecord')->name('fleets.service-records.destroy');
+    Route::post('fleets/{fleet}/expenses', 'FleetController@storeExpense')->name('fleets.expenses.store');
+    Route::delete('fleets/{fleet}/expenses/{expense}', 'FleetController@destroyExpense')->name('fleets.expenses.destroy');
     Route::post('staff/update-position', 'StaffController@updatePosition')->name('staff.update-position');
     Route::post('staff/store-department', 'StaffController@storeDepartment')->name('staff.store-department');
     Route::post('staff/store-role', 'StaffController@storeRole')->name('staff.store-role');

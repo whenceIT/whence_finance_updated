@@ -117,6 +117,59 @@ class GOAController extends Controller
     }
 
     /**
+     * Vehicle Inventory sub-page.
+     */
+    public function vehicleInventory()
+    {
+        $fleets    = Fleet::with('office', 'user')->latest()->paginate(15);
+        $totalValue = Fleet::sum('current_value');
+        $offices   = Office::where('active', 1)->orderBy('name')->get();
+        $users     = User::whereNull('deleted_at')->orderBy('first_name')->get();
+
+        // All fleets (unpaginated) for the maintenance modal vehicle select
+        $allFleets = Fleet::orderBy('vehicle_id')->get();
+
+        return view('goa.fleet.vehicle-inventory', compact('fleets', 'totalValue', 'offices', 'users', 'allFleets'));
+    }
+
+    /**
+     * Fleet Statistics sub-page.
+     */
+    public function fleetStatistics()
+    {
+        $totalFleets        = Fleet::with('office', 'user')->get();
+        $activeFleets       = Fleet::with('office', 'user')->where('vehicle_status', 'Active')->get();
+        $maintenanceFleets  = Fleet::with('office', 'user')->where('vehicle_status', 'Maintenance')->get();
+        $outOfServiceFleets = Fleet::with('office', 'user')->where('vehicle_status', 'Out of Service')->get();
+
+        $totalVehicles        = $totalFleets->count();
+        $activeVehicles       = $activeFleets->count();
+        $maintenanceVehicles  = $maintenanceFleets->count();
+        $outOfServiceVehicles = $outOfServiceFleets->count();
+
+        return view('goa.fleet.fleet-statistics', compact(
+            'totalFleets', 'activeFleets', 'maintenanceFleets', 'outOfServiceFleets',
+            'totalVehicles', 'activeVehicles', 'maintenanceVehicles', 'outOfServiceVehicles'
+        ));
+    }
+
+    /**
+     * Upcoming Maintenance sub-page.
+     */
+    public function upcomingMaintenance()
+    {
+        $maintenanceSchedules = FleetMaintenanceSchedule::with(['fleet.office', 'fleet.user'])
+            ->where('status', 'pending')
+            ->orderBy('due_date')
+            ->get();
+
+        // All fleets for the Record Maintenance modal vehicle select
+        $allFleets = Fleet::orderBy('vehicle_id')->get();
+
+        return view('goa.fleet.upcoming-maintenance', compact('maintenanceSchedules', 'allFleets'));
+    }
+
+    /**
      * Display the vacancies and staffing page.
      *
      * @return \Illuminate\Http\Response

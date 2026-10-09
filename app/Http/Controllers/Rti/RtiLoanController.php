@@ -59,7 +59,7 @@ class RtiLoanController extends Controller
             OfficeLoan::STATUS_DISBURSED,
             OfficeLoan::STATUS_PARTIALLY_PAID,
             OfficeLoan::STATUS_FULLY_PAID,
-        ])->sum(DB::raw('principal + interest'));
+        ])->sum(DB::raw('principal'));
 
         $totalPayable     = OfficeLoan::sum(DB::raw('principal + interest'));
         $totalRepaid      = OfficeLoanTransaction::approved()->repayments()->sum('credit');

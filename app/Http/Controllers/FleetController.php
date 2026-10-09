@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Fleet;
+use App\Models\FleetAccident;
+use App\Models\FleetServiceRecord;
+use App\Models\FleetExpense;
 use App\Models\FleetMaintenanceSchedule;
 use App\Models\Office;
 use App\Models\User;
@@ -111,7 +114,33 @@ class FleetController extends Controller
 
     public function show(Fleet $fleet)
     {
-        return view('goa.fleet-show', compact('fleet'));
+        $fleet->load([
+            'office',
+            'user',
+            'accidents',
+            'serviceRecords',
+            'expenses',
+            'maintenanceSchedules',
+        ]);
+
+        // Cost summary grouped by expense category
+        $expenseSummary = $fleet->expenses
+            ->groupBy('category')
+            ->map(fn($group) => $group->sum('cost'));
+
+        $accidentTotal      = $fleet->accidents->sum('cost');
+        $serviceTotal       = $fleet->serviceRecords->sum('cost');
+        $totalExpenditure   = $fleet->expenses->sum('amount')
+                            + $accidentTotal
+                            + $serviceTotal;
+
+        return view('goa.fleet-show', compact(
+            'fleet',
+            'expenseSummary',
+            'accidentTotal',
+            'serviceTotal',
+            'totalExpenditure'
+        ));
     }
 
     public function edit(Fleet $fleet)
@@ -166,5 +195,132 @@ class FleetController extends Controller
             'new_date'     => $fleet->insurance_expire_date ? $fleet->insurance_expire_date->format('d M Y') : 'N/A',
             'new_date_iso' => $fleet->insurance_expire_date ? $fleet->insurance_expire_date->format('Y-m-d') : null,
         ]);
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    //  ACCIDENT HISTORY
+    // ──────────────────────────────────────────────────────────────
+
+    public function storeAccident(Request $request, Fleet $fleet)
+    {
+        $data = $request->validate([
+            'accident_date'          => 'required|date',
+            'driver'                 => 'nullable|string|max:150',
+            'location'               => 'nullable|string|max:255',
+            'description'            => 'nullable|string',
+            'police_report_number'   => 'nullable|string|max:100',
+            'insurance_claim_number' => 'nullable|string|max:100',
+            'repair_details'         => 'nullable|string',
+            'cost'                   => 'nullable|numeric|min:0',
+            'document'               => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+        ]);
+
+        $path = null;
+        if ($request->hasFile('document')) {
+            $path = $request->file('document')->store("fleet/{$fleet->id}/accidents", 'public');
+        }
+
+        $fleet->accidents()->create([
+            'accident_date'          => $data['accident_date'],
+            'driver'                 => $data['driver'] ?? null,
+            'location'               => $data['location'] ?? null,
+            'description'            => $data['description'] ?? null,
+            'police_report_number'   => $data['police_report_number'] ?? null,
+            'insurance_claim_number' => $data['insurance_claim_number'] ?? null,
+            'repair_details'         => $data['repair_details'] ?? null,
+            'cost'                   => $data['cost'] ?? 0,
+            'document_path'          => $path,
+            'recorded_by'            => auth()->user()->first_name . ' ' . auth()->user()->last_name ?? 'System',
+        ]);
+
+        return redirect()->back()->with('success', 'Accident record added successfully.')->withFragment('tab-accidents');
+    }
+
+    public function destroyAccident(Fleet $fleet, FleetAccident $accident)
+    {
+        $accident->delete();
+        return redirect()->back()->with('success', 'Accident record deleted.')->withFragment('tab-accidents');
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    //  MAINTENANCE & REPAIR HISTORY
+    // ──────────────────────────────────────────────────────────────
+
+    public function storeServiceRecord(Request $request, Fleet $fleet)
+    {
+        $data = $request->validate([
+            'service_date'    => 'required|date',
+            'service_type'    => 'required|string|max:150',
+            'description'     => 'nullable|string',
+            'parts_replaced'  => 'nullable|string',
+            'workshop'        => 'nullable|string|max:200',
+            'odometer_reading' => 'nullable|integer|min:0',
+            'cost'            => 'nullable|numeric|min:0',
+            'document'        => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+        ]);
+
+        $path = null;
+        if ($request->hasFile('document')) {
+            $path = $request->file('document')->store("fleet/{$fleet->id}/service", 'public');
+        }
+
+        $fleet->serviceRecords()->create([
+            'service_date'     => $data['service_date'],
+            'service_type'     => $data['service_type'],
+            'description'      => $data['description'] ?? null,
+            'parts_replaced'   => $data['parts_replaced'] ?? null,
+            'workshop'         => $data['workshop'] ?? null,
+            'odometer_reading' => $data['odometer_reading'] ?? null,
+            'cost'             => $data['cost'] ?? 0,
+            'document_path'    => $path,
+            'recorded_by'      => auth()->user()->first_name . ' ' . auth()->user()->last_name ?? 'System',
+        ]);
+
+        return redirect()->back()->with('success', 'Service record added successfully.')->withFragment('tab-service');
+    }
+
+    public function destroyServiceRecord(Fleet $fleet, FleetServiceRecord $record)
+    {
+        $record->delete();
+        return redirect()->back()->with('success', 'Service record deleted.')->withFragment('tab-service');
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    //  EXPENSE HISTORY
+    // ──────────────────────────────────────────────────────────────
+
+    public function storeExpense(Request $request, Fleet $fleet)
+    {
+        $data = $request->validate([
+            'expense_date'     => 'required|date',
+            'category'         => 'required|string|in:Maintenance,Repairs,Accidents,Tyres,Insurance,Spare Parts,Other',
+            'description'      => 'nullable|string|max:255',
+            'amount'           => 'required|numeric|min:0',
+            'reference_number' => 'nullable|string|max:100',
+            'document'         => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+        ]);
+
+        $path = null;
+        if ($request->hasFile('document')) {
+            $path = $request->file('document')->store("fleet/{$fleet->id}/expenses", 'public');
+        }
+
+        $fleet->expenses()->create([
+            'expense_date'     => $data['expense_date'],
+            'category'         => $data['category'],
+            'description'      => $data['description'] ?? null,
+            'amount'           => $data['amount'],
+            'reference_number' => $data['reference_number'] ?? null,
+            'document_path'    => $path,
+            'recorded_by'      => auth()->user()->first_name . ' ' . auth()->user()->last_name ?? 'System',
+        ]);
+
+        return redirect()->back()->with('success', 'Expense recorded successfully.')->withFragment('tab-expenses');
+    }
+
+    public function destroyExpense(Fleet $fleet, FleetExpense $expense)
+    {
+        $expense->delete();
+        return redirect()->back()->with('success', 'Expense deleted.')->withFragment('tab-expenses');
     }
 }
