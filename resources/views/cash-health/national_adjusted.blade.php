@@ -156,6 +156,47 @@
         .cash-simple-table { min-width:560px; }
     }
 
+    .boss-net-contribution-section {
+        margin-top: 48px;
+    }
+
+    .boss-net-headline-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        width: min(900px, 100%);
+        margin: 14px auto 0;
+    }
+
+    .boss-net-headline-card {
+        width: 100%;
+        margin: 0;
+        text-align: center;
+    }
+
+    .boss-net-headline-card .boss-target-value {
+        display: block;
+        margin: 7px 0 0;
+    }
+
+    .boss-net-comparison {
+        margin: 14px auto 0;
+    }
+
+    @media (max-width: 700px) {
+        .boss-net-headline-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .boss-net-headline-card {
+            width: 100%;
+        }
+
+        .boss-net-comparison .boss-target-table {
+            min-width: 560px;
+        }
+    }
+
 </style>
 
 <div style="
@@ -823,6 +864,12 @@
             margin-top: 36px;
         }
     }
+    @media (max-width: 700px) {
+        .boss-net-contribution-headlines {
+            grid-template-columns: 1fr !important;
+        }
+    }
+
 </style>
 
 <div class="boss-cash-health">
@@ -954,6 +1001,147 @@
 
             <div class="boss-target-caption">
                 Cycle averages show progress against the applicable loan target.
+            </div>
+        </div>
+
+        {{-- =====================================================
+             NET CONTRIBUTION SUMMARY + CYCLE COMPARISON
+             Styled to match the Overall Health and Institution Type tables.
+             ===================================================== --}}
+        @php
+            $contributionComparison = $simpleComparison['contribution'] ?? [];
+            $currentNetContribution = (float)($contribution['net_contribution_today'] ?? $contribution['this_month'] ?? 0);
+            $previousNetContribution = (float)($contribution['closing_net_contribution_position'] ?? $contribution['previous_cycle_closing_contribution_position'] ?? $contribution['last_month'] ?? ($contributionHistory[1]['contribution'] ?? 0));
+
+            $breakEvenCollectionNeeded = $contribution['total_cash_collection_needed_to_breakeven']
+                ?? $contribution['collection_needed_to_breakeven']
+                ?? $contribution['break_even_collection_needed']
+                ?? $contribution['breakeven_needed']
+                ?? null;
+            $cashCollectedSoFar = $contribution['total_cash_collected_thus_far']
+                ?? $contribution['cash_collected_so_far']
+                ?? $contribution['total_collected']
+                ?? $nationalHealth['total_collections']
+                ?? $nationalHealth['collections']
+                ?? null;
+
+            $previousAverageContribution = $contribution['average_net_contribution']
+                ?? $contributionComparison['average_previous']
+                ?? $contributionComparison['previous_average']
+                ?? null;
+            $currentAverageContributionPerDay = $contribution['average_net_contribution_per_day']
+                ?? $contributionComparison['average_per_day_current']
+                ?? $contributionComparison['current_average_per_day']
+                ?? $contribution['average_per_day']
+                ?? null;
+            $previousBestContribution = $contribution['previous_cycle_best_net_contribution_day'] ?? null;
+            $bestContributionAmount = $previousBestContribution['amount']
+                ?? $contributionComparison['best_day_amount']
+                ?? $contribution['best_day_amount']
+                ?? null;
+            $bestContributionDay = $previousBestContribution['date']
+                ?? $contributionComparison['best_day']
+                ?? $contribution['best_day']
+                ?? null;
+            $todayLastCycleContribution = $contribution['todays_last_cycle_net_contribution']
+                ?? $contributionComparison['today_last_cycle']
+                ?? $contributionComparison['previous_to_date']
+                ?? null;
+        @endphp
+
+        <div class="boss-middle-stack boss-net-contribution-section">
+            <div class="boss-institution-card">
+                <div class="boss-institution-label">Net Contribution</div>
+                <div class="boss-institution-value" style="font-size:20px;">
+                    Measuring Overall Effects of Cash Inflows and Outflows
+                </div>
+                <div class="boss-target-caption" style="margin-top:6px;">
+                    Overall value creation measure
+                </div>
+            </div>
+
+            <div class="boss-net-headline-grid">
+                <div class="boss-target-card boss-net-headline-card">
+                    <div class="boss-target-label">Total Cash Collection Needed to Breakeven in This Cycle</div>
+                    <div class="boss-target-value">
+                        @if($breakEvenCollectionNeeded !== null)
+                            K{{ number_format((float)$breakEvenCollectionNeeded, 0) }}
+                        @else
+                            —
+                        @endif
+                    </div>
+                </div>
+                <div class="boss-target-card boss-net-headline-card">
+                    <div class="boss-target-label">Total Cash Collected Thus Far</div>
+                    <div class="boss-target-value">
+                        @if($cashCollectedSoFar !== null)
+                            K{{ number_format((float)$cashCollectedSoFar, 0) }}
+                        @else
+                            —
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <div class="boss-target-comparison boss-net-comparison">
+                <table class="boss-target-table">
+                    <thead>
+                        <tr>
+                            <th>Preceding Cycle</th>
+                            <th>Current Cycle</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="boss-metric-row">
+                                    <span class="boss-metric-label">Closing Net Contribution Position</span>
+                                    <span class="boss-metric-value" style="color:{{ $previousNetContribution >= 0 ? '#15803d' : '#dc2626' }};">
+                                        {{ $previousNetContribution >= 0 ? '+' : '-' }}K{{ number_format(abs($previousNetContribution), 0) }}
+                                    </span>
+                                </div>
+                                <div class="boss-metric-row">
+                                    <span class="boss-metric-label">Average Net Contribution</span>
+                                    <span class="boss-metric-value">
+                                        {{ $previousAverageContribution !== null ? (($previousAverageContribution >= 0 ? '+' : '-') . 'K' . number_format(abs((float)$previousAverageContribution), 0)) : '—' }}
+                                    </span>
+                                </div>
+                                <div class="boss-metric-row">
+                                    <span class="boss-metric-label">Best Net Contribution in a Day</span>
+                                    <span class="boss-metric-value">
+                                        {{ $bestContributionAmount !== null ? (($bestContributionAmount >= 0 ? '+' : '-') . 'K' . number_format(abs((float)$bestContributionAmount), 0)) : '—' }}
+                                    </span>
+                                </div>
+                                @if($bestContributionDay)
+                                    <div class="boss-target-caption" style="margin-top:4px;">{{ $bestContributionDay }}</div>
+                                @endif
+                            </td>
+                            <td>
+                                <div class="boss-metric-row">
+                                    <span class="boss-metric-label">Net Contribution Today</span>
+                                    <span class="boss-metric-value" style="color:{{ $currentNetContribution >= 0 ? '#15803d' : '#dc2626' }};">
+                                        {{ $currentNetContribution >= 0 ? '+' : '-' }}K{{ number_format(abs($currentNetContribution), 0) }}
+                                    </span>
+                                </div>
+                                <div class="boss-metric-row">
+                                    <span class="boss-metric-label">Average Net Contribution per Day</span>
+                                    <span class="boss-metric-value">
+                                        {{ $currentAverageContributionPerDay !== null ? (($currentAverageContributionPerDay >= 0 ? '+' : '-') . 'K' . number_format(abs((float)$currentAverageContributionPerDay), 0)) : '—' }}
+                                    </span>
+                                </div>
+                                <div class="boss-metric-row">
+                                    <span class="boss-metric-label">Today's Last Cycle</span>
+                                    <span class="boss-metric-value">
+                                        {{ $todayLastCycleContribution !== null ? (($todayLastCycleContribution >= 0 ? '+' : '-') . 'K' . number_format(abs((float)$todayLastCycleContribution), 0)) : '—' }}
+                                    </span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="boss-target-caption" style="padding:0 18px 12px;">
+                    Values shown as — are not currently available in the data returned to this Blade view.
+                </div>
             </div>
         </div>
 
