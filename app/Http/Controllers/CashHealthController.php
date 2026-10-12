@@ -538,195 +538,279 @@ public function contributionHistory($id)
 }
 
 
+/**
+ * Replace the existing national() method with this version.
+ * Assumes Office, Carbon, Http and Request are already imported in the controller.
+ */
 public function national(Request $request)
 {
     $apiUrl = 'https://lms2backend.whencefinancesystem.com';
-
-
     $offices = Office::get()->keyBy('id');
-    /*
-    |--------------------------------------------------------------------------
-    | CURRENT CYCLE
-    |--------------------------------------------------------------------------
-    |
-    | National cycles in your example start on the 27th.
-    |
-    */
-
     $today = Carbon::today();
 
+    // Resolve the current 25th-to-24th cycle.
     if ($today->day >= 25) {
-
-        $currentCycleStart = $today
-            ->copy()
-            ->startOfMonth()
-            ->day(25);
-
+        $currentCycleStart = $today->copy()->startOfMonth()->day(25);
     } else {
-
-        $currentCycleStart = $today
-            ->copy()
-            ->subMonth()
-            ->startOfMonth()
-            ->day(25);
+        $currentCycleStart = $today->copy()->subMonthNoOverflow()->startOfMonth()->day(25);
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | SELECTED CYCLE
-    |--------------------------------------------------------------------------
-    */
-
-    $cycleStart = $request->query(
-        'cycle_start',
-        $currentCycleStart->format('Y-m-d')
-    );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | VALIDATE DATE
-    |--------------------------------------------------------------------------
-    */
+    $cycleStart = $request->query('cycle_start', $currentCycleStart->format('Y-m-d'));
 
     try {
-
-        $selectedCycleStart = Carbon::createFromFormat(
-            'Y-m-d',
-            $cycleStart
-        );
-
+        $selectedCycleStart = Carbon::createFromFormat('!Y-m-d', $cycleStart);
     } catch (\Exception $e) {
-
-        abort(
-            400,
-            'Invalid cycle start date.'
-        );
+        abort(400, 'Invalid cycle start date.');
     }
 
+    if (!$selectedCycleStart || $selectedCycleStart->day !== 25) {
+        abort(400, 'Cycle start must be the 25th of a month.');
+    }
 
-    /*
-    |--------------------------------------------------------------------------
-    | CALCULATE CYCLE END
-    |--------------------------------------------------------------------------
-    */
+    $cycleEnd = $selectedCycleStart->copy()->addMonthNoOverflow()->subDay();
+    $precedingCycleStart = $selectedCycleStart->copy()->subMonthNoOverflow();
+    $precedingCycleEnd = $selectedCycleStart->copy()->subDay();
 
-    $cycleEnd = $selectedCycleStart
-        ->copy()
-        ->addMonth()
-        ->subDay();
+    // Fetch national Cash Health data (existing behaviour).
+    $response = Http::timeout(120)->get($apiUrl . '/cash-health/national', [
+        'cycle_start' => $cycleStart,
+    ]);
 
+    if (!$response->successful()) {
+        abort($response->status(), 'Unable to retrieve National Cash Health data.');
+    }
 
-    /*
-    |--------------------------------------------------------------------------
-    | CALL NATIONAL API
-    |--------------------------------------------------------------------------
-    */
+    // Get the current institution balance from the company summary endpoint.
+    $summaryResponse = Http::withHeaders([
+        'x-user-email' => 'chikwetihenry@gmail.com',
+    ])->get('https://withinheremobileapi.com/api/v1/business-dashboard/company/CMP-35230338/summary');
 
-    $response = Http::timeout(120)
-        ->get(
-            $apiUrl . '/cash-health/national',
+    $totalBalance = 0.0;
+    if ($summaryResponse->successful()) {
+        $totalBalance = (float) data_get($summaryResponse->json(), 'data.summary.total_balance', 0);
+    }
+
+    // Transactions are needed from the earliest comparison date through today.
+    // Historical balances are estimates reconstructed backwards from today's balance.
+    // The ledger and company summary must cover the same wallet/account scope for this to be reliable.
+    $todayCycleStart = $currentCycleStart->copy();
+    $todayLastCycleStart = $todayCycleStart->copy()->subMonthNoOverflow();
+    $fetchStart = $precedingCycleStart->lt($todayLastCycleStart)
+        ? $precedingCycleStart->copy()
+        : $todayLastCycleStart->copy();
+
+    $officesWithWallets = Office::whereNotNull('withinhere_wallet_id')->get();
+    $walletIds = $officesWithWallets->pluck('withinhere_wallet_id')->filter()->values()->all();
+    $transactions = [];
+
+    if (!empty($walletIds)) {
+        $ledgerResponse = Http::timeout(120)->post(
+            'https://withinheremobileapi.com/api/v1/lmsuser/executive_ledger',
             [
-                'cycle_start' => $cycleStart
+                'wallet_ids' => $walletIds,
+                'start_date' => $fetchStart->format('Y-m-d'),
+                'end_date' => $today->format('Y-m-d'),
             ]
         );
 
-
-    if (!$response->successful()) {
-
-        abort(
-            $response->status(),
-            'Unable to retrieve National Cash Health data.'
-        );
+        if ($ledgerResponse->successful() && is_array(data_get($ledgerResponse->json(), 'data'))) {
+            foreach (data_get($ledgerResponse->json(), 'data', []) as $wallet) {
+                foreach (($wallet['transactions'] ?? []) as $transaction) {
+                    $transactions[] = $transaction;
+                }
+            }
+        }
     }
 
-   $summaryResponse = Http::withHeaders([
-    'x-user-email' => 'chikwetihenry@gmail.com'
-])->get(
-    'https://withinheremobileapi.com/api/v1/business-dashboard/company/CMP-35230338/summary'
-);
+    // Work out the cash movement represented by each transaction.
+    // total_amount is used because a K215 withdrawal with K11 charges removes K226.
+    // Only completed transactions affect balances; unrecognized transaction types
+    // are skipped and should be checked against real ledger data before trusting totals.
+    $signedTransactions = [];
+    $unclassifiedTransactionCount = 0;
+    foreach ($transactions as $transaction) {
+        // Do not treat missing statuses as completed: that can count pending or
+        // incomplete records and materially distort reconstructed balances.
+        $status = strtolower(trim((string) ($transaction['status'] ?? '')));
+        $transferStatus = strtolower(trim((string) ($transaction['transfer_status'] ?? '')));
+        if ($status !== 'completed') {
+            continue;
+        }
+        if ($transferStatus !== '' && !in_array($transferStatus, ['completed', 'n/a'], true)) {
+            continue;
+        }
 
-$totalBalance = 0;
+        // Cash movement rules requested for this report:
+        // payment = money received; withdraw/withdrawal = money paid out;
+        // transfer = money leaving the institution, regardless of payout_type.
+        // The API sample uses "withdrawal", so support it as an alias for "withdraw".
+        $type = strtolower(trim((string) ($transaction['type'] ?? '')));
+        $amount = (float) ($transaction['total_amount'] ?? $transaction['amount'] ?? 0);
+        $signedAmount = null;
 
-if ($summaryResponse->successful()) {
+        if ($type === 'payment' || $type === 'wallet_deposit') {
+            // Both transaction types increase the wallet balance.
+            $signedAmount = abs($amount);
+        } elseif (in_array($type, ['withdraw', 'withdrawal'], true)) {
+            $signedAmount = -abs($amount);
+        } elseif ($type === 'transfer') {
+            $signedAmount = -abs($amount);
+        }
 
-    $summaryData = $summaryResponse->json();
+        // Skip unknown transaction types instead of guessing their cash impact.
+        if ($signedAmount === null) {
+            $unclassifiedTransactionCount++;
+            continue;
+        }
 
-    $totalBalance = (float) data_get(
-        $summaryData,
-        'data.summary.total_balance',
-        0
-    );
-}
+        $createdAt = $transaction['created_at'] ?? null;
+        if (!$createdAt) {
+            continue;
+        }
 
+        try {
+            // created_at is returned as UTC (often ending in Z); use the app's
+            // local timezone so transactions land on the correct Lusaka calendar day.
+            $transactionDate = Carbon::parse($createdAt)
+                ->setTimezone(config('app.timezone', 'Africa/Lusaka'))
+                ->toDateString();
+        } catch (\Exception $e) {
+            continue;
+        }
 
-    /*
-    |--------------------------------------------------------------------------
-    | NATIONAL DATA
-    |--------------------------------------------------------------------------
-    */
+        $signedTransactions[] = [
+            'date' => $transactionDate,
+            'type' => in_array($type, ['withdraw', 'withdrawal'], true) ? 'withdrawal' : $type,
+            'signed_amount' => $signedAmount,
+        ];
+    }
+
+    // Reconstruct a historical end-of-day balance BACKWARDS from today's balance.
+    // Reverse rules requested:
+    // - A withdrawal reduced cash at the time, so ADD it back when going backwards.
+    // - A payment increased cash at the time, so SUBTRACT it when going backwards.
+    // - A transfer reduced cash at the time, so ADD it back when going backwards.
+    // Transactions on the target date are already part of that date's closing balance;
+    // only transactions strictly AFTER the target date are reversed.
+    $balanceAtEndOfDay = function (Carbon $date) use ($totalBalance, $signedTransactions, $today) {
+        if ($date->greaterThanOrEqualTo($today)) {
+            return $totalBalance;
+        }
+
+        $reverseAdjustment = 0.0;
+        $dateString = $date->toDateString();
+
+        foreach ($signedTransactions as $transaction) {
+            if ($transaction['date'] <= $dateString) {
+                continue;
+            }
+
+            $amount = abs((float) $transaction['signed_amount']);
+            $type = $transaction['type'];
+
+            if (in_array($type, ['withdraw', 'withdrawal', 'transfer'], true)) {
+                // Cash went out after the target date: add it back to recover the
+                // earlier balance.
+                $reverseAdjustment += $amount;
+            } elseif (in_array($type, ['payment', 'wallet_deposit'], true)) {
+                // Cash came in after the target date: remove it to recover the
+                // earlier balance.
+                $reverseAdjustment -= $amount;
+            }
+        }
+
+        return $totalBalance + $reverseAdjustment;
+    };
+
+    $cycleMetrics = function (Carbon $start, Carbon $end) use ($today, $balanceAtEndOfDay) {
+        $effectiveEnd = $end->greaterThan($today) ? $today->copy() : $end->copy();
+        if ($effectiveEnd->lt($start)) {
+            return [
+                'closing_balance' => 0.0,
+                'average_balance' => 0.0,
+                'highest_balance' => 0.0,
+                'highest_date' => null,
+            ];
+        }
+
+        $dailyBalances = [];
+        $day = $start->copy();
+        while ($day->lte($effectiveEnd)) {
+            $dailyBalances[] = [
+                'date' => $day->toDateString(),
+                'balance' => $balanceAtEndOfDay($day),
+            ];
+            $day->addDay();
+        }
+
+        $values = array_column($dailyBalances, 'balance');
+        $highestIndex = array_search(max($values), $values, true);
+        $closingDate = $end->greaterThan($today) ? $today->copy() : $end->copy();
+
+        return [
+            'closing_balance' => $balanceAtEndOfDay($closingDate),
+            'average_balance' => array_sum($values) / count($values),
+            'highest_balance' => max($values),
+            'highest_date' => $dailyBalances[$highestIndex]['date'] ?? null,
+        ];
+    };
+
+    $precedingMetrics = $cycleMetrics($precedingCycleStart, $precedingCycleEnd);
+    $currentMetrics = $cycleMetrics($selectedCycleStart, $cycleEnd);
+
+    // Compare today's balance with the equivalent elapsed day in the current cycle
+    // immediately before this one (25th-to-24th cycle comparison).
+    $elapsedCycleDays = $todayCycleStart->diffInDays($today);
+    $lastCycleComparisonDate = $todayLastCycleStart->copy()->addDays($elapsedCycleDays);
+    if ($lastCycleComparisonDate->greaterThan($todayLastCycleStart->copy()->addMonthNoOverflow()->subDay())) {
+        $lastCycleComparisonDate = $todayLastCycleStart->copy()->addMonthNoOverflow()->subDay();
+    }
+
+    $cashBalanceMetrics = [
+        // Diagnostic values help verify whether the ledger can explain the balance.
+        'diagnostics' => [
+            'ledger_transaction_count' => count($transactions),
+            'classified_transaction_count' => count($signedTransactions),
+            'unclassified_transaction_count' => $unclassifiedTransactionCount,
+            'reconstruction_note' => 'Historical balances are reconstructed backwards from today: add withdrawals and transfers after the target date; subtract payments and wallet deposits after the target date.',
+        ],
+        'preceding' => $precedingMetrics,
+        'current' => $currentMetrics,
+        'today' => [
+            'balance' => $totalBalance,
+            'last_cycle_balance' => $balanceAtEndOfDay($lastCycleComparisonDate),
+            'last_cycle_date' => $lastCycleComparisonDate->toDateString(),
+        ],
+    ];
+
+    // Keep the existing 12-cycle selector.
+    $availableCycles = [];
+    $cycle = $currentCycleStart->copy();
+    for ($i = 0; $i < 12; $i++) {
+        $start = $cycle->copy();
+        $end = $start->copy()->addMonthNoOverflow()->subDay();
+        $availableCycles[] = [
+            'start' => $start->format('Y-m-d'),
+            'end' => $end->format('Y-m-d'),
+        ];
+        $cycle->subMonthNoOverflow();
+    }
 
     $nationalHealth = $response->json();
+    $nationalHealth['provinces'] = $nationalHealth['provinces'] ?? [];
 
-    $nationalHealth['provinces'] =
-    $nationalHealth['provinces'] ?? [];
-
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | AVAILABLE CYCLES
-    |--------------------------------------------------------------------------
-    |
-    | Show the previous 12 cycles in the selector.
-    |
-    */
-
-    $availableCycles = [];
-
-    $cycle = $currentCycleStart->copy();
-
-    for ($i = 0; $i < 12; $i++) {
-
-        $start = $cycle->copy();
-
-        $end = $start
-            ->copy()
-            ->addMonth()
-            ->subDay();
-
-        $availableCycles[] = [
-
-            'start' => $start->format('Y-m-d'),
-
-            'end' => $end->format('Y-m-d'),
-
-        ];
-
-        $cycle->subMonth();
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | RETURN VIEW
-    |--------------------------------------------------------------------------
-    */
-
-return view(
-    'cash-health.national_adjusted',
-    compact(
+    return view('cash-health.national_adjusted', compact(
         'nationalHealth',
         'cycleStart',
         'cycleEnd',
         'availableCycles',
         'offices',
-        'totalBalance'
-    )
-);
-
+        'totalBalance',
+        'cashBalanceMetrics'
+    ));
 }
+
+
 
 
 public function nationalBalances()
