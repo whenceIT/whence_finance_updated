@@ -464,81 +464,6 @@
 
 
 {{-- ========================================================= --}}
-{{-- INSTITUTION CASH BALANCE --}}
-{{-- ========================================================= --}}
-
-<div style="
-    margin-top:22px;
-    background:#fff;
-    border:1px solid #dfe3e8;
-    border-radius:12px;
-    padding:24px 26px;
-    box-shadow:0 2px 8px rgba(20,30,50,.04);
-">
-
-    <div style="
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        gap:20px;
-        flex-wrap:wrap;
-    ">
-
-        {{-- LABEL --}}
-        <div>
-
-            <div style="
-                font-size:11px;
-                font-weight:700;
-                letter-spacing:1.2px;
-                color:#7b8494;
-                text-transform:uppercase;
-                margin-bottom:7px;
-            ">
-                Institution Cash Balance
-            </div>
-
-            <div style="
-                font-size:12px;
-                color:#697386;
-            ">
-                Total available cash across the institution excluding bank 
-            </div>
-
-        </div>
-
-
-        {{-- BALANCE --}}
-        <div style="
-            text-align:right;
-            margin-left:auto;
-        ">
-
-                <div style="
-                font-size:40px;
-                font-weight:700;
-                margin-top:12px;
-                color:{{ ($totalBalance ?? 0) < 0 ? '#dc2626' : '#15803d' }};
-            ">
-
-                K{{ number_format(
-                    $totalBalance ?? 0,
-                    2
-                ) }}
-
-            </div>
-
-
-        </div>
-
-    </div>
-
-</div>
-
-
-
-{{-- ========================================================= --}}
-{{-- ========================================================= --}}
 {{-- CASH HEALTH MANAGEMENT VIEW --}}
 {{-- ========================================================= --}}
 @php
@@ -547,6 +472,7 @@
     $scoreComparisons = $simpleComparison['scores'] ?? [];
     $financialComparisons = $simpleComparison['financials'] ?? [];
     $institutionComparison = $simpleComparison['institution_type'] ?? [];
+    $institutionTypeTables = $simpleComparison['institution_type_tables'] ?? [];
 
     $currentOverall = (float)($scores['overall'] ?? 0);
     $previousClosingOverall = (float)($overallComparison['cycle_closing'] ?? ($scoreComparisons['overall']['previous'] ?? 0));
@@ -939,10 +865,75 @@
             </table>
         </div>
 
+        {{-- ========================================================= --}}
+        {{-- INSTITUTION CASH BALANCE SUMMARY                         --}}
+        {{-- ========================================================= --}}
+        <div class="boss-middle-stack" style="margin-top:28px;">
+            <div class="boss-institution-card">
+                <div class="boss-institution-label">Institution Cash Balance</div>
+                <div class="boss-institution-value" style="font-size:32px;color:{{ ($totalBalance ?? 0) < 0 ? '#dc2626' : '#15803d' }};">
+                    K{{ number_format($totalBalance ?? 0, 2) }}
+                </div>
+                <div style="margin-top:5px;font-size:12px;color:#697386;">
+                    Total available cash across the institution excluding bank
+                </div>
+            </div>
+        </div>
+
+        {{-- ========================================================= --}}
+        {{-- CASH BALANCE CYCLE COMPARISON                            --}}
+        {{-- ========================================================= --}}
+        <div class="boss-comparison-card" style="margin:0 auto 28px;width:min(900px,100%);border-radius:12px;">
+            <table class="boss-comparison-table">
+                <thead>
+                    <tr>
+                        <th>Preceding Cycle</th>
+                        <th>Current Cycle</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="boss-metric-row">
+                                <span class="boss-metric-label">Closing Cash Balance</span>
+                                <span class="boss-metric-value">K{{ number_format(data_get($cashBalanceMetrics ?? [], 'preceding.closing_balance', 0), 2) }}</span>
+                            </div>
+                            <div class="boss-metric-row">
+                                <span class="boss-metric-label">Average Cash Balance</span>
+                                <span class="boss-metric-value">K{{ number_format(data_get($cashBalanceMetrics ?? [], 'preceding.average_balance', 0), 2) }}</span>
+                            </div>
+                            <div class="boss-metric-row">
+                                <span class="boss-metric-label">Highest Recorded Cash Balance</span>
+                                <span class="boss-metric-value">K{{ number_format(data_get($cashBalanceMetrics ?? [], 'preceding.highest_balance', 0), 2) }}
+                                    @if(data_get($cashBalanceMetrics ?? [], 'preceding.highest_date'))
+                                        <small class="text-muted">({{ \Carbon\Carbon::parse(data_get($cashBalanceMetrics, 'preceding.highest_date'))->format('d M Y') }})</small>
+                                    @endif
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="boss-metric-row">
+                                <span class="boss-metric-label">Cash Balance Today</span>
+                                <span class="boss-metric-value">K{{ number_format(data_get($cashBalanceMetrics ?? [], 'today.balance', $totalBalance ?? 0), 2) }}</span>
+                            </div>
+                            <div class="boss-metric-row">
+                                <span class="boss-metric-label">Average Cash Balance</span>
+                                <span class="boss-metric-value">K{{ number_format(data_get($cashBalanceMetrics ?? [], 'current.average_balance', 0), 2) }}</span>
+                            </div>
+                            <div class="boss-metric-row">
+                                <span class="boss-metric-label">Today's Last Cycle</span>
+                                <span class="boss-metric-value">K{{ number_format(data_get($cashBalanceMetrics ?? [], 'today.last_cycle_balance', 0), 2) }}</span>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
         {{-- =====================================================
              INSTITUTION TYPE + TARGET
              ===================================================== --}}
-        <div class="boss-middle-stack">
+        <!-- <div class="boss-middle-stack">
             <div class="boss-institution-card">
                 <div class="boss-institution-label">Institution Type</div>
                 <div class="boss-institution-value">{{ $currentInstitutionType }}</div>
@@ -952,12 +943,12 @@
                 <span class="boss-target-label">Total to Meet Target</span>
                 <span class="boss-target-value">K{{ number_format($currentLoanTarget, 0) }}</span>
             </div>
-        </div>
+        </div> -->
 
         {{-- =====================================================
              TARGET / DISBURSEMENT COMPARISON
              ===================================================== --}}
-        <div class="boss-target-comparison">
+        <!-- <div class="boss-target-comparison">
             <table class="boss-target-table">
                 <thead>
                     <tr>
@@ -1002,7 +993,152 @@
             <div class="boss-target-caption">
                 Cycle averages show progress against the applicable loan target.
             </div>
-        </div>
+        </div> -->
+
+        {{-- =====================================================
+             THREE INSTITUTION TYPE TABLES
+             Values are grouped by the actual branch classification
+             for each cycle, as returned by the API.
+             ===================================================== --}}
+        @php
+            $institutionTypeTableDefinitions = [
+                'disbursements' => [
+                    'title' => 'Failing to Meet Branch Loans Targets',
+                    'description' => 'Tracks the loan target against loans given out for branches in this classification.',
+                    'leftHeadline' => 'Total to Meet Loans Target',
+                    'rightHeadline' => 'Total Loans Given Out Thus Far',
+                    'leftValue' => 'target_to_meet_loans',
+                    'rightValue' => 'total_loans_given_out',
+                    'closingLabel' => 'Closing Total Loans',
+                    'averageLabel' => 'Average Loans per Day',
+                    'bestLabel' => 'Best Recorded in a Day',
+                    'currentLabel' => 'Loans Given Out Thus Far',
+                    'currentAverageLabel' => 'Average Loans per Day',
+                    'todayLastCycleLabel' => "Today's Last Cycle",
+                    'kind' => 'disbursement',
+                ],
+                'collecting' => [
+                    'title' => 'Meeting Branch Loans Targets and Collecting Everything or at Least 90%',
+                    'description' => 'Tracks collections for branches classified as meeting their target and collecting adequately.',
+                    'leftHeadline' => 'Total to Be Collected After Meeting Loans Target',
+                    'rightHeadline' => 'Total Collected Thus Far',
+                    'leftValue' => 'expected_collection_after_target',
+                    'rightValue' => 'total_collected',
+                    'closingLabel' => 'Closing Collected',
+                    'averageLabel' => 'Average Collections per Day',
+                    'bestLabel' => 'Best Collection in a Day',
+                    'currentLabel' => 'Collected Thus Far',
+                    'currentAverageLabel' => 'Average Collection per Day',
+                    'todayLastCycleLabel' => "Today's Last Cycle",
+                    'kind' => 'collection',
+                ],
+                'meeting_loans_target' => [
+                    'title' => 'Meeting Branch Loans Targets but Failing to Collect Everything or at Least 90%',
+                    'description' => 'Tracks collections for branches meeting their target but falling short on collection quality.',
+                    'leftHeadline' => 'Total to Be Collected After Meeting Loans Target',
+                    'rightHeadline' => 'Total Collected Thus Far',
+                    'leftValue' => 'expected_collection_after_target',
+                    'rightValue' => 'total_collected',
+                    'closingLabel' => 'Closing Collected',
+                    'averageLabel' => 'Average Collections per Day',
+                    'bestLabel' => 'Best Collection in a Day',
+                    'currentLabel' => 'Collected Thus Far',
+                    'currentAverageLabel' => 'Average Collection per Day',
+                    'todayLastCycleLabel' => "Today's Last Cycle",
+                    'kind' => 'collection',
+                ],
+            ];
+            $formatTypeMoney = function ($value) {
+                return $value === null ? '—' : 'K' . number_format((float)$value, 0);
+            };
+        @endphp
+
+        @foreach($institutionTypeTableDefinitions as $typeKey => $definition)
+            @php
+                $typeData = $institutionTypeTables[$typeKey] ?? [];
+                $typePrevious = $typeData['previous'] ?? [];
+                $typeCurrent = $typeData['current'] ?? [];
+                $typePreviousToDate = $typeData['previous_to_date'] ?? [];
+                $previousBestDay = $typePrevious['best_recorded_day'] ?? null;
+                $previousHeadlineValue = $typePrevious[$definition['leftValue']] ?? null;
+                $currentHeadlineValue = $typeCurrent[$definition['rightValue']] ?? null;
+                $previousClosingValue = $typePrevious[$definition['kind'] === 'disbursement' ? 'total_loans_given_out' : 'total_collected'] ?? null;
+                $previousAverageValue = $typePrevious[$definition['kind'] === 'disbursement' ? 'average_loans_given_out_per_day' : 'average_collections_per_day'] ?? null;
+                $currentAverageValue = $typeCurrent[$definition['kind'] === 'disbursement' ? 'average_loans_given_out_per_day' : 'average_collections_per_day'] ?? null;
+                $previousToDateValue = $typePreviousToDate[$definition['kind'] === 'disbursement' ? 'total_loans_given_out' : 'total_collected'] ?? null;
+            @endphp
+
+            <div class="boss-middle-stack" style="margin-top:34px;">
+                <div class="boss-institution-card" style="width:min(760px,100%);">
+                    <div class="boss-institution-label">Institution Type</div>
+                    <div class="boss-institution-value" style="font-size:19px;">{{ $definition['title'] }}</div>
+                    <div style="margin-top:7px;font-size:11px;color:#697386;line-height:1.5;">{{ $definition['description'] }}</div>
+                    <div style="margin-top:9px;">
+                        <span style="display:inline-block;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:800;background:{{ !empty($typeData['current_institution_type']) ? '#ecfdf5' : '#f3f4f6' }};color:{{ !empty($typeData['current_institution_type']) ? '#15803d' : '#697386' }};">
+                            {{ !empty($typeData['current_institution_type']) ? 'Current institution classification' : 'Not the current institution classification' }}
+                        </span>
+                        <span style="margin-left:7px;font-size:10px;color:#697386;">
+                            Current branches: {{ $typeCurrent['branch_count'] ?? 0 }} · Preceding-cycle branches: {{ $typePrevious['branch_count'] ?? 0 }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="boss-net-headline-grid" style="width:min(900px,100%);">
+                    <div class="boss-target-card boss-net-headline-card">
+                        <div class="boss-target-label">{{ $definition['leftHeadline'] }}</div>
+                        <div class="boss-target-value">{{ $formatTypeMoney($typeCurrent[$definition['leftValue']] ?? null) }}</div>
+                    </div>
+                    <div class="boss-target-card boss-net-headline-card">
+                        <div class="boss-target-label">{{ $definition['rightHeadline'] }}</div>
+                        <div class="boss-target-value">{{ $formatTypeMoney($currentHeadlineValue) }}</div>
+                    </div>
+                </div>
+
+                <div class="boss-target-comparison">
+                    <table class="boss-target-table">
+                        <thead>
+                            <tr><th>Preceding Cycle</th><th>Current Cycle</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="boss-metric-row">
+                                        <span class="boss-metric-label">{{ $definition['closingLabel'] }}</span>
+                                        <span class="boss-metric-value">{{ $formatTypeMoney($previousClosingValue) }}</span>
+                                    </div>
+                                    <div class="boss-metric-row">
+                                        <span class="boss-metric-label">{{ $definition['averageLabel'] }}</span>
+                                        <span class="boss-metric-value">{{ $formatTypeMoney($previousAverageValue) }}</span>
+                                    </div>
+                                    <div class="boss-metric-row">
+                                        <span class="boss-metric-label">{{ $definition['bestLabel'] }}</span>
+                                        <span class="boss-metric-value">{{ isset($previousBestDay['amount']) ? $formatTypeMoney($previousBestDay['amount']) : '—' }}</span>
+                                    </div>
+                                    @if(!empty($previousBestDay['date']))
+                                        <div class="boss-target-caption" style="margin-top:4px;">{{ $previousBestDay['date'] }}</div>
+                                    @endif
+                                </td>
+                                <td>
+                                    <div class="boss-metric-row">
+                                        <span class="boss-metric-label">{{ $definition['currentLabel'] }}</span>
+                                        <span class="boss-metric-value">{{ $formatTypeMoney($currentHeadlineValue) }}</span>
+                                    </div>
+                                    <div class="boss-metric-row">
+                                        <span class="boss-metric-label">{{ $definition['currentAverageLabel'] }}</span>
+                                        <span class="boss-metric-value">{{ $formatTypeMoney($currentAverageValue) }}</span>
+                                    </div>
+                                    <div class="boss-metric-row">
+                                        <span class="boss-metric-label">{{ $definition['todayLastCycleLabel'] }}</span>
+                                        <span class="boss-metric-value">{{ $formatTypeMoney($previousToDateValue) }}</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="boss-target-caption">Values are calculated from branches classified into this type for each corresponding cycle. Best-day figures are based on daily transaction history where available.</div>
+                </div>
+            </div>
+        @endforeach
 
         {{-- =====================================================
              NET CONTRIBUTION SUMMARY + CYCLE COMPARISON
