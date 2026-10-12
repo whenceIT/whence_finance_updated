@@ -53,8 +53,14 @@ class ApprovalWorkflowController extends Controller
             Deposit::withoutGlobalScope('approved')->where('id', $id)->update(['status' => 1]);
             
             if ($deposit) {
-                $lockService = new LockService();
-                $lockService->unblock_deposits($deposit->office);
+                // $lockService = new LockService();
+                // $lockService->unblock_deposits($deposit->office);
+
+                $blockage = \App\Models\Blockage::where('office_id', $deposit->office)->first();
+                if ($blockage) {
+                    $blockage->time_to_unlock = now()->addHours(5);
+                    $blockage->save();
+                }
             }
             
             return response()->json(['success' => true, 'message' => 'Approved successfully.']);
@@ -73,13 +79,20 @@ class ApprovalWorkflowController extends Controller
             return response()->json(['success' => false, 'message' => 'No deposits selected.']);
         }
 
-        $officeIds = Deposit::withoutGlobalScope('approved')->whereIn('id', $ids)->pluck('office')->unique()->filter()->values();
+        $deposits = Deposit::withoutGlobalScope('approved')->whereIn('id', $ids)->get();
+        $officeIds = $deposits->pluck('office')->unique()->filter()->values();
         
         Deposit::withoutGlobalScope('approved')->whereIn('id', $ids)->update(['status' => 1]);
 
         $lockService = new LockService();
         foreach ($officeIds as $officeId) {
             $lockService->unblock_deposits($officeId);
+
+            $blockage = \App\Models\Blockage::where('office_id', $officeId)->first();
+            if ($blockage) {
+                $blockage->time_to_unlock = now()->addHours(5);
+                $blockage->save();
+            }
         }
         
         return response()->json(['success' => true, 'message' => count($ids) . ' deposit(s) approved successfully.']);
@@ -119,6 +132,12 @@ class ApprovalWorkflowController extends Controller
         $lockService = new LockService();
         foreach ($officeIds as $officeId) {
             $lockService->unblock_deposits($officeId);
+
+            $blockage = \App\Models\Blockage::where('office_id', $officeId)->first();
+            if ($blockage) {
+                $blockage->time_to_unlock = now()->addHours(5);
+                $blockage->save();
+            }
         }
 
         return response()->json(['success' => true, 'message' => $count . ' deposit(s) approved successfully.']);

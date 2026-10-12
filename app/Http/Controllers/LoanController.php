@@ -3373,9 +3373,9 @@ $vehicle->save();
             $loan->expected_maturity_date = $next_payment;
             $loan->save();
 
-            $total_interest = LoanRepaymentSchedule::where('loan_id', $loan->id)->sum('interest');
+            $total_interest = $loan->principal * 0.4;
             $payment_detail = new PaymentDetail();
-            $payment_detail->payment_type_id = 3; //$request->payment_type_id;
+            $payment_detail->payment_type_id = 3; 
             $payment_detail->account_number = $request->account_number;
             $payment_detail->cheque_number = $request->cheque_number;
             $payment_detail->routing_code = $request->routing_code;
