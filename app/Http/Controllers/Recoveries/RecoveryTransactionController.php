@@ -60,14 +60,14 @@ class RecoveryTransactionController extends Controller
         ->orderBy('created_at', 'desc');
 
         // Apply role-based filtering
-        if ($role && $role->role_id == "6") {
-            // Province manager - see all transactions in their province
-            $officeIds = Office::where('province_id', $province_id)->pluck('id');
-            $query->whereIn('office_id', $officeIds);
-        } elseif (!Sentinel::hasAccess('settings')) {
-            // Regular user - see only their office transactions
-            $query->where('office_id', $office_id);
-        }
+        // if ($role && $role->role_id == "6") {
+        //     // Province manager - see all transactions in their province
+        //     $officeIds = Office::where('province_id', $province_id)->pluck('id');
+        //     $query->whereIn('office_id', $officeIds);
+        // } elseif (!Sentinel::hasAccess('settings')) {
+        //     // Regular user - see only their office transactions
+        //     $query->where('office_id', $office_id);
+        // }
         // Admin (settings access) sees all transactions
 
         $transactions = $query->get();
@@ -117,7 +117,7 @@ class RecoveryTransactionController extends Controller
             'recovery_transaction_access'
         );
         $funds = RecoveryFund::sum('amount');
-        return view('recoveries.transactions.approved', compact(
+        return view('recoveries.transactions.p', compact(
             'transactions', 
             'transactionsByOffice', 
             'totalAmount', 

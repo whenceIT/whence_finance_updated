@@ -557,6 +557,7 @@ Route::group(['prefix' => 'payrollloans'], function () {
     Route::get('pending-disbursement', 'PayrollloanController@pendingDisbursementLoans')->name('payrollloans.pending-disbursement');
     Route::get('closed', 'PayrollloanController@closedLoans')->name('payrollloans.closed');
     Route::post('{loanId}/bulk-repayments', 'PayrollloanController@bulkRepayments')->name('payrollloans.bulk-repayments');
+    Route::post('{loanId}/restructure', 'PayrollloanController@restructure')->name('payrollloans.restructure');
 });
 
 Route::group(['prefix' => 'payroll'], function () {

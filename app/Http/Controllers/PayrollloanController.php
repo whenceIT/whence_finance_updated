@@ -536,5 +536,48 @@ public function closedLoans(Request $request)
     return view('payroll_loans.closed', compact('loans'));
 }
 
+public function restructure(Request $request, $loanId)
+{
+    $request->validate([
+        'tenure' => 'required|integer|in:9,12,18,24,30,32,35,40',
+        'schedule_type' => 'required|in:old,new',
+    ]);
+
+    $loan = Loan::findOrFail($loanId);
+    $tenure = (int) $request->tenure;
+    $scheduleType = $request->schedule_type;
+
+    $colMap = [9 => 'repayment_9_months', 12 => 'repayment_12_months', 18 => 'repayment_18_months', 24 => 'repayment_24_months', 30 => 'repayment_30_months', 32 => 'repayment_32_months', 35 => 'repayment_35_months', 40 => 'repayment_40_months'];
+    $col = $colMap[$tenure] ?? null;
+    $monthlyAmount = null;
+    $totalRepayment = null;
+    $scheduleLabel = $scheduleType === 'old' ? 'Old Schedule' : 'New Schedule';
+
+    if ($scheduleType === 'old') {
+        $oldRow = \App\Models\PayrollLoanOldSchedule::where('disbursement_amount', $loan->principal)->first();
+        $monthlyAmount = ($oldRow && $col) ? $oldRow->$col : null;
+    } else {
+        $schedule = \DB::table('payroll_loan_schedules')
+            ->where('loan_amount', $loan->principal)
+            ->first();
+        $monthlyAmount = $schedule ? ($schedule->{"months_$tenure"} ?? null) : null;
+    }
+
+    if (!$monthlyAmount) {
+        return back()->with('error', 'No schedule found for the selected tenure and loan amount.');
+    }
+
+    $totalRepayment = $monthlyAmount * $tenure;
+
+    $loan->loan_term = $tenure;
+    $loan->schedule_type = $scheduleType;
+    $loan->restructured_at = now();
+    $loan->save();
+
+    Flash::success("Loan restructured to {$tenure} months ({$scheduleLabel}). New monthly amount: K" . number_format($monthlyAmount, 2) . ", Total: K" . number_format($totalRepayment, 2) . ".");
+
+    return redirect()->back();
+}
+
 
 }

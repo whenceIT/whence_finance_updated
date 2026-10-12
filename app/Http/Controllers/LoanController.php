@@ -3373,7 +3373,7 @@ $vehicle->save();
             $loan->expected_maturity_date = $next_payment;
             $loan->save();
 
-            $total_interest = $loan->principal * 0.4;
+            
             $payment_detail = new PaymentDetail();
             $payment_detail->payment_type_id = 3; 
             $payment_detail->account_number = $request->account_number;
@@ -3443,7 +3443,7 @@ $vehicle->save();
                 $date = explode('-', $request->disbursement_date);
                 $loan_transaction->year = $date[0];
                 $loan_transaction->month = $date[1];
-                $loan_transaction->debit = $total_interest;
+                $loan_transaction->debit = $loan->principal * 0.4;
                 $loan_transaction->save();
             }
 
