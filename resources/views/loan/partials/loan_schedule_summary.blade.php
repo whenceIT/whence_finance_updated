@@ -75,13 +75,13 @@
         Record bulk monthly repayments (K{{ number_format($monthlyAmount, 2) }}/month)
     </small>
 
-    <!-- <button type="button"
+    <button type="button"
             class="btn btn-info btn-sm"
             style="margin-left: 10px;"
             data-toggle="modal"
             data-target="#restructureModal">
         <i class="fa fa-random"></i> Restructure Tenure
-    </button> -->
+    </button>
 </div>
 
 <!-- Bulk Repayment Modal -->

@@ -47,6 +47,9 @@ class RecoveryTransactionController extends Controller
         $role = UserRole::where('user_id', $userId)->first();
         $offices = Office::all();
 
+        $month = request('month');
+        $year  = request('year');
+
         // Build the base query with all necessary relationships
         $query = LoanTransaction::with([
             'loan.client',
@@ -58,6 +61,16 @@ class RecoveryTransactionController extends Controller
         ])
         ->where('is_recovery', 1)
         ->orderBy('created_at', 'desc');
+
+        // Apply month/year filter when provided
+        if ($month && $year) {
+            $query->whereYear('created_at', $year)
+                  ->whereMonth('created_at', $month);
+        } elseif ($year) {
+            $query->whereYear('created_at', $year);
+        } elseif ($month) {
+            $query->whereMonth('created_at', $month);
+        }
 
         // Apply role-based filtering
         // if ($role && $role->role_id == "6") {
