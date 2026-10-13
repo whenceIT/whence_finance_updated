@@ -2318,6 +2318,17 @@ Route::group(['prefix' => 'recovery'], function () {
         Route::any('specialist_report/excel','Recoveries\RecoveryReportController@specialistsExcel');
     });
 
+    // ── Recovery Costs (Department Expenses) ──────────────────────────
+    Route::group(['prefix' => 'costs'], function () {
+        Route::get('/',               'Recoveries\RecoveryCostController@index')->name('recovery.costs.index');
+        Route::get('/create',         'Recoveries\RecoveryCostController@create')->name('recovery.costs.create');
+        Route::post('/store',         'Recoveries\RecoveryCostController@store')->name('recovery.costs.store');
+        Route::get('/{id}/show',      'Recoveries\RecoveryCostController@show')->name('recovery.costs.show');
+        Route::get('/{id}/edit',      'Recoveries\RecoveryCostController@edit')->name('recovery.costs.edit');
+        Route::post('/{id}/update',   'Recoveries\RecoveryCostController@update')->name('recovery.costs.update');
+        Route::post('/{id}/delete',   'Recoveries\RecoveryCostController@destroy')->name('recovery.costs.destroy');
+    });
+
 });
 
 Route::get('/offices', [OfficeController::class, 'getOffices']);

@@ -1939,6 +1939,11 @@ use App\Models\Ticket;
                                     @endif
                                 </ul>
                             </li>
+                            <li class="@if(Request::is('recovery/costs*')) active @endif">
+                                <a href="{{ url('recovery/costs') }}">
+                                    <i class="fa fa-money"></i> Dept. Expenses &amp; Costs
+                                </a>
+                            </li>
                             <li class="@if(Request::is('loan/recovery/ledger')) active @endif">
                                 <a href="{{ url('loan/recovery/ledger') }}">
                                     <i class="fa fa-book"></i> Recovery Ledger
