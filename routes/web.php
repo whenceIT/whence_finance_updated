@@ -557,6 +557,7 @@ Route::group(['prefix' => 'payrollloans'], function () {
     Route::get('pending-disbursement', 'PayrollloanController@pendingDisbursementLoans')->name('payrollloans.pending-disbursement');
     Route::get('closed', 'PayrollloanController@closedLoans')->name('payrollloans.closed');
     Route::post('{loanId}/bulk-repayments', 'PayrollloanController@bulkRepayments')->name('payrollloans.bulk-repayments');
+    Route::post('{loanId}/restructure', 'PayrollloanController@restructure')->name('payrollloans.restructure');
 });
 
 Route::group(['prefix' => 'payroll'], function () {
@@ -1052,7 +1053,7 @@ Route::group(['prefix' => 'loan'], function () {
     Route::get('branch_loans', 'LoanController@branch_index');
     Route::get('reloan_approvals', 'LoanController@reloan_approvals');
     Route::get('transaction_approvals', 'LoanController@transaction_approvals');
-    Route::get('approved_recoveries', 'Recoveries\RecoveryTransactionController@approvedRecoveries');
+    Route::get('approved_recoveries', 'Recoveries\RecoveryTransactionController@approvedRecoveries')->name('recoveries.transactions.approved');
     Route::get('recovery/ledger', 'Recoveries\RecoveryTransactionController@recoveryLedger');
     Route::get('recoveries_approvals', 'Recoveries\RecoveryCaseController@recoveriesApprovals');
     Route::get('recoveries_approve/{id}', 'Recoveries\RecoveryCaseController@recoveriesApprove');
@@ -2315,6 +2316,17 @@ Route::group(['prefix' => 'recovery'], function () {
         Route::any('specialist_report',     'Recoveries\RecoveryReportController@specialists');
         Route::any('specialist_report/pdf', 'Recoveries\RecoveryReportController@specialistsPdf');
         Route::any('specialist_report/excel','Recoveries\RecoveryReportController@specialistsExcel');
+    });
+
+    // ── Recovery Costs (Department Expenses) ──────────────────────────
+    Route::group(['prefix' => 'costs'], function () {
+        Route::get('/',               'Recoveries\RecoveryCostController@index')->name('recovery.costs.index');
+        Route::get('/create',         'Recoveries\RecoveryCostController@create')->name('recovery.costs.create');
+        Route::post('/store',         'Recoveries\RecoveryCostController@store')->name('recovery.costs.store');
+        Route::get('/{id}/show',      'Recoveries\RecoveryCostController@show')->name('recovery.costs.show');
+        Route::get('/{id}/edit',      'Recoveries\RecoveryCostController@edit')->name('recovery.costs.edit');
+        Route::post('/{id}/update',   'Recoveries\RecoveryCostController@update')->name('recovery.costs.update');
+        Route::post('/{id}/delete',   'Recoveries\RecoveryCostController@destroy')->name('recovery.costs.destroy');
     });
 
 });

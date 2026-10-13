@@ -442,9 +442,8 @@ public function bulkRepayments(Request $request, $loanId)
     $tenure = $loan->loan_term;
     if ($loan->schedule_type === 'old') {
         $oldRow = \App\Models\PayrollLoanOldSchedule::where('disbursement_amount', $loan->principal)->first();
-        $colMap = [9 => 'repayment_9_months', 12 => 'repayment_12_months', 18 => 'repayment_18_months', 24 => 'repayment_24_months'];
-        $col = $colMap[$tenure] ?? null;
-        $monthlyAmount = ($oldRow && $col) ? $oldRow->$col : null;
+        $col = 'repayment_' . $tenure . '_months';
+        $monthlyAmount = $oldRow ? ($oldRow->$col ?? null) : null;
     } else {
         $schedule = \DB::table('payroll_loan_schedules')
             ->where('loan_amount', $loan->principal)
@@ -535,6 +534,86 @@ public function closedLoans(Request $request)
 
     return view('payroll_loans.closed', compact('loans'));
 }
+
+    public function restructure(Request $request, $loanId)
+    {
+        $request->validate([
+            'tenure' => 'nullable|integer|min:1|max:60',
+            'new_long_term' => 'nullable|integer|min:1|max:60',
+            'schedule_type' => 'required|in:old,new',
+            'monthly_amount' => 'nullable|numeric|min:0.01',
+        ]);
+
+        $loan = Loan::findOrFail($loanId);
+        $tenure = (int) ($request->new_long_term ?? $request->tenure);
+        if (!$tenure || $tenure < 1) {
+            return back()->with('error', 'Please provide a valid tenure (enter a new tenure or adjust the monthly amount).');
+        }
+        $scheduleType = $request->schedule_type;
+        $monthlyAmount = null;
+        $totalRepayment = null;
+        $scheduleLabel = $scheduleType === 'old' ? 'Old Schedule' : 'New Schedule';
+
+        if ($request->filled('monthly_amount') && $request->monthly_amount) {
+            $monthlyAmount = (float) $request->monthly_amount;
+        } else {
+            if ($scheduleType === 'old') {
+                $col = 'repayment_' . $tenure . '_months';
+                $oldRow = \App\Models\PayrollLoanOldSchedule::where('disbursement_amount', $loan->principal)->first();
+                $monthlyAmount = $oldRow ? ($oldRow->$col ?? null) : null;
+            } else {
+                $schedule = \DB::table('payroll_loan_schedules')
+                    ->where('loan_amount', $loan->principal)
+                    ->first();
+                $monthlyAmount = $schedule ? ($schedule->{"months_$tenure"} ?? null) : null;
+            }
+        }
+
+        if (!$monthlyAmount) {
+            return back()->with('error', 'No schedule found for the selected tenure and loan amount.');
+        }
+
+        $totalRepayment = $monthlyAmount * $tenure;
+
+        \DB::transaction(function () use ($loan, $tenure, $scheduleType, $monthlyAmount, $scheduleLabel) {
+            $loan->loan_term = $tenure;
+            $loan->schedule_type = $scheduleType;
+            $loan->restructured_at = now();
+            $loan->save();
+
+            if ($scheduleType === 'old') {
+                $col = 'repayment_' . $tenure . '_months';
+                $oldRow = \App\Models\PayrollLoanOldSchedule::where('disbursement_amount', $loan->principal)->first();
+                if ($oldRow) {
+                    $oldRow->$col = $monthlyAmount;
+                    $oldRow->save();
+                } else {
+                    $oldRow = new \App\Models\PayrollLoanOldSchedule();
+                    $oldRow->disbursement_amount = $loan->principal;
+                    $oldRow->$col = $monthlyAmount;
+                    $oldRow->save();
+                }
+            } else {
+                $existing = \DB::table('payroll_loan_schedules')
+                    ->where('loan_amount', $loan->principal)
+                    ->first();
+                if ($existing) {
+                    \DB::table('payroll_loan_schedules')
+                        ->where('loan_amount', $loan->principal)
+                        ->update(['months_' . $tenure => $monthlyAmount]);
+                } else {
+                    \DB::table('payroll_loan_schedules')->insert([
+                        'loan_amount' => $loan->principal,
+                        'months_' . $tenure => $monthlyAmount,
+                    ]);
+                }
+            }
+        });
+
+        Flash::success("Loan restructured to {$tenure} months ({$scheduleLabel}). New monthly amount: K" . number_format($monthlyAmount, 2) . ", Total: K" . number_format($totalRepayment, 2) . ".");
+
+        return redirect()->back();
+    }
 
 
 }

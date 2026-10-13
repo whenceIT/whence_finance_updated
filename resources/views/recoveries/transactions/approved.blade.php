@@ -119,6 +119,51 @@
     </div>
 </div>
 
+<!-- Filter by Month -->
+<div class="box box-primary" style="margin-bottom: 20px;">
+    <div class="box-header with-border">
+        <h3 class="box-title">
+            <i class="fa fa-filter"></i> Filter by Month
+        </h3>
+    </div>
+    <div class="box-body">
+        <form method="GET" action="{{ route('recoveries.transactions.approved') }}" class="form-inline">
+            <div class="form-group">
+                <label for="month" class="control-label">Month:</label>
+                <select name="month" id="month" class="form-control">
+                    <option value="">All Months</option>
+                    @for($m = 1; $m <= 12; $m++)
+                        <option value="{{ $m }}" {{ request('month') == $m ? 'selected' : '' }}>
+                            {{ date('M', mktime(0, 0, 0, $m, 1)) }}
+                        </option>
+                    @endfor
+                </select>
+            </div>
+            <div class="form-group" style="margin-left: 15px;">
+                <label for="year" class="control-label">Year:</label>
+                <select name="year" id="year" class="form-control">
+                    <option value="">All Years</option>
+                    @for($y = date('Y'); $y >= 2020; $y--)
+                        <option value="{{ $y }}" {{ request('year') == $y ? 'selected' : '' }}>
+                            {{ $y }}
+                        </option>
+                    @endfor
+                </select>
+            </div>
+            <div class="form-group" style="margin-left: 15px;">
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="fa fa-filter"></i> Apply Filter
+                </button>
+                @if(request('month') || request('year'))
+                    <a href="{{ route('recoveries.transactions.approved') }}" class="btn btn-default btn-sm">
+                        <i class="fa fa-refresh"></i> Reset
+                    </a>
+                @endif
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- Transactions grouped by Office -->
 @if(count($transactionsByOffice) > 0)
     @foreach($transactionsByOffice as $officeName => $officeTransactions)

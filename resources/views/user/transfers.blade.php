@@ -52,22 +52,7 @@ Client Transfers
             <div class="form-group">
                 <label class="control-label col-md-2">Select Clients</label>
                 <div class="col-md-6">
-                    <select name="clients[]" class="form-control select2" multiple required>
-                        @foreach(\App\Models\Client::where('status', 'active')
-                            ->where('office_id',$userBranch)
-                            ->where('blacklisted', 0)
-                            ->get() as $key)
-
-                            <option value="{{$key->id}}">
-                                @if($key->client_type=="individual")
-                                    {{$key->first_name}} {{$key->middle_name}} {{$key->last_name}}
-                                    ({{$key->account_no}}) ({{$key->nrc_number}})
-                                @else
-                                    {{$key->full_name}} ({{$key->account_no}})
-                                @endif
-                            </option>
-
-                        @endforeach
+                    <select name="clients[]" id="clients-select" class="form-control select2" multiple required>
                     </select>
                     <small class="text-muted">
                         Select the clients you want to move. Hold Ctrl (or Cmd on Mac) to select multiple clients.
@@ -85,5 +70,40 @@ Client Transfers
     </form>
 </div>
 
+@endsection
+
+@section('footer-scripts')
+    <script>
+        $(document).ready(function () {
+            // Initialize Select2 with AJAX for clients dropdown
+            $('#clients-select').select2({
+                placeholder: "Select clients...",
+                allowClear: true,
+                multiple: true,
+                ajax: {
+                    url: '/ajax/clients',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term,
+                            page: params.page || 1
+                        };
+                    },
+                    processResults: function (data, params) {
+                        params.page = params.page || 1;
+                        return {
+                            results: data.items,
+                            pagination: {
+                                more: (params.page * 30) < data.total_count
+                            }
+                        };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 2
+            });
+        });
+    </script>
 @endsection
 

@@ -2,13 +2,10 @@
     $tenure = $loan->loan_term;
 
     if ($loan->schedule_type === 'old') {
-        // Old schedule: lookup from payroll_loan_old_schedule
         $oldRow = \App\Models\PayrollLoanOldSchedule::where('disbursement_amount', $loan->principal)->first();
-        $colMap = [9 => 'repayment_9_months', 12 => 'repayment_12_months', 18 => 'repayment_18_months', 24 => 'repayment_24_months'];
-        $col = $colMap[$tenure] ?? null;
-        $monthlyAmount = ($oldRow && $col) ? $oldRow->$col : null;
+        $col = 'repayment_' . $tenure . '_months';
+        $monthlyAmount = $oldRow ? ($oldRow->$col ?? null) : null;
     } else {
-        // New schedule: lookup from payroll_loan_schedules
         $schedule = DB::table('payroll_loan_schedules')
             ->where('loan_amount', $loan->principal)
             ->first();
@@ -22,6 +19,7 @@
         ->sum('credit');
     $paidPercentage = $totalRepayment ? min(100, round(($totalPaid / $totalRepayment) * 100)) : 0;
     $scheduleLabel  = ($loan->schedule_type === 'old') ? 'Old Schedule' : 'New Schedule';
+    $restructuredAt = $loan->restructured_at ? \Carbon\Carbon::parse($loan->restructured_at)->format('d M Y H:i') : null;
 @endphp
 
 @if($monthlyAmount)
@@ -64,7 +62,8 @@
 {{-- ══════════════════════════════════════════════════════
      BULK REPAYMENTS SECTION
 ══════════════════════════════════════════════════════ --}}
-@if($monthlyAmount)
+
+
 <div style="margin-top:20px; border-top:1px solid #eee; padding-top:15px;">
     <button type="button"
             class="btn btn-warning btn-sm"
@@ -75,6 +74,14 @@
     <small class="text-muted" style="margin-left:8px;">
         Record bulk monthly repayments (K{{ number_format($monthlyAmount, 2) }}/month)
     </small>
+
+    <button type="button"
+            class="btn btn-info btn-sm"
+            style="margin-left: 10px;"
+            data-toggle="modal"
+            data-target="#restructureModal">
+        <i class="fa fa-random"></i> Restructure Tenure
+    </button>
 </div>
 
 <!-- Bulk Repayment Modal -->
@@ -133,6 +140,81 @@
     </div>
 </div>
 
+<!-- Restructure Loan Tenure Modal -->
+<div class="modal fade" id="restructureModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#17a2b8; color:#fff;">
+                <button type="button" class="close" data-dismiss="modal" style="color:#fff;">
+                    <span>&times;</span>
+                </button>
+                <h4 class="modal-title">
+                    <i class="fa fa-random"></i> Restructure Loan Tenure
+                </h4>
+            </div>
+
+            <form method="POST" action="{{ route('payrollloans.restructure', $loan->id) }}">
+                @csrf
+                <input type="hidden" name="monthly_amount" id="monthlyAmountHidden" value="{{ $monthlyAmount }}">
+                <input type="hidden" name="tenure" id="tenureHidden" value="{{ $tenure }}">
+                <input type="hidden" name="schedule_type" value="{{ $loan->schedule_type }}">
+                <div class="modal-body">
+                    <div class="alert alert-info" style="font-size:13px;">
+                        <strong>Current:</strong>
+                        <ul style="font-size:14px; margin:5px 0;">
+                            <li>Tenure: <span id="currentTenureDisplay">{{ $tenure }}</span> months (<span id="currentScheduleLabel">{{$scheduleLabel}}</span>)</li>
+                            <li>
+                                Monthly Amount: K
+                                <input type="number"
+                                       id="currentMonthlyInput"
+                                       class="form-control form-control-sm d-inline-block"
+                                       style="width:120px; display:inline-block; vertical-align:middle;"
+                                       value="{{ $monthlyAmount }}"
+                                       step="0.01"
+                                       min="0.01"
+                                       required>
+                            </li>
+                            <li>
+                                New Tenure (months):
+                                <input type="number"
+                                       name="new_long_term"
+                                       id="newLongTermInput"
+                                       class="form-control form-control-sm d-inline-block"
+                                       style="width:80px; display:inline-block; vertical-align:middle;"
+                                       value="{{ $tenure }}"
+                                       min="1"
+                                       max="60"
+                                       step="1">
+                            </li>
+                            <li>Total Repayment: K{{ number_format($totalRepayment, 2) }}</li>
+                        </ul>
+                        <small class="text-muted" style="display:block; margin-top:5px;">
+                            Adjust the monthly amount or enter a new tenure below.
+                            A schedule entry will be added if none exists for the new tenure.
+                        </small>
+                    </div>
+
+                    <div id="preview" style="display:none; margin-top:10px; padding:10px; background:#f8f9fa; border-radius:4px;">
+                        <strong>Preview (Before Save):</strong>
+                        <ul style="font-size:14px; margin:5px 0;">
+                            <li>Tenure: <span id="previewTenure">-</span> months</li>
+                            <li>Monthly Amount: <span id="previewMonthly">-</span></li>
+                            <li>Total Repayment: <span id="previewTotal">-</span></li>
+                        </ul>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-info">
+                        <i class="fa fa-check"></i> Restructure Loan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 (function () {
     var monthly     = {{ $monthlyAmount }};
@@ -165,5 +247,70 @@
         });
     }
 })();
+
+(function () {
+    var totalRepayment = {{ $totalRepayment ?? 0 }};
+    var monthlyInput   = document.getElementById('currentMonthlyInput');
+    var tenureDisplay  = document.getElementById('currentTenureDisplay');
+    var newLongTermInput = document.getElementById('newLongTermInput');
+
+    var previewTenure   = document.getElementById('previewTenure');
+    var previewMonthly  = document.getElementById('previewMonthly');
+    var previewTotal    = document.getElementById('previewTotal');
+    var previewDiv      = document.getElementById('preview');
+
+    var tenureHidden      = document.getElementById('tenureHidden');
+    var monthlyAmountHidden = document.getElementById('monthlyAmountHidden');
+
+    function recalculateTenure() {
+        if (!monthlyInput || !tenureDisplay) return;
+
+        var monthly = parseFloat(monthlyInput.value);
+        if (!monthly || monthly <= 0 || !totalRepayment || totalRepayment <= 0) {
+            tenureDisplay.textContent = '-';
+            if (previewTenure) previewTenure.textContent = '-';
+            if (previewMonthly) previewMonthly.textContent = '-';
+            if (previewTotal) previewTotal.textContent = '-';
+            if (tenureHidden) tenureHidden.value = '';
+            if (monthlyAmountHidden) monthlyAmountHidden.value = '';
+            return;
+        }
+
+        var tenure = Math.ceil(totalRepayment / monthly);
+        var monthlyFormatted = 'K' + monthly.toLocaleString('en', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        var totalFormatted   = 'K' + totalRepayment.toLocaleString('en', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+        tenureDisplay.textContent = tenure;
+
+        if (previewTenure) previewTenure.textContent = tenure;
+        if (previewMonthly) previewMonthly.textContent = monthlyFormatted;
+        if (previewTotal) previewTotal.textContent = totalFormatted;
+        if (previewDiv) previewDiv.style.display = 'block';
+
+        if (tenureHidden) tenureHidden.value = tenure;
+        if (monthlyAmountHidden) monthlyAmountHidden.value = monthly;
+    }
+
+    if (monthlyInput) {
+        monthlyInput.addEventListener('input', recalculateTenure);
+        recalculateTenure();
+    }
+
+    if (newLongTermInput) {
+        newLongTermInput.addEventListener('input', function () {
+            var newTenure = parseInt(this.value);
+            if (!newTenure || isNaN(newTenure)) return;
+
+            if (tenureHidden) tenureHidden.value = newTenure;
+            if (previewTenure) previewTenure.textContent = newTenure;
+
+            var monthly = parseFloat(monthlyInput ? monthlyInput.value : 0);
+            if (monthly && monthly > 0) {
+                if (previewMonthly) previewMonthly.textContent = 'K' + monthly.toLocaleString('en', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                if (previewTotal) previewTotal.textContent = 'K' + (monthly * newTenure).toLocaleString('en', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                if (previewDiv) previewDiv.style.display = 'block';
+            }
+        });
+    }
+})();
 </script>
-@endif

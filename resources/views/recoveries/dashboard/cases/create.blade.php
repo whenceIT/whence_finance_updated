@@ -37,16 +37,15 @@
                         <div class="col-md-6">
                             <div class="form-group {{ $errors->has('loan_id') ? 'has-error' : '' }}">
                                 <label>Loan <span class="text-danger">*</span></label>
-                                @php $loans = \App\Models\Loan::with('client')->orderBy('id','desc')->get(); @endphp
                                 <select name="loan_id" class="form-control" required>
                                     <option value="">— Select Loan —</option>
                                     @foreach($loans as $loan)
                                     <option value="{{ $loan->id }}" {{ old('loan_id') == $loan->id ? 'selected' : '' }}>
                                         {{ $loan->loan_id ?? 'Loan #'.$loan->id }}
                                         &mdash;
-                                        {{ ($loan->client->client_type ?? '') === 'business'
-                                            ? ($loan->client->full_name ?? '')
-                                            : trim(($loan->client->first_name ?? '') . ' ' . ($loan->client->last_name ?? '')) }}
+                                        {{ ($loan->client_type ?? '') === 'business'
+                                            ? ($loan->first_name ?? '')
+                                            : trim(($loan->first_name ?? '') . ' ' . ($loan->last_name ?? '')) }}
                                     </option>
                                     @endforeach
                                 </select>

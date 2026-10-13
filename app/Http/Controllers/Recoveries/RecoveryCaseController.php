@@ -185,6 +185,10 @@ class RecoveryCaseController extends Controller
             $categories = RecoveryCase::CATEGORIES;
             Log::info('Loading create case form with optimized loan query');
 
+            $user = Sentinel::getUser();
+            $role = UserRole::where('user_id', $user->id)->first();
+            
+            // Build the base query for loans
             $loans = DB::table('loans')
                 ->select('loans.*', 'clients.first_name', 'clients.last_name')
                 ->leftJoin('clients', 'loans.client_id', '=', 'clients.id')
@@ -194,8 +198,19 @@ class RecoveryCaseController extends Controller
                 ->whereNotIn('loans.id', function ($query) {
                     $query->select('loan_id')->from('recovery_cases')
                         ->whereNotNull('loan_id');
-                })
-                ->get();
+                });
+
+            // Apply role-based filtering
+            if ($role && $role->role_id == 4) {
+                // Role 4: Office manager - see loans where office_id = their office_id
+                $loans->where('loans.office_id', $user->office_id);
+            } elseif ($role && $role->role_id == 3) {
+                // Role 3: Loan Consultant - see loans where loan_officer_id = their id
+                $loans->where('loans.loan_officer_id', $user->id);
+            }
+            // Other roles see all loans
+
+            $loans = $loans->get();
 
             $offices = Office::whereNotIn('id', [67, 69,70,71,72,73,74,75,76,77,78]) 
                 ->orderBy('name')

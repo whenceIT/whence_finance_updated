@@ -30,6 +30,7 @@ class Loan extends Model
         'vehicle_value',
         'ltv_percent',
         'requested_amount',
+        'restructured_at',
     ];
 
     protected $casts = [
@@ -37,6 +38,7 @@ class Loan extends Model
         'shared'           => 'integer',
         'disbursement_date' => 'datetime',
         'final_due_date'   => 'date',
+        'restructured_at'  => 'datetime',
     ];
 
     public function charges()

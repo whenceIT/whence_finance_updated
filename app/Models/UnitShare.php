@@ -14,6 +14,7 @@ class UnitShare extends Model
         'unit',
         'amount',
         'loan_id',
+        'recovery_case_id',
         'loan_txn_id',
         'office_id',
         'user_id',
@@ -48,6 +49,11 @@ class UnitShare extends Model
     public function loan(): BelongsTo
     {
         return $this->belongsTo(Loan::class);
+    }
+
+    public function recoveryCase(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\RecoveryCase::class, 'recovery_case_id');
     }
 
     public function loanTransaction(): BelongsTo

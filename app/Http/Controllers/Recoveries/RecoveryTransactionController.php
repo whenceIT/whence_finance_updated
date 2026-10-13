@@ -47,6 +47,9 @@ class RecoveryTransactionController extends Controller
         $role = UserRole::where('user_id', $userId)->first();
         $offices = Office::all();
 
+        $month = request('month');
+        $year  = request('year');
+
         // Build the base query with all necessary relationships
         $query = LoanTransaction::with([
             'loan.client',
@@ -59,15 +62,25 @@ class RecoveryTransactionController extends Controller
         ->where('is_recovery', 1)
         ->orderBy('created_at', 'desc');
 
-        // Apply role-based filtering
-        if ($role && $role->role_id == "6") {
-            // Province manager - see all transactions in their province
-            $officeIds = Office::where('province_id', $province_id)->pluck('id');
-            $query->whereIn('office_id', $officeIds);
-        } elseif (!Sentinel::hasAccess('settings')) {
-            // Regular user - see only their office transactions
-            $query->where('office_id', $office_id);
+        // Apply month/year filter when provided
+        if ($month && $year) {
+            $query->whereYear('created_at', $year)
+                  ->whereMonth('created_at', $month);
+        } elseif ($year) {
+            $query->whereYear('created_at', $year);
+        } elseif ($month) {
+            $query->whereMonth('created_at', $month);
         }
+
+        // Apply role-based filtering
+        // if ($role && $role->role_id == "6") {
+        //     // Province manager - see all transactions in their province
+        //     $officeIds = Office::where('province_id', $province_id)->pluck('id');
+        //     $query->whereIn('office_id', $officeIds);
+        // } elseif (!Sentinel::hasAccess('settings')) {
+        //     // Regular user - see only their office transactions
+        //     $query->where('office_id', $office_id);
+        // }
         // Admin (settings access) sees all transactions
 
         $transactions = $query->get();

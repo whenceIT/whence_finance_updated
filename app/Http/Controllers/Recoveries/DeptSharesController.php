@@ -21,12 +21,11 @@ class DeptSharesController extends Controller
         $totalLoans = $unitShares->pluck('loan_id')->filter()->unique()->count();
 
         return view('recoveries.dept-shares', [
-            'unitShares'   => $unitShares,
+            'unitShares'     => $unitShares,
             'totalUnitShare' => $totalUnitShare,
-            'withLoan'     => $withLoan,
-            'totalLoans'   => $totalLoans,
-            'loans'        => \App\Models\Loan::with(['client', 'office'])
-                ->whereIn('status', ['disbursed', 'closed'])
+            'withLoan'       => $withLoan,
+            'totalLoans'     => $totalLoans,
+            'cases'          => \App\Models\RecoveryCase::with(['client', 'loan', 'originBranch'])
                 ->orderByDesc('id')
                 ->limit(500)
                 ->get(),
@@ -36,23 +35,26 @@ class DeptSharesController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'amount'  => 'required|numeric|min:0',
-            'loan_id' => 'nullable|integer|exists:loans,id',
-            'unit'    => 'nullable|string|max:255',
-            'notes'   => 'nullable|string',
+            'amount'             => 'required|numeric|min:0',
+            'recovery_case_id'   => 'nullable|integer|exists:recovery_cases,id',
+            'unit'               => 'nullable|string|max:255',
+            'notes'              => 'nullable|string',
         ]);
 
-        $loan = $validated['loan_id']
-            ? \App\Models\Loan::find($validated['loan_id'])
-            : null;
+        $loan = null;
+        if (!empty($validated['recovery_case_id'])) {
+            $case = \App\Models\RecoveryCase::find($validated['recovery_case_id']);
+            $loan = $case?->loan;
+        }
 
         UnitShare::create([
-            'unit'      => $validated['unit'] ?? 'unit_share',
-            'amount'    => $validated['amount'],
-            'loan_id'   => $loan?->id,
-            'office_id' => $loan?->office_id ?? Sentinel::getUser()->office_id,
-            'user_id'   => Sentinel::getUser()->id,
-            'notes'     => $validated['notes'] ?? null,
+            'unit'             => $validated['unit'] ?? 'unit_share',
+            'amount'           => $validated['amount'],
+            'loan_id'          => $loan?->id,
+            'recovery_case_id' => $validated['recovery_case_id'] ?? null,
+            'office_id'        => $loan?->office_id ?? Sentinel::getUser()->office_id,
+            'user_id'          => Sentinel::getUser()->id,
+            'notes'            => $validated['notes'] ?? null,
         ]);
 
         return response()->json(['message' => 'Unit Share recorded successfully']);

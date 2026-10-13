@@ -183,23 +183,25 @@
             <form id="unitShareForm">
                 <div class="modal-body">
                     <div class="form-group">
-                        <label>Loan <span class="text-muted">(optional)</span></label>
-                        <select name="loan_id" id="loan_id" class="form-control select2" style="width:100%">
-                            <option value="">— Select Loan —</option>
-                            @foreach($loans as $loanOption)
+                        <label>Case <span class="text-muted">(Required)</span></label>
+                        <select name="recovery_case_id" id="recovery_case_id" class="form-control select2-case" style="width:100%" required>
+                            <option value="">— Select Case —</option>
+                            @foreach($cases as $caseOption)
                                 @php
-                                    $loanClientName = $loanOption->client
-                                        ? trim($loanOption->client->first_name . ' ' . $loanOption->client->last_name)
+                                    $caseClientName = $caseOption->client
+                                        ? trim($caseOption->client->first_name . ' ' . $caseOption->client->last_name)
                                         : '';
                                 @endphp
-                                <option value="{{ $loanOption->id }}">
-                                    #{{ $loanOption->id }}
-                                    {{ $loanOption->account_number ? '('.$loanOption->account_number.')' : '' }}
-                                    @if($loanClientName !== '') — {{ $loanClientName }} @endif
-                                    @if($loanOption->office) — {{ $loanOption->office->name }} @endif
+                                <option value="{{ $caseOption->id }}"
+                                        data-loan-id="{{ $caseOption->loan_id ?? '' }}">
+                                    {{ $caseOption->case_number ?? '#'.$caseOption->id }}
+                                    @if($caseClientName !== '') — {{ $caseClientName }} @endif
+                                    @if($caseOption->originBranch) — {{ $caseOption->originBranch->name }} @endif
+                                    ({{ \App\Models\RecoveryCase::CATEGORIES[$caseOption->category] ?? $caseOption->category }})
                                 </option>
                             @endforeach
                         </select>
+                        <small class="text-muted">Selecting a case will auto-fill the loan if not set.</small>
                     </div>
                     <div class="form-group">
                         <label>Unit</label>
@@ -277,23 +279,25 @@ $(function() {
     }
 });
 
-var $loanSelect = $('#loan_id');
+var $caseSelect = $('#recovery_case_id');
 
 $('#unitShareModal').on('shown.bs.modal', function() {
-    if (typeof $.fn.select2 !== 'undefined' && !$loanSelect.hasClass('select2-hidden-accessible')) {
-        $loanSelect.select2({
-            placeholder: 'Search by loan #, account no., client or branch...',
-            allowClear: true,
-            width: '100%',
-            dropdownParent: $('#unitShareModal .modal-body'),
-            minimumInputLength: 0
-        });
+    if (typeof $.fn.select2 !== 'undefined') {
+        if (!$caseSelect.hasClass('select2-hidden-accessible')) {
+            $caseSelect.select2({
+                placeholder: 'Search by case number, client or branch...',
+                allowClear: true,
+                width: '100%',
+                dropdownParent: $('#unitShareModal .modal-body'),
+                minimumInputLength: 0
+            });
+        }
     }
 });
 
 $('#unitShareModal').on('hidden.bs.modal', function() {
-    if ($loanSelect.hasClass('select2-hidden-accessible')) {
-        $loanSelect.select2('destroy');
+    if ($caseSelect.hasClass('select2-hidden-accessible')) {
+        $caseSelect.select2('destroy');
     }
 });
 </script>
