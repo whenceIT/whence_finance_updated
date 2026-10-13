@@ -1053,7 +1053,7 @@ Route::group(['prefix' => 'loan'], function () {
     Route::get('branch_loans', 'LoanController@branch_index');
     Route::get('reloan_approvals', 'LoanController@reloan_approvals');
     Route::get('transaction_approvals', 'LoanController@transaction_approvals');
-    Route::get('approved_recoveries', 'Recoveries\RecoveryTransactionController@approvedRecoveries');
+    Route::get('approved_recoveries', 'Recoveries\RecoveryTransactionController@approvedRecoveries')->name('recoveries.transactions.approved');
     Route::get('recovery/ledger', 'Recoveries\RecoveryTransactionController@recoveryLedger');
     Route::get('recoveries_approvals', 'Recoveries\RecoveryCaseController@recoveriesApprovals');
     Route::get('recoveries_approve/{id}', 'Recoveries\RecoveryCaseController@recoveriesApprove');

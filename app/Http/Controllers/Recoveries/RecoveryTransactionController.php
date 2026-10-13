@@ -117,7 +117,7 @@ class RecoveryTransactionController extends Controller
             'recovery_transaction_access'
         );
         $funds = RecoveryFund::sum('amount');
-        return view('recoveries.transactions.p', compact(
+        return view('recoveries.transactions.approved', compact(
             'transactions', 
             'transactionsByOffice', 
             'totalAmount', 
