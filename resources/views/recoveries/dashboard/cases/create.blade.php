@@ -40,12 +40,10 @@
                                 <select name="loan_id" class="form-control" required>
                                     <option value="">— Select Loan —</option>
                                     @foreach($loans as $loan)
-                                    <option value="{{ $loan->id }}" {{ old('loan_id') == $loan->id ? 'selected' : '' }}>
-                                        {{ $loan->loan_id ?? 'Loan #'.$loan->id }}
+                                    <option value="{{ $loan->id }}">
+                                        Loan #{{ $loan->id }}
                                         &mdash;
-                                        {{ ($loan->client_type ?? '') === 'business'
-                                            ? ($loan->first_name ?? '')
-                                            : trim(($loan->first_name ?? '') . ' ' . ($loan->last_name ?? '')) }}
+                                        {{ $loan->first_name. ' ' .$loan->last_name. ' ' .$loan->full_name }}
                                     </option>
                                     @endforeach
                                 </select>
