@@ -1348,7 +1348,7 @@ $cycle_date = $cycleDate->format('Y-m-d');
         $role     = \App\Models\UserRole::where('user_id', $user->id)->first();
         $roleId   = $role ? $role->role_id : null;
 
-        $clients = \App\Models\Client::where('status', 'active')->where('blacklisted', 0)->orderBy('first_name');
+        $clients = \App\Models\Client::where('office_id', $userBranch)->get();
 
 
         return view('user.transfers', compact('userBranch', 'role', 'clients'));

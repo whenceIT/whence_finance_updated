@@ -92,10 +92,8 @@ Client Transfers
                                 @foreach($clients as $client)
                                     @php
                                         $label = $client->client_type === 'individual'
-                                            ? trim($client->first_name . ' ' . $client->middle_name . ' ' . $client->last_name)
-                                              . ' (' . $client->account_no . ')'
-                                              . ($client->nrc_number ? ' (' . $client->nrc_number . ')' : '')
-                                            : $client->full_name . ' (' . $client->account_no . ')';
+                                            ? trim($client->first_name . ' ' . $client->last_name)
+                                            : $client->full_name;
                                     @endphp
                                     <li class="searchable-select__item searchable-select__item--check"
                                         data-value="{{ $client->id }}"
