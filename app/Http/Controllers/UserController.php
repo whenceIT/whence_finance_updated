@@ -1348,17 +1348,8 @@ $cycle_date = $cycleDate->format('Y-m-d');
         $role     = \App\Models\UserRole::where('user_id', $user->id)->first();
         $roleId   = $role ? $role->role_id : null;
 
-        $clientQuery = \App\Models\Client::where('status', 'active')
-                          ->where('blacklisted', 0)
-                          ->orderBy('first_name');
+        $clients = \App\Models\Client::where('status', 'active')->where('blacklisted', 0)->orderBy('first_name');
 
-        if (in_array($roleId, ['3', '4'])) {
-            // Loan Officer / Branch Manager — scope to their office only
-            $clientQuery->where('office_id', $userBranch);
-        }
-        // Roles 1 & 10 (Admin) — no scope, all clients
-
-        $clients = $clientQuery->get(['id', 'first_name', 'middle_name', 'last_name', 'full_name', 'account_no', 'nrc_number', 'client_type']);
 
         return view('user.transfers', compact('userBranch', 'role', 'clients'));
     }
