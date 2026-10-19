@@ -190,15 +190,9 @@ class RecoveryCaseController extends Controller
             
             // Build the base query for loans
             $loans = DB::table('loans')
-                ->select('loans.*', 'clients.first_name', 'clients.last_name')
+                ->select('loans.*', 'clients.first_name', 'clients.last_name', 'clients.full_name')
                 ->leftJoin('clients', 'loans.client_id', '=', 'clients.id')
-                ->whereNotNull('loans.first_repayment_date')
-                ->where('loans.status', '!=', 'closed')
-                ->whereRaw("DATE(loans.first_repayment_date) <= ?", [Carbon::today()->subDays(7)->toDateString()])
-                ->whereNotIn('loans.id', function ($query) {
-                    $query->select('loan_id')->from('recovery_cases')
-                        ->whereNotNull('loan_id');
-                });
+                ->where('loans.status', '!=', 'closed');
 
             // Apply role-based filtering
             if ($role && $role->role_id == 4) {

@@ -1444,12 +1444,18 @@ public function create()
         $user = Sentinel::getUser();
         $userId = $user->id;
         $role = UserRole::where('user_id', $userId)->first();
+        $roleId = $role ? $role->role_id : null;
         $userProvince = $user->province_id;
         $province_branches = Office::where('province_id', $userProvince)->pluck('id');
 
         $query = Client::where('status', 'active')->where('blacklisted', 0);
 
-        if ($role->role_id == '6') {
+        if (in_array($roleId, ['1', '10'])) {
+            // Admin — sees all clients, no scope
+        } elseif (in_array($roleId, ['3', '4'])) {
+            // Loan Officer / Branch Manager — scope to their office
+            $query->where('office_id', $user->office_id);
+        } elseif ($roleId == '6') {
             $query->whereIn('office_id', $province_branches);
         }
 

@@ -204,30 +204,48 @@ public function edit($id)
 
     public function update(Request $request, $id)
     {
+        $vehicle = Vehicle::findOrFail($id);
+
+        // Single-field inline AJAX update (sent as field=xxx&value=yyy)
+        if ($request->has('field') && $request->has('value')) {
+            $allowed = [
+                'make', 'model', 'year', 'color', 'registration_number',
+                'engine_number', 'chassis_number', 'mileage',
+                'fuel_type', 'transmission', 'market_value',
+            ];
+
+            $field = $request->input('field');
+
+            if (!in_array($field, $allowed)) {
+                return response()->json(['success' => false, 'message' => 'Field not editable.'], 422);
+            }
+
+            $vehicle->update([$field => $request->input('value')]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Vehicle updated successfully.',
+                'field'   => $field,
+                'value'   => $request->input('value'),
+            ]);
+        }
+
+        // Full-form fallback (not currently used from the blade but kept for safety)
         $request->validate([
-            'make' => 'required',
-        'model' => 'required',
-        'registration_number' => 'required'
-    ]);
+            'make'                => 'required',
+            'model'               => 'required',
+            'registration_number' => 'required',
+        ]);
 
-    $vehicle = Vehicle::findOrFail($id);
+        $vehicle->update($request->only([
+            'make', 'model', 'year', 'color', 'registration_number',
+            'engine_number', 'chassis_number', 'mileage',
+            'fuel_type', 'transmission', 'market_value',
+        ]));
 
-    $vehicle->update([
-        'make' => $request->make,
-        'model' => $request->model,
-        'year' => $request->year,
-        'registration_number' => $request->registration_number,
-        'market_value' => $request->market_value,
-        'color'=> $request->color,
-        'engine_number' => $request->engine_number,
-        'chassis_number'=> $request->chassis_number,
-        'insurance_policy_number' => $request->insurance_policy_number,
-        'mileage' => $request->mileage,
-    ]);
-
-    return redirect("/vehicles/{$id}")
-        ->with('success', 'Vehicle updated successfully');
-}
+        return redirect("/vehicles/{$id}")
+            ->with('success', 'Vehicle updated successfully');
+    }
 
 
 

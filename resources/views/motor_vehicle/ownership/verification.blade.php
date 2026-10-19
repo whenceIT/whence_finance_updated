@@ -1268,18 +1268,33 @@ document.addEventListener('DOMContentLoaded', function() {
                                 row.querySelector('.edit-btn').style.display = 'inline-block';
                                 
                                 // Show success message
-                                if (typeof toastr !== 'undefined') {
-                                    toastr.success('Field updated successfully!');
-                                } else {
-                                    alert('Field updated successfully!');
-                                }
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Saved!',
+                                    text: 'Field updated successfully.',
+                                    timer: 1800,
+                                    showConfirmButton: false
+                                });
                             } else {
                                 saveBtn.innerHTML = '<i class="fa fa-check"></i> Save';
-                                alert('Error: ' + (response.message || 'Failed to update'));
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Update failed',
+                                    text: response.message || 'Failed to update field.'
+                                });
                             }
                         } else {
                             saveBtn.innerHTML = '<i class="fa fa-check"></i> Save';
-                            alert('Error: Failed to save changes');
+                            var errMsg = 'Failed to save changes.';
+                            try {
+                                var errBody = JSON.parse(xhr.responseText);
+                                if (errBody && errBody.message) errMsg = errBody.message;
+                            } catch(e) {}
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: errMsg
+                            });
                         }
                     }
                 };

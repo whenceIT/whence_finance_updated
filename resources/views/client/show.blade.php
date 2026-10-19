@@ -1381,18 +1381,40 @@
                             <label for="office_id"
                                    class="control-label col-md-3">{{trans_choice('general.branch',1)}}</label>
                             <div class="col-md-9">
-				<select name="office_id" class="form-control select2" id="office_id">
-    <option></option>
+				            {{-- Hidden input that submits the selected office value --}}
+                            <input type="hidden" name="office_id" id="office_id_input"
+                                   value="{{$client->office_id}}">
 
-    @foreach(\App\Models\Office::all() as $key)
-        <option value="{{$key->id}}" {{$client->office_id == $key->id ? 'selected' : ''}}>
-            {{$key->name}}
-        </option>
-    @endforeach
-</select>
+                            <div class="searchable-select" id="office-dropdown">
+                                <div class="searchable-select__trigger" id="office-trigger" tabindex="0">
+                                    <span class="searchable-select__label" id="office-label">
+                                        @php
+                                            $selectedOffice = \App\Models\Office::find($client->office_id);
+                                        @endphp
+                                        {{ $selectedOffice ? $selectedOffice->name : 'Select branch...' }}
+                                    </span>
+                                    <span class="searchable-select__arrow">&#9660;</span>
+                                </div>
+                                <div class="searchable-select__panel" id="office-panel">
+                                    <input type="text" class="searchable-select__search" id="office-search"
+                                           placeholder="Type to search..." autocomplete="off">
+                                    <ul class="searchable-select__list" id="office-list">
+                                        @foreach(\App\Models\Office::all() as $key)
+                                            <li class="searchable-select__item {{$client->office_id == $key->id ? 'is-active' : ''}}"
+                                                data-value="{{$key->id}}"
+                                                data-label="{{$key->name}}">
+                                                {{$key->name}}
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                    <div class="searchable-select__empty" id="office-empty" style="display:none;">
+                                        No results found.
+                                    </div>
+                                </div>
                             </div>
-			</div>
-			<!-- prev staff selection 
+                            </div>
+			            </div>
+			            <!-- prev staff selection 
                         <div class="form-group">
                         <label for="staff_id" class="control-label col-md-3">{{trans_choice('general.staff',1)}}</label>
                         <div class="col-md-9">
@@ -1518,6 +1540,169 @@
 
 @endsection
 @section('footer-scripts')
+    <style>
+        .searchable-select {
+            position: relative;
+            user-select: none;
+        }
+        .searchable-select__trigger {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 12px;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            min-height: 34px;
+            font-size: 14px;
+            color: #555;
+        }
+        .searchable-select__trigger:focus {
+            outline: none;
+            border-color: #66afe9;
+            box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102,175,233,.6);
+        }
+        .searchable-select__trigger.is-selected {
+            color: #333;
+        }
+        .searchable-select__arrow {
+            font-size: 10px;
+            color: #999;
+            margin-left: 8px;
+        }
+        .searchable-select__panel {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 1060;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0 4px 8px rgba(0,0,0,.15);
+        }
+        .searchable-select__panel.is-open {
+            display: block;
+        }
+        .searchable-select__search {
+            width: 100%;
+            padding: 6px 10px;
+            border: none;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .searchable-select__list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .searchable-select__item {
+            padding: 7px 12px;
+            font-size: 14px;
+            cursor: pointer;
+            color: #333;
+        }
+        .searchable-select__item:hover,
+        .searchable-select__item.is-active {
+            background: #337ab7;
+            color: #fff;
+        }
+        .searchable-select__item.is-hidden {
+            display: none;
+        }
+        .searchable-select__empty {
+            padding: 8px 12px;
+            font-size: 13px;
+            color: #999;
+        }
+        /* Allow the panel to overflow the modal body */
+        #transfer_client_modal .modal-body,
+        #transfer_client_modal .modal-content {
+            overflow: visible;
+        }
+    </style>
+    <script>
+        // ── Office searchable dropdown ────────────────────────────────────
+        (function () {
+            var trigger = document.getElementById('office-trigger');
+            var panel   = document.getElementById('office-panel');
+            var search  = document.getElementById('office-search');
+            var empty   = document.getElementById('office-empty');
+            var labelEl = document.getElementById('office-label');
+            var hidden  = document.getElementById('office_id_input');
+            var items   = document.querySelectorAll('#office-list .searchable-select__item');
+
+            if (!trigger) return; // guard: only run if the dropdown exists on this page
+
+            function openPanel() {
+                panel.classList.add('is-open');
+                search.value = '';
+                filterItems('');
+                search.focus();
+            }
+
+            function closePanel() {
+                panel.classList.remove('is-open');
+            }
+
+            function filterItems(query) {
+                var visible = 0;
+                items.forEach(function (item) {
+                    var text = item.dataset.label.toLowerCase();
+                    if (text.indexOf(query.toLowerCase()) !== -1) {
+                        item.classList.remove('is-hidden');
+                        visible++;
+                    } else {
+                        item.classList.add('is-hidden');
+                    }
+                });
+                empty.style.display = visible === 0 ? 'block' : 'none';
+            }
+
+            trigger.addEventListener('click', function () {
+                panel.classList.contains('is-open') ? closePanel() : openPanel();
+            });
+
+            trigger.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPanel(); }
+                if (e.key === 'Escape') { closePanel(); }
+            });
+
+            search.addEventListener('input', function () {
+                filterItems(this.value);
+            });
+
+            items.forEach(function (item) {
+                item.addEventListener('click', function () {
+                    hidden.value = this.dataset.value;
+                    labelEl.textContent = this.dataset.label;
+                    trigger.classList.add('is-selected');
+                    items.forEach(function (i) { i.classList.remove('is-active'); });
+                    this.classList.add('is-active');
+                    closePanel();
+                    trigger.focus();
+                });
+            });
+
+            document.addEventListener('click', function (e) {
+                var dropdown = document.getElementById('office-dropdown');
+                var modal    = document.getElementById('transfer_client_modal');
+                // Use the modal as the boundary; fall back to document
+                var root = modal || document;
+                if (dropdown && !dropdown.contains(e.target)) {
+                    closePanel();
+                }
+            });
+        }());
+        // ─────────────────────────────────────────────────────────────────
+    </script>
     <script>
         $('#view_next_of_kin').on('shown.bs.modal', function (e) {
             var id = $(e.relatedTarget).data('id');

@@ -1343,8 +1343,15 @@ $cycle_date = $cycleDate->format('Y-m-d');
 
     public function transfers()
     {
-        $userBranch = Sentinel::getUser()->office_id;
-        return view('user.transfers', compact('userBranch'));
+        $user     = Sentinel::getUser();
+        $userBranch = $user->office_id;
+        $role     = \App\Models\UserRole::where('user_id', $user->id)->first();
+        $roleId   = $role ? $role->role_id : null;
+
+        $clients = \App\Models\Client::where('office_id', $userBranch)->get();
+
+
+        return view('user.transfers', compact('userBranch', 'role', 'clients'));
     }
 
     public function transfer_clients(Request $request)
