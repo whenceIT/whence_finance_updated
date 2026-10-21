@@ -2812,6 +2812,8 @@ function fetchGivenOutTable() {
                     )}%`;
                 }
 
+             setGaugeValue(gaugeElement, '{{ $data["pdua"] ?? 0 }}');
+
 
             
 
