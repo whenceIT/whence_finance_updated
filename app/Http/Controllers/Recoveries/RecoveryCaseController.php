@@ -610,7 +610,7 @@ class RecoveryCaseController extends Controller
             $loan_transaction->office_id = $loan->office_id;
             $loan_transaction->loan_id = $loan->id;
             $loan_transaction->reversible = 1;
-            $loan_transaction->payment_apply_to = 'debt_recovery'; // Assuming this is debt recovery
+            $loan_transaction->payment_apply_to = 'part_payment'; // Assuming this is debt recovery
             $loan_transaction->payment_detail_id = $payment_detail->id;
             $loan_transaction->transaction_type = "repayment";
             $loan_transaction->date = $payment->payment_date;

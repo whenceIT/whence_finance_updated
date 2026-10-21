@@ -47,6 +47,13 @@
             </tr>
         </tbody>
     </table>
+
+    @if($restructuredAt)
+        <span class="badge badge-warning" style="font-size:12px;">
+            <i class="fa fa-random"></i> Restructured on {{ $restructuredAt }}
+        </span>
+    @endif
+
     <div class="progress" style="height: 20px; margin-top: 15px;">
         <div class="progress-bar" role="progressbar" style="width: {{ $paidPercentage }}%;" aria-valuenow="{{ $paidPercentage }}" aria-valuemin="0" aria-valuemax="100">
             {{ $paidPercentage }}%
@@ -123,6 +130,16 @@
                         <small class="text-muted">Max: {{ $tenure }} (full tenure)</small>
                     </div>
 
+                    <div class="form-group">
+                        <label>Start Date for First Repayment</label>
+                        <input type="date"
+                               name="start_date"
+                               class="form-control"
+                               id="bulkStartDateInput"
+                               value="{{ $loan->disbursement_date ?? now()->toDateString() }}">
+                        <small class="text-muted">Leave as-is to start from the disbursement date.</small>
+                    </div>
+
                     <div id="bulkPreview" style="display:none; margin-top:10px;">
                         <strong>Preview:</strong>
                         <div id="bulkPreviewList" style="font-size:12px; margin-top:5px;"></div>
@@ -165,7 +182,7 @@
                             <li>Tenure: <span id="currentTenureDisplay">{{ $tenure }}</span> months (<span id="currentScheduleLabel">{{$scheduleLabel}}</span>)</li>
                             <li>
                                 Monthly Amount: K
-                                <input type="number"
+                                <input type="text"
                                        id="currentMonthlyInput"
                                        class="form-control form-control-sm d-inline-block"
                                        style="width:120px; display:inline-block; vertical-align:middle;"
@@ -218,11 +235,18 @@
 <script>
 (function () {
     var monthly     = {{ $monthlyAmount }};
-    var startStr    = '{{ $loan->disbursement_date ?? now()->toDateString() }}';
+    var startInput  = document.getElementById('bulkStartDateInput');
+    var startStr    = startInput ? startInput.value : '{{ $loan->disbursement_date ?? now()->toDateString() }}';
     var input       = document.getElementById('numPaymentsInput');
     var preview     = document.getElementById('bulkPreview');
     var previewList = document.getElementById('bulkPreviewList');
     var months      = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    if (startInput) {
+        startInput.addEventListener('change', function () {
+            startStr = this.value;
+        });
+    }
 
     if (input) {
         input.addEventListener('input', function () {
@@ -262,33 +286,37 @@
     var tenureHidden      = document.getElementById('tenureHidden');
     var monthlyAmountHidden = document.getElementById('monthlyAmountHidden');
 
-    function recalculateTenure() {
-        if (!monthlyInput || !tenureDisplay) return;
+    function formatMoney(v) {
+        return 'K' + v.toLocaleString('en', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
 
-        var monthly = parseFloat(monthlyInput.value);
-        if (!monthly || monthly <= 0 || !totalRepayment || totalRepayment <= 0) {
-            tenureDisplay.textContent = '-';
-            if (previewTenure) previewTenure.textContent = '-';
-            if (previewMonthly) previewMonthly.textContent = '-';
-            if (previewTotal) previewTotal.textContent = '-';
-            if (tenureHidden) tenureHidden.value = '';
-            if (monthlyAmountHidden) monthlyAmountHidden.value = '';
-            return;
-        }
+    function apply(monthly, tenure) {
+        tenure = Math.max(1, Math.min(60, Math.floor(tenure) || 1));
+        monthly = Math.max(0.01, parseFloat(monthly) || 0);
 
-        var tenure = Math.ceil(totalRepayment / monthly);
-        var monthlyFormatted = 'K' + monthly.toLocaleString('en', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        var totalFormatted   = 'K' + totalRepayment.toLocaleString('en', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-
-        tenureDisplay.textContent = tenure;
+        if (monthlyInput) monthlyInput.value = monthly.toFixed(2);
+        if (newLongTermInput) newLongTermInput.value = tenure;
+        if (tenureDisplay) tenureDisplay.textContent = tenure;
 
         if (previewTenure) previewTenure.textContent = tenure;
-        if (previewMonthly) previewMonthly.textContent = monthlyFormatted;
-        if (previewTotal) previewTotal.textContent = totalFormatted;
+        if (previewMonthly) previewMonthly.textContent = formatMoney(monthly);
+        if (previewTotal) previewTotal.textContent = formatMoney(totalRepayment);
         if (previewDiv) previewDiv.style.display = 'block';
 
         if (tenureHidden) tenureHidden.value = tenure;
         if (monthlyAmountHidden) monthlyAmountHidden.value = monthly;
+    }
+
+    function recalculateTenure() {
+        if (!monthlyInput || !totalRepayment || totalRepayment <= 0) return;
+
+        var monthly = parseFloat(monthlyInput.value);
+        if (!monthly || monthly <= 0) return;
+
+        var tenure = Math.ceil(totalRepayment / monthly);
+        monthly = totalRepayment / tenure;
+
+        apply(monthly, tenure);
     }
 
     if (monthlyInput) {
@@ -299,17 +327,11 @@
     if (newLongTermInput) {
         newLongTermInput.addEventListener('input', function () {
             var newTenure = parseInt(this.value);
-            if (!newTenure || isNaN(newTenure)) return;
+            if (!newTenure || isNaN(newTenure) || !totalRepayment || totalRepayment <= 0) return;
 
-            if (tenureHidden) tenureHidden.value = newTenure;
-            if (previewTenure) previewTenure.textContent = newTenure;
+            var monthly = totalRepayment / newTenure;
 
-            var monthly = parseFloat(monthlyInput ? monthlyInput.value : 0);
-            if (monthly && monthly > 0) {
-                if (previewMonthly) previewMonthly.textContent = 'K' + monthly.toLocaleString('en', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                if (previewTotal) previewTotal.textContent = 'K' + (monthly * newTenure).toLocaleString('en', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                if (previewDiv) previewDiv.style.display = 'block';
-            }
+            apply(monthly, newTenure);
         });
     }
 })();
