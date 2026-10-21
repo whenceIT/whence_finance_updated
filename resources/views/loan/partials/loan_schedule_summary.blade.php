@@ -182,7 +182,7 @@
                             <li>Tenure: <span id="currentTenureDisplay">{{ $tenure }}</span> months (<span id="currentScheduleLabel">{{$scheduleLabel}}</span>)</li>
                             <li>
                                 Monthly Amount: K
-                                <input type="number"
+                                <input type="text"
                                        id="currentMonthlyInput"
                                        class="form-control form-control-sm d-inline-block"
                                        style="width:120px; display:inline-block; vertical-align:middle;"
