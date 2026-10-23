@@ -1370,7 +1370,7 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
 
             function showNotification(data) {
                 // Play notification sound
-                const audio = new Audio('https://www.myinstants.com/media/sounds/cash-registere-sound-74680.mp3'); // You can replace this URL with your own sound
+                const audio = new Audio('https://www.myinstants.com/media/sounds/cash-register-sound-fx.mp3'); // You can replace this URL with your own sound
                 audio.play();
 
                 // Create the container div
@@ -1437,7 +1437,7 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
 
             function showTicketNotification(data) {
                 // Play notification sound
-                const audio = new Audio('https://www.myinstants.com/media/sounds/undertakers-bell_2UwFCIe.mp3'); // You can replace this URL with your own sound
+                const audio = new Audio('https://www.myinstants.com/media/sounds/cash-register-sound-fx.mp3'); // You can replace this URL with your own sound
                 audio.play();
 
                 // Create the container div
@@ -1504,7 +1504,7 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
 
             function showDepositNotification(data) {
                 // Play notification sound
-                const audio = new Audio('https://www.myinstants.org/media/sounds/undertakers-bell_2UwFCIe.mp3');
+                const audio = new Audio('https://www.myinstants.com/media/sounds/cash-register-sound-fx.mp3');
                 audio.play();
 
                 // Create the container div
@@ -1608,7 +1608,7 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
 
             function showNotificationTest(data) {
                 // Play notification sound
-                const audio = new Audio('https://www.myinstants.com/media/sounds/mario-jump.mp3');
+                const audio = new Audio('https://www.myinstants.com/media/sounds/cash-register-sound-fx.mp3');
                 audio.play();
 
                 // Create the container div
