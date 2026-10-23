@@ -195,13 +195,13 @@ class RecoveryCaseController extends Controller
                 ->where('loans.status', '!=', 'closed');
 
             // Apply role-based filtering
-            if ($role && $role->role_id == 4) {
-                // Role 4: Office manager - see loans where office_id = their office_id
-                $loans->where('loans.office_id', $user->office_id);
-            } elseif ($role && $role->role_id == 3) {
-                // Role 3: Loan Consultant - see loans where loan_officer_id = their id
-                $loans->where('loans.loan_officer_id', $user->id);
-            }
+            // if ($role && $role->role_id == 4) {
+            //     // Role 4: Office manager - see loans where office_id = their office_id
+            //     $loans->where('loans.office_id', $user->office_id);
+            // } elseif ($role && $role->role_id == 3) {
+            //     // Role 3: Loan Consultant - see loans where loan_officer_id = their id
+            //     $loans->where('loans.loan_officer_id', $user->id);
+            // }
             // Other roles see all loans
 
             $loans = $loans->get();
