@@ -3142,6 +3142,8 @@ $vehicle->save();
             return redirect()->back();
         }
 
+         $userId = Sentinel::getUser()->id;
+
         $rules = array(
             'disbursement_date' => 'required',
             'first_repayment_date' => 'required|after_or_equal:disbursement_date',
@@ -3160,7 +3162,9 @@ $vehicle->save();
             }
 
           //  1. Withinhere Payment Processing
-            if($loan->loan_product->id == 1 || $loan->loan_product->id == 2) {
+
+          if ($userId != 1899){
+               if($loan->loan_product->id == 1 || $loan->loan_product->id == 2) {
                  $paymentType = $request->payment_type;
                 if ($paymentType == 'mobile_money') {
                     $url = 'https://withinheremobileapi.com/api/v1/transfer/withdraw-to/mobile';
@@ -3198,6 +3202,8 @@ $vehicle->save();
                     return redirect()->back();
                 }
             }
+          }
+         
 
 
             // 2. Disbursing processing
