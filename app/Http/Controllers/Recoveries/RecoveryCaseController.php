@@ -206,7 +206,7 @@ class RecoveryCaseController extends Controller
 
             $loans = $loans->get();
 
-            $offices = Office::whereNotIn('id', [67, 69,70,71,72,73,74,75,76,77,78]) 
+            $offices = Office::whereNotIn('id', [67]) 
                 ->orderBy('name')
                 ->get();
             
