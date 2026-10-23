@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\{RecoveryCase, RecoveryPayment, RecoverySpecialistTarget, UnitShare, User};
+use App\Models\{RecoveryCase, RecoveryCost, RecoveryPayment, RecoverySpecialistTarget, UnitShare, User};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
 
@@ -31,9 +31,19 @@ class RecoveryDashboardService
         $totalCases       = (clone $cases)->count();
         $resolutionRate   = $totalCases > 0 ? round(($resolvedCases / $totalCases) * 100, 1) : 0;
         $portfolioAtRisk  = RecoveryCase::forPeriod($period, $dateFrom, $dateTo)->active()->whereNotNull('approved_date')->sum('loan_outstanding_amount');
-        $totalCosts       = RecoveryCase::forPeriod($period, $dateFrom, $dateTo)->whereNotNull('approved_date')->sum(
-            DB::raw('recovery_costs + legal_costs_incurred + skip_trace_costs')
-        );
+        $totalCostsQuery = RecoveryCost::whereHas('recoveryCase', fn($q) => $q->whereNotNull('approved_date'));
+        if ($period === 'custom' && $dateFrom && $dateTo) {
+            $totalCostsQuery->whereBetween('cost_date', [\Carbon\Carbon::parse($dateFrom)->startOfDay(), \Carbon\Carbon::parse($dateTo)->endOfDay()]);
+        } else {
+            match ($period) {
+                'week'    => $totalCostsQuery->whereBetween('cost_date', [now()->startOfWeek(), now()->endOfWeek()]),
+                'month'   => $totalCostsQuery->whereMonth('cost_date', now()->month)->whereYear('cost_date', now()->year),
+                'quarter' => $totalCostsQuery->whereBetween('cost_date', [now()->startOfQuarter(), now()->endOfQuarter()]),
+                'year'    => $totalCostsQuery->whereYear('cost_date', now()->year),
+                default   => null,
+            };
+        }
+        $totalCosts = $totalCostsQuery->sum('amount');
         
         $netRecovered     = $totalRecovered - $totalCosts;
         $unitShare        = UnitShare::forPeriod($period, $dateFrom, $dateTo)->sum('amount');
