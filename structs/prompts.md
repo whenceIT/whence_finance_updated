@@ -88,3 +88,12 @@ isset($status[0]) && isset($status[1]) && isset($status[2]) && $status[0]['statu
 
 
        @if(isset($role) && (string)$role === '4') @endif
+
+
+
+                <!-- Put back code from the prompts -->
+                @if(isset($status[0]) && isset($status[1]) && isset($status[2]) && $status[0]['status'] === 'fully paid' && $status[1]['status'] === 'fully paid' && $status[2]['status'] == 'fully paid' || in_array($blockerUser->office_id, [62,65, 68, 79, 80, 38]))
+                    @include('branch-deposits._partials.salaries', ['selectedMonth' => $selectedMonth])
+                @else
+                    @include('branch-deposits._partials.salaries', ['selectedMonth' => $selectedMonth, 'disabled'=>true])
+                @endif
