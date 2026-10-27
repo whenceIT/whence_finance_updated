@@ -1042,8 +1042,8 @@ Route::group(['prefix' => 'charge'], function () {
 Route::group(['prefix' => 'loan'], function () {
     Route::get('data', 'LoanController@index')->name('loan.data');
     Route::get('pending_client_app_reloans','LoanController@pending_client_app_reloans');
-    Route::post('{loanId}/{transactionId}/approve_client_app_reloan', 'LoanController@approve_client_app_reloan');
-    Route::post('{transactionId}/decline_client_app_reloan', 'LoanController@decline_client_app_reloan');
+    Route::any('{loanId}/{transactionId}/approve_client_app_reloan', 'LoanController@approve_client_app_reloan');
+    Route::any('{transactionId}/decline_client_app_reloan', 'LoanController@decline_client_app_reloan');
     Route::get('data/excel', 'LoanController@export_excel')->name('loan.data.excel');
     Route::get('data/pdf', 'LoanController@export_pdf')->name('loan.data.pdf');
     Route::get('my_loans', 'LoanController@my_index');
