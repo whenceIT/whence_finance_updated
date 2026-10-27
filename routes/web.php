@@ -1041,6 +1041,9 @@ Route::group(['prefix' => 'charge'], function () {
 //route for loans
 Route::group(['prefix' => 'loan'], function () {
     Route::get('data', 'LoanController@index')->name('loan.data');
+    Route::get('pending_client_app_reloans','LoanController@pending_client_app_reloans');
+    Route::post('{loanId}/{transactionId}/approve_client_app_reloan', 'LoanController@approve_client_app_reloan');
+    Route::post('{transactionId}/decline_client_app_reloan', 'LoanController@decline_client_app_reloan');
     Route::get('data/excel', 'LoanController@export_excel')->name('loan.data.excel');
     Route::get('data/pdf', 'LoanController@export_pdf')->name('loan.data.pdf');
     Route::get('my_loans', 'LoanController@my_index');
@@ -1830,6 +1833,47 @@ Route::post(
     Route::any('budget/report/excel', 'ExpenseBudgetController@report_excel');
     Route::any('budget/report/csv', 'ExpenseBudgetController@report_csv');
 });
+
+Route::group([
+    'prefix' => 'workstream1/expenses',
+    'middleware' => ['sentinel'],
+], function () {
+    Route::get('/', 'WorkstreamExpenseController@index');
+    Route::get('dashboard', 'WorkstreamExpenseController@dashboard');
+    Route::get('create', 'WorkstreamExpenseController@create');
+    Route::post('/', 'WorkstreamExpenseController@store');
+
+    Route::get('approvals', 'WorkstreamExpenseApprovalController@index');
+    Route::post('approvals/bulk', 'WorkstreamExpenseApprovalController@bulk');
+    Route::post('approvals/{id}/{decision}', 'WorkstreamExpenseApprovalController@update');
+
+    Route::post('{id}/payments', 'WorkstreamExpensePaymentController@store');
+    Route::get('{id}/documents/{documentId}', 'WorkstreamExpenseController@downloadDocument');
+    Route::get('{id}', 'WorkstreamExpenseController@show');
+});
+
+
+Route::group(['prefix' => 'workstream2/payroll', 'middleware' => ['web', 'auth']], function () {
+ Route::get('/', 'Workstream2PayrollController@index');
+ Route::get('/dashboard', 'Workstream2PayrollController@dashboard');
+ Route::get('/employees', 'Workstream2PayrollController@employees');
+ Route::get('/employees/create', 'Workstream2PayrollController@createEmployee');
+ Route::post('/employees', 'Workstream2PayrollController@storeEmployee');
+ Route::get('/employees/{id}/salary', 'Workstream2PayrollController@salaryProfile');
+ Route::post('/employees/{id}/salary', 'Workstream2PayrollController@saveSalaryProfile');
+ Route::get('/employees/{id}/components', 'Workstream2PayrollController@employeeComponents');
+ Route::post('/employees/{id}/components', 'Workstream2PayrollController@saveEmployeeComponent');
+ Route::get('/components', 'Workstream2PayrollController@components');
+ Route::post('/components', 'Workstream2PayrollController@storeComponent');
+ Route::get('/runs/create', 'Workstream2PayrollController@createRun');
+ Route::post('/runs', 'Workstream2PayrollController@storeRun');
+ Route::get('/runs/{id}', 'Workstream2PayrollController@showRun');
+ Route::post('/runs/{id}/submit', 'Workstream2PayrollController@submitRun');
+ Route::get('/approvals', 'Workstream2PayrollApprovalController@index');
+ Route::post('/runs/{id}/decision', 'Workstream2PayrollApprovalController@decide');
+ Route::post('/items/{id}/payments', 'Workstream2PayrollPaymentController@store');
+});
+
 // District Management Routes
 Route::prefix('districts')->group(function () {
     Route::get('/', [DistrictController::class, 'index']);

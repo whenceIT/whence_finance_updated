@@ -1,0 +1,15 @@
+@extends('layouts.app')
+@section('content')
+<section class="content-header"><h1>Payroll {{$run->payroll_number}}</h1></section><section class="content">
+@if(session('success'))<div class="alert alert-success">{{session('success')}}</div>@endif
+<p><b>Period:</b> {{$run->period_start}} – {{$run->period_end}} | <b>Status:</b> {{$run->status}}</p><p><b>Gross:</b> {{number_format($run->total_gross,2)}} | <b>Deductions:</b> {{number_format($run->total_deductions,2)}} | <b>Net:</b> {{number_format($run->total_net,2)}}</p>
+@if($run->ws1_expense_id)<p>Linked Workstream 1 expense: {{$run->ws1_expense_id}}</p>@endif
+@if($run->status==='draft')<form method="POST" action="{{url('workstream2/payroll/runs/'.$run->id.'/submit')}}">{{csrf_field()}}<button class="btn btn-primary">Submit for Approval</button></form>@endif
+<div class="box"><div class="box-body table-responsive"><table class="table table-bordered"><thead><tr><th>Employee</th><th>Office</th><th>Basic</th><th>Earnings</th><th>Deductions</th><th>Gross</th><th>Net</th><th>Paid</th><th>Status</th><th>Payment</th></tr></thead><tbody>
+@forelse($run->items as $i)<tr><td>{{$i->employee_name_snapshot}} ({{$i->employee_code_snapshot}})</td><td>{{$i->office_id}}</td><td>{{number_format($i->basic_salary,2)}}</td><td>{{number_format($i->earnings_total,2)}}</td><td>{{number_format($i->deductions_total,2)}}</td><td>{{number_format($i->gross_pay,2)}}</td><td>{{number_format($i->net_pay,2)}}</td><td>{{number_format($i->paid_amount,2)}}</td><td>{{$i->payment_status}}</td><td>
+@if(in_array($run->status,['approved','partially_paid']) && $i->payment_status!=='paid')
+<form method="POST" action="{{url('workstream2/payroll/items/'.$i->id.'/payments')}}">{{csrf_field()}}<input class="form-control input-sm" type="number" name="amount" min="0.01" step="0.01" max="{{max(0,$i->net_pay-$i->paid_amount)}}" placeholder="Amount" required><select class="form-control input-sm" name="payment_method"><option value="bank_transfer">Bank transfer</option><option value="cash">Cash</option><option value="mobile_money">Mobile money</option><option value="cheque">Cheque</option><option value="other">Other</option></select><input class="form-control input-sm" name="reference_number" placeholder="Reference"><input class="form-control input-sm" type="datetime-local" name="paid_at" value="{{date('Y-m-d\\TH:i')}}" required><button class="btn btn-xs btn-success">Record payment</button></form>
+@endif</td></tr>@empty<tr><td colspan="10">No payroll items.</td></tr>@endforelse
+</tbody></table></div></div>
+<div class="box"><div class="box-header"><h3 class="box-title">Approval History</h3></div><div class="box-body"><table class="table table-bordered"><thead><tr><th>Action</th><th>User ID</th><th>Date</th><th>Comments</th></tr></thead><tbody>@forelse($run->approvals as $a)<tr><td>{{$a->action}}</td><td>{{$a->acted_by_id}}</td><td>{{$a->acted_at}}</td><td>{{$a->comments}}</td></tr>@empty<tr><td colspan="4">No history.</td></tr>@endforelse</tbody></table></div></div>
+</section>@endsection

@@ -1,0 +1,8 @@
+@extends('layouts.app')
+@section('content')
+<section class="content-header"><h1>Salary Profile — {{$employee->first_name}} {{$employee->last_name}}</h1></section><section class="content">
+@if(session('success'))<div class="alert alert-success">{{session('success')}}</div>@endif
+@if($errors->any())<div class="alert alert-danger"><ul>@foreach($errors->all() as $error)<li>{{$error}}</li>@endforeach</ul></div>@endif
+<div class="box box-body"><form method="POST" action="{{url('workstream2/payroll/employees/'.$employee->id.'/salary')}}">{{csrf_field()}}<div class="row"><div class="col-md-4"><label>Basic Salary</label><input class="form-control" type="number" min="0" step="0.01" name="basic_salary" required></div><div class="col-md-4"><label>Currency</label><input class="form-control" name="currency" value="ZMW" maxlength="3" required></div><div class="col-md-4"><label>Effective From</label><input class="form-control" type="date" name="effective_from" required></div><div class="col-md-12"><label>Notes</label><textarea class="form-control" name="notes"></textarea></div></div><br><button class="btn btn-primary">Save Salary</button></form></div>
+<table class="table table-bordered"><thead><tr><th>From</th><th>To</th><th>Basic Salary</th><th>Current</th></tr></thead><tbody>@forelse($employee->salaryProfiles->sortByDesc('effective_from') as $p)<tr><td>{{$p->effective_from}}</td><td>{{$p->effective_to ?: '—'}}</td><td>{{number_format($p->basic_salary,2)}} {{$p->currency}}</td><td>{{$p->is_current?'Yes':'No'}}</td></tr>@empty<tr><td colspan="4">No salary history.</td></tr>@endforelse</tbody></table>
+</section>@endsection

@@ -63,6 +63,7 @@ use App\Models\Province;
 use App\Models\Notifix;
 use App\Services\NotifixService;
 use App\Models\ClientAppLoanApplications;
+use App\Models\ClientAppReloansPending;
 use App\Models\ClientAppUsers;
 use App\Models\Vehicle;
 use App\Models\ComplianceScreening;
@@ -348,6 +349,226 @@ public function search(Request $request)
 
         return view('loan.reloan_approvals', compact('data'));
     }
+
+
+
+
+    public function pending_client_app_reloans()
+    {
+         $user = Sentinel::getUser();
+
+           if (!Sentinel::hasAccess('expenses')) {
+            Flash::warning("Permission Denied");
+            return redirect()->back();
+        }
+
+            $userId = Sentinel::getUser()->id;
+        $office_id = Sentinel::getUser()->office_id;
+          $roleNew = UserRole::where('user_id', $userId)->first();
+           $offices = Office::get();
+              $province_id = Sentinel::getUser()->province_id;
+            $province_transactions = [];
+
+
+        if ($roleNew->role_id == "6") {
+
+            foreach ($offices as $office) {
+                if ($office->province_id == $province_id) {
+                    $transactions = ClientAppReloansPending::where('office_id', $office->id)->where('status','pending')->with('loan')->get();
+                    foreach ($transactions as $transaction) {
+                        array_push($province_transactions, $transaction);
+                    }
+                }
+            }
+            $data = $province_transactions;
+
+        } else {
+
+           if (Sentinel::hasAccess('settings')) {
+            $data = ClientAppReloansPending::where('status','pending')->get();
+        } else {
+            $data = ClientAppReloansPending::where('status','pending')->where('office_id', $office_id)->get();
+        }
+
+        }
+
+        return view('loan.client_app_reloan_approvals',compact('data'));
+    }
+
+
+
+   
+public function approve_client_app_reloan($loanId, $transactionId)
+{
+    try {
+        // Find the pending transaction belonging to this loan.
+        $transaction = ClientAppReloansPending::where('id', $transactionId)
+            ->where('loan_id', $loanId)
+            ->firstOrFail();
+
+        // External Node.js API endpoint.
+        $apiUrl = 'https://lms2backend.whencefinancesystem.com/create_reloan_transaction_webhook';
+
+        // Prepare the payload expected by the external API.
+        $payload = [
+            'created_by_id' => $transaction->created_by_id,
+            'office_id'     => $transaction->office_id,
+            'loan_id'       => $transaction->loan_id,
+            'balance_bf'    => $transaction->balance_bf,
+            'date'          => $transaction->date,
+            'credit'        => $transaction->credit,
+            'interest'      => $transaction->balance_bf * 0.4,
+            'temp_id'       => $transaction->temp_id,
+        ];
+
+        // Send the request to the external API.
+        $response = Http::acceptJson()
+            ->timeout(30)
+            ->post($apiUrl, $payload);
+
+        // Handle unsuccessful HTTP responses.
+        if (!$response->successful()) {
+            Log::error('Client app reloan approval API failed', [
+                'loan_id'        => $loanId,
+                'transaction_id' => $transactionId,
+                'status'         => $response->status(),
+                'response'       => $response->body(),
+            ]);
+
+            return back()->with(
+                'error',
+                'Failed to approve the reloan. Please try again.'
+            );
+        }
+
+        // Check the success flag returned by the API.
+        if ($response->json('success') !== true) {
+            Log::error('Client app reloan approval was not confirmed', [
+                'loan_id'        => $loanId,
+                'transaction_id' => $transactionId,
+                'response'       => $response->body(),
+            ]);
+
+            return back()->with(
+                'error',
+                'The API did not confirm the reloan approval.'
+            );
+        }
+
+        // Update the status after successful approval.
+        $transaction->status = 'approved';
+        $transaction->save();
+
+        return back()->with(
+            'success',
+            'Client app reloan approved successfully.'
+        );
+
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        return back()->with(
+            'error',
+            'The requested pending reloan transaction was not found.'
+        );
+
+    } catch (\Throwable $e) {
+        Log::error('Error approving client app reloan', [
+            'loan_id'        => $loanId,
+            'transaction_id' => $transactionId,
+            'error'          => $e->getMessage(),
+        ]);
+
+        return back()->with(
+            'error',
+            'An error occurred while approving the reloan.'
+        );
+    }
+}
+
+/**
+ * Decline a pending client app reloan.
+ *
+ * Route:
+ * /loan/{transactionId}/decline_client_app_reloan
+ */
+public function decline_client_app_reloan($transactionId)
+{
+    try {
+        // Find the pending transaction.
+        $transaction = ClientAppReloansPending::findOrFail($transactionId);
+
+        // External Node.js API endpoint.
+        $apiUrl = 'https://lms2backend.whencefinancesystem.com/create_transaction_webhook';
+
+        // Prepare the payload expected by the external API.
+        $payload = [
+            'created_by_id'     => $transaction->created_by_id,
+            'office_id'         => $transaction->office_id,
+            'loan_id'           => $transaction->loan_id,
+            'payment_apply_to'  => $transaction->payment_apply_to,
+            'payment_detail_id' => $transaction->payment_detail_id,
+            'transaction_type'  => $transaction->transaction_type,
+            'date'              => $transaction->date,
+            'credit'            => $transaction->credit,
+            'notes'             => 'Client app reloan declined',
+            'temp_id'           => $transaction->temp_id,
+        ];
+
+        // Send the request to the external API.
+        $response = Http::acceptJson()
+            ->timeout(30)
+            ->post($apiUrl, $payload);
+
+        // Handle unsuccessful HTTP responses.
+        if (!$response->successful()) {
+            Log::error('Client app reloan decline API failed', [
+                'transaction_id' => $transactionId,
+                'status'         => $response->status(),
+                'response'       => $response->body(),
+            ]);
+
+            return back()->with(
+                'error',
+                'Failed to decline the reloan. Please try again.'
+            );
+        }
+
+        // The decline endpoint returns the inserted transaction.
+        // Check for an API-level failure if one is reported.
+        if ($response->json('success') === false) {
+            return back()->with(
+                'error',
+                'The API reported that the transaction could not be created.'
+            );
+        }
+
+        // Update the status after successful decline.
+        $transaction->status = 'declined';
+        $transaction->save();
+
+        return back()->with(
+            'success',
+            'Client app reloan declined successfully.'
+        );
+
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        return back()->with(
+            'error',
+            'The requested pending reloan transaction was not found.'
+        );
+
+    } catch (\Throwable $e) {
+        Log::error('Error declining client app reloan', [
+            'transaction_id' => $transactionId,
+            'error'          => $e->getMessage(),
+        ]);
+
+        return back()->with(
+            'error',
+            'An error occurred while declining the reloan.'
+        );
+    }
+}
+
 
 
     public function dormant_loans(){

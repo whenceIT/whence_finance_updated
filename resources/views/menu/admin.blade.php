@@ -971,10 +971,24 @@ use App\Models\Ticket;
                 </a>
                 <ul class="treeview-menu">
                     @if(Sentinel::hasAccess('expenses'))
-                    <li><a href="{{ url('user/carry_over_approvals') }}"><i class="fa fa-circle-o"></i> Pending Carry Overs</a></li>
+                    <li><a href="{{ url('loan/pending_client_app_reloans') }}"><i class="fa fa-circle-o"></i> Pending Client App Reloans
+                    @if(Sentinel::hasAccess('settings'))
+                    <span>  {{\App\Models\ClientAppReloansPending::where('status', 'pending')->count() }}</span>
+                    @else
+                    <span>  {{\App\Models\ClientAppReloansPending::where('status', 'pending')->where('office_id',$office_id)->count() }}</span>
                     @endif
+                </a></li>
+                    @endif
+
+
                     @if(Sentinel::hasAccess('expenses'))
-                    <li><a href="{{ url('loan/managers_pending_approval') }}"><i class="fa fa-circle-o"></i> Loans Pending @if(Sentinel::hasAccess('settings'))<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->count() }}</span>@else<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('office_id',$office_id)->count() }}</span>@endif</a></li>
+                    <li><a href="{{ url('loan/managers_pending_approval') }}"><i class="fa fa-circle-o"></i> 
+                    Loans Pending @if(Sentinel::hasAccess('settings'))
+                    <span class="label label-warning pull-right">
+                        {{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->count() }}</span>
+                        @else<span class="label label-warning pull-right">
+                            {{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('office_id',$office_id)->count() }}</span>
+                            @endif</a></li>
                     @endif
                     
                     @if(Sentinel::hasAccess('expenses'))
@@ -1622,6 +1636,57 @@ use App\Models\Ticket;
                     </li>
                     @endif
 
+
+@if(Sentinel::hasAccess('settings'))
+     <li style="padding-left: 10px;" class="treeview @if(Request::is('expense/*')) active menu-open @endif">
+           <a href="#">
+                            <i class="fa fa-share"></i> <span>New Expenses</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+
+                          <ul class="treeview-menu">
+                    
+<li class="@if(Request::is('workstream1/expenses') || Request::is('workstream1/expenses/*')) active @endif">
+    <a href="{{ url('workstream1/expenses') }}">
+        <i class="fa fa-circle-o"></i> New Expense Management
+    </a>
+</li>
+
+<li class="@if(Request::is('workstream1/expenses/dashboard')) active @endif">
+    <a href="{{ url('workstream1/expenses/dashboard') }}">
+        <i class="fa fa-circle-o"></i> New Expense Dashboard
+    </a>
+</li>
+
+<li class="@if(Request::is('workstream1/expenses/approvals*')) active @endif">
+    <a href="{{ url('workstream1/expenses/approvals') }}">
+        <i class="fa fa-circle-o"></i> New Expense Approvals
+    </a>
+</li>
+
+<li>
+    <a href="{{ url('/workstream1/expenses/create') }}">
+        <i class="fa fa-circle-o"></i> Add Expenses
+    </a>
+</li>
+ </ul>
+  </li>
+
+
+<li class="treeview @if(Request::is('workstream2/payroll*')) active menu-open @endif">
+ <a href="#"><i class="fa fa-money"></i> <span>Payroll and Remuneration</span><span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span></a>
+ <ul class="treeview-menu">
+  <li><a href="{{url('workstream2/payroll')}}"><i class="fa fa-circle-o"></i> Payroll Runs</a></li>
+  <li><a href="{{url('workstream2/payroll/dashboard')}}"><i class="fa fa-circle-o"></i> Payroll Dashboard</a></li>
+  <li><a href="{{url('workstream2/payroll/employees')}}"><i class="fa fa-circle-o"></i> Employees</a></li>
+  <li><a href="{{url('workstream2/payroll/components')}}"><i class="fa fa-circle-o"></i> Payroll Components</a></li>
+<li><a href="{{url('workstream2/payroll/approvals')}}"><i class="fa fa-circle-o"></i> Payroll Approvals</a></li>
+ </ul>
+</li>
+
+@endif
                     <!-- Other Income -->
                     @if(Sentinel::hasAccess('other_income'))
                     <li style="padding-left: 10px;" class="treeview @if(Request::is('other_income/*')) active menu-open @endif">
