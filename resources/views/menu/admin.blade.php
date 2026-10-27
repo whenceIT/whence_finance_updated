@@ -971,9 +971,9 @@ use App\Models\Ticket;
                     @if(Sentinel::hasAccess('expenses'))
                     <li><a href="{{ url('loan/pending_client_app_reloans') }}"><i class="fa fa-circle-o"></i> Pending Client App Reloans
                     @if(Sentinel::hasAccess('settings'))
-                    <span>  {{\App\Models\ClientAppReloansPending::where('status', 'pending')->count() }}</span>
+                    <span class="label label-info pull-right-container" >  {{\App\Models\ClientAppReloansPending::where('status', 'pending')->count() }}</span>
                     @else
-                    <span>  {{\App\Models\ClientAppReloansPending::where('status', 'pending')->where('office_id',$office_id)->count() }}</span>
+                    <span class="label label-info pull-right-container" >  {{\App\Models\ClientAppReloansPending::where('status', 'pending')->where('office_id',$office_id)->count() }}</span>
                     @endif
                 </a></li>
                     @endif
