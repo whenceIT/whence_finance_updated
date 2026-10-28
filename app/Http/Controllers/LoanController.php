@@ -406,6 +406,9 @@ public function approve_client_app_reloan($loanId, $transactionId)
             ->where('loan_id', $loanId)
             ->firstOrFail();
 
+        $clientPhone = Client::where('id', $transaction->created_by_id)
+    ->value('mobile'); 
+
         // External Node.js API endpoint.
         $apiUrl = 'https://lms2backend.whencefinancesystem.com/create_reloan_transaction_webhook';
 
@@ -419,6 +422,7 @@ public function approve_client_app_reloan($loanId, $transactionId)
             'credit'        => $transaction->credit,
             'interest'      => $transaction->balance_bf * 0.4,
             'temp_id'       => $transaction->temp_id,
+            'phone'        => $clientPhone
         ];
 
         // Send the request to the external API.
@@ -496,6 +500,9 @@ public function decline_client_app_reloan($transactionId)
         // Find the pending transaction.
         $transaction = ClientAppReloansPending::findOrFail($transactionId);
 
+             $clientPhone = Client::where('id', $transaction->created_by_id)
+    ->value('mobile'); 
+
         // External Node.js API endpoint.
         $apiUrl = 'https://lms2backend.whencefinancesystem.com/create_transaction_webhook';
 
@@ -511,6 +518,7 @@ public function decline_client_app_reloan($transactionId)
             'credit'            => $transaction->credit,
             'notes'             => 'Client app reloan declined',
             'temp_id'           => $transaction->temp_id,
+            'phone'        => $clientPhone
         ];
 
         // Send the request to the external API.
