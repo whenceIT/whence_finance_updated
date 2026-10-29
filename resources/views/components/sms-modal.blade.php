@@ -31,8 +31,8 @@
                 </select>
                 <div id="user-select" style="display: none; margin-top: 10px;">
                     <label for="sms-user" style="display: block; margin-bottom: 5px; font-weight: bold;">User:</label>
-                    <select id="sms-user" name="user_id" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;" required>
-                        <option value="">Select User</option>
+                    <select id="sms-user" name="user_id" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                        <option value="">For All</option>
                     </select>
                 </div>
             </div>

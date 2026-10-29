@@ -94,27 +94,29 @@ class SmsController extends Controller
     {
         $request->validate([
             'office_id'    => 'required|integer',
-            'user_id'      => 'required|integer',
+            'user_id'      => 'nullable|integer',
             'message_type' => 'required|in:overdue,balances',
         ]);
 
         try {
-            $officer = User::findOrFail($request->user_id);
-
-            // Get loans for this officer with remainder details
-            $loans = Loan::loan_remainder($request->user_id);
-
-            if (empty($loans)) {
-                return response()->json([
-                    'success' => false,
-                    'error'   => 'No active loans found for this officer',
-                ], 400);
+            if ($request->user_id) {
+                $officers = [User::findOrFail($request->user_id)];
+            } else {
+                $officers = User::where('office_id', $request->office_id)->get();
             }
 
             $messagesSent = 0;
             $errors       = [];
+            $totalLoans   = 0;
 
-            foreach ($loans as $loanData) {
+            foreach ($officers as $officer) {
+                $loans = Loan::loan_remainder($officer->id);
+                if (empty($loans)) {
+                    continue;
+                }
+                $totalLoans += count($loans);
+
+                foreach ($loans as $loanData) {
                 try {
                     $loan = Loan::with(['client', 'transactions'])->find($loanData->id);
 
@@ -153,12 +155,14 @@ class SmsController extends Controller
                     $errors[] = $e->getMessage();
                     continue;
                 }
+                }
+
             }
 
             return response()->json([
                 'success'       => true,
                 'messages_sent' => $messagesSent,
-                'total_loans'   => count($loans),
+                'total_loans'   => $totalLoans,
                 'errors'        => $errors,
             ]);
 

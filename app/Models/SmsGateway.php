@@ -110,6 +110,7 @@ class SmsGateway extends Model
                 l.account_number,
                 l.principal,
                 l.approved_amount,
+                COALESCE((SELECT SUM(lt.debit) FROM loan_transactions lt WHERE lt.loan_id = l.id), 0) AS principal_debit,
                 l.client_id,
                 CONCAT(c.first_name, ' ', c.last_name) AS client_name,
                 c.phone AS Client_Phone,
@@ -139,13 +140,13 @@ class SmsGateway extends Model
                 $balance = null;
             }
 
-            $principal = ($loan->principal ?? $loan->approved_amount) + ( ($loan->principal ?? $loan->approved_amount) * 0.4);
+            $principal = $loan->principal_debit ?? 0;
 
-            $message = 'Dear Customer, your loan of ZMW ' . number_format($principal, 2);
+            $message = 'Dear Customer, your total loan repayment of ZMW ' . number_format($principal, 2);
             if ($balance !== null) {
                 $message .= ' has an outstanding balance of ZMW ' . number_format($balance, 2);
             }
-            $message .= '. Please make your payment on time to avoid penalties. For assistance, contact 0773425477.';
+            $message .= '. Please make your payment on time to avoid aditional penalties. For assistance, contact 0773425477.';
 
             $bulkSms = new BulkSMS();
             $result = $bulkSms->sendToClients([$client], $message);
