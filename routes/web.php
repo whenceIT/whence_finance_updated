@@ -1853,7 +1853,7 @@ Route::group([
 });
 
 
-Route::group(['prefix' => 'workstream2/payroll', 'middleware' => ['web', 'auth']], function () {
+Route::prefix('workstream2/payroll')->group(function () {
  Route::get('/', 'Workstream2PayrollController@index');
  Route::get('/dashboard', 'Workstream2PayrollController@dashboard');
  Route::get('/employees', 'Workstream2PayrollController@employees');
