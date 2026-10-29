@@ -5,6 +5,7 @@ return [
         0 => '2', //Joseph Chikweti
         1 => '3', //Henry Chikweti
         2 => '1899', //Andyson
+        3 => '2706', //Bremah
     ],
     'chair' => [
         0 => '3', //Henry Chikweti
@@ -23,6 +24,9 @@ return [
     ],
     'risk' => [
         0 => '8', // Bright Phiri
+    ],
+    'artworks' => [
+        0 => '1982', // Bruce
     ],
     'policy_manager' => [
         0 => '25', //carolkawisha

@@ -351,6 +351,152 @@ use App\Models\Ticket;
             </li>
             @endif
 
+            <!-- ============================================
+                 CREATIVE ARTWORKS & MARKETING
+            ============================================ -->
+            
+            @hasRole('role.exec', 'role.artworks')
+            <li class="treeview @if(Request::is('creative*') || Request::is('job-applications*') || Request::is('daily-reports*') || Request::is('customer-care*') || Request::is('conflict-resolution*') || Request::is('loan-referrals*') || Request::is('lost-client-recoveries*')) active menu-open @endif">
+                <a href="#">
+                    <i class="fa fa-paint-brush"></i> <span>Creative Artworks</span>
+                    <span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
+                    <li><a href="{{ route('creative.dashboard') }}"><i class="fa fa-circle-o"></i> Dashboard</a></li>
+                    
+                    <!-- Job Application Recommendation Platform -->
+                    <li class="treeview @if(Request::is('job-applications*')) active menu-open @endif">
+                        <a href="#">
+                            <i class="fa fa-circle-o"></i> Job Applications
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="{{ route('job-applications.index') }}"><i class="fa fa-circle-o"></i> All Applications</a></li>
+                            <li><a href="{{ route('job-applications.create') }}"><i class="fa fa-circle-o"></i> Register Applicant</a></li>
+                            <li><a href="{{ route('job-applications.pending') }}"><i class="fa fa-circle-o"></i> Under Review</a></li>
+                            <li><a href="{{ route('job-applications.approved') }}"><i class="fa fa-circle-o"></i> Approved</a></li>
+                            <li><a href="{{ route('job-applications.employed') }}"><i class="fa fa-circle-o"></i> Employed</a></li>
+                            <li><a href="{{ route('job-applications.qualifying') }}"><i class="fa fa-circle-o"></i> Qualifying for Reward</a></li>
+                            <li><a href="{{ route('job-applications.reports') }}"><i class="fa fa-circle-o"></i> Reports</a></li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Daily Reports Module -->
+                    <li class="treeview @if(Request::is('daily-reports*')) active menu-open @endif">
+                        <a href="#">
+                            <i class="fa fa-circle-o"></i> Daily Reports
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="{{ route('daily-reports.index') }}"><i class="fa fa-circle-o"></i> View Reports</a></li>
+                            <li><a href="{{ route('daily-reports.income.create') }}"><i class="fa fa-circle-o"></i> Record Income</a></li>
+                            <li><a href="{{ route('daily-reports.expense.create') }}"><i class="fa fa-circle-o"></i> Record Expense</a></li>
+                            <li><a href="{{ route('daily-reports.branch-report') }}"><i class="fa fa-circle-o"></i> Branch Financial Report</a></li>
+                            <li><a href="{{ route('daily-reports.reports') }}"><i class="fa fa-circle-o"></i> Summary Reports</a></li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Customer Care Reports Module -->
+                    <li class="treeview @if(Request::is('customer-care*')) active menu-open @endif">
+                        <a href="#">
+                            <i class="fa fa-circle-o"></i> Customer Care
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="{{ route('customer-care.index') }}"><i class="fa fa-circle-o"></i> All Cases</a></li>
+                            <li><a href="{{ route('customer-care.create') }}"><i class="fa fa-circle-o"></i> Register Case</a></li>
+                            <li><a href="{{ route('customer-care.open') }}"><i class="fa fa-circle-o"></i> Open Cases</a></li>
+                            <li><a href="{{ route('customer-care.in-progress') }}"><i class="fa fa-circle-o"></i> In Progress</a></li>
+                            <li><a href="{{ route('customer-care.resolved') }}"><i class="fa fa-circle-o"></i> Resolved</a></li>
+                            <li><a href="{{ route('customer-care.escalated') }}"><i class="fa fa-circle-o"></i> Escalated</a></li>
+                            <li><a href="{{ route('customer-care.calendar') }}"><i class="fa fa-circle-o"></i> Institutional Activities Calendar</a></li>
+                            <li><a href="{{ route('customer-care.reports') }}"><i class="fa fa-circle-o"></i> Reports</a></li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Conflict Resolution Charges Module -->
+                    <li class="treeview @if(Request::is('conflict-resolution*')) active menu-open @endif">
+                        <a href="#">
+                            <i class="fa fa-circle-o"></i> Conflict Resolution
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="{{ route('conflict-resolution.index') }}"><i class="fa fa-circle-o"></i> All Cases</a></li>
+                            <li><a href="{{ route('conflict-resolution.create') }}"><i class="fa fa-circle-o"></i> Register Conflict</a></li>
+                            <li><a href="{{ route('conflict-resolution.charges') }}"><i class="fa fa-circle-o"></i> Charges Payable</a></li>
+                            <li><a href="{{ route('conflict-resolution.payments') }}"><i class="fa fa-circle-o"></i> Payments</a></li>
+                            <li><a href="{{ route('conflict-resolution.outstanding') }}"><i class="fa fa-circle-o"></i> Outstanding</a></li>
+                            <li><a href="{{ route('conflict-resolution.reports') }}"><i class="fa fa-circle-o"></i> Reports</a></li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Branch Loan Recommendation Charge Module -->
+                    <li class="treeview @if(Request::is('loan-referrals*')) active menu-open @endif">
+                        <a href="#">
+                            <i class="fa fa-circle-o"></i> Loan Referrals
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="{{ route('loan-referrals.index') }}"><i class="fa fa-circle-o"></i> All Referrals</a></li>
+                            <li><a href="{{ route('loan-referrals.create') }}"><i class="fa fa-circle-o"></i> Register Referral</a></li>
+                            <li><a href="{{ route('loan-referrals.pending') }}"><i class="fa fa-circle-o"></i> Pending Repayment</a></li>
+                            <li><a href="{{ route('loan-referrals.due') }}"><i class="fa fa-circle-o"></i> Profit Share Due</a></li>
+                            <li><a href="{{ route('loan-referrals.payments') }}"><i class="fa fa-circle-o"></i> Payments Received</a></li>
+                            <li><a href="{{ route('loan-referrals.reports') }}"><i class="fa fa-circle-o"></i> Reports</a></li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Lost Client Recoveries Program -->
+                    <li class="treeview @if(Request::is('lost-client-recoveries*')) active menu-open @endif">
+                        <a href="#">
+                            <i class="fa fa-circle-o"></i> Lost Client Recoveries
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="{{ route('lost-client-recoveries.index') }}"><i class="fa fa-circle-o"></i> All Recoveries</a></li>
+                            <li><a href="{{ route('lost-client-recoveries.create') }}"><i class="fa fa-circle-o"></i> Register Recovery</a></li>
+                            <li><a href="{{ route('lost-client-recoveries.repayment') }}"><i class="fa fa-circle-o"></i> Repayment Tracking</a></li>
+                            <li><a href="{{ route('lost-client-recoveries.profit-share') }}"><i class="fa fa-circle-o"></i> Profit Share Due</a></li>
+                            <li><a href="{{ route('lost-client-recoveries.payments') }}"><i class="fa fa-circle-o"></i> Payments Received</a></li>
+                            <li><a href="{{ route('lost-client-recoveries.reports') }}"><i class="fa fa-circle-o"></i> Reports</a></li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Setup/Configuration -->
+                    <li class="treeview @if(Request::is('creative/setup*')) active menu-open @endif">
+                        <a href="#">
+                            <i class="fa fa-circle-o"></i> Setup
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="{{ route('creative.setup.categories') }}"><i class="fa fa-circle-o"></i> Complaint Categories</a></li>
+                            <li><a href="{{ route('creative.setup.expense-categories') }}"><i class="fa fa-circle-o"></i> Expense Categories</a></li>
+                            <li><a href="{{ route('creative.setup.income-categories') }}"><i class="fa fa-circle-o"></i> Income Categories</a></li>
+                            <li><a href="{{ route('creative.setup.positions') }}"><i class="fa fa-circle-o"></i> Job Positions</a></li>
+                        </ul>
+                    </li>
+                    
+                    <li><a href="{{ route('creative.reports') }}"><i class="fa fa-circle-o"></i> All Reports</a></li>
+                </ul>
+            </li>
+            @endif
+
             <li class="@if(Request::is('ticket*')) active @endif">
                 <a href="{{ url('ticket') }}">
                     <i class="fa fa-ticket"></i> <span>Tickets</span>
