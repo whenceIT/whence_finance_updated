@@ -627,11 +627,25 @@ class GOAController extends Controller
 
     public function assignPosition(Request $request, $user)
     {
-        
-        $member = \App\Models\User::where('id',$user->id)->first();
-        $member->position_id = $request->position_id;
-        $member->save();
+        try {
+           
+            $member = User::where('id', $user)->first();
+            if (!$member) {
+                return response()->json(['success' => false, 'message' => 'User not found.'], 404);
+            }
 
-        return redirect()->back()->with('success', 'Position assigned to ' . $member->first_name . ' ' . $member->last_name . ' successfully.');
+            $member->position_id = $request->position_id;
+            $member->save();
+
+            $positionName = $member->position ? $member->position->name : null;
+
+            return response()->json([
+                'success'       => true,
+                'message'       => 'Position assigned to ' . $member->first_name . ' ' . $member->last_name . ' successfully.',
+                'position_name' => $positionName,
+            ]);
+        } catch (\Throwable $th) {
+       
+        }
     }
 }

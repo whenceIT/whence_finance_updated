@@ -174,6 +174,7 @@ use App\Models\Ticket;
             <!-- ============================================
                  GOA MANAGER SECTION
             ============================================ -->
+            
             @hasRole('role.exec', 'role.goa')
             <li class="treeview @if(Request::is('goa_dashboard*')) active menu-open @endif">
                 <a href="#">

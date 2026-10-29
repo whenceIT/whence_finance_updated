@@ -281,11 +281,17 @@
             <path d="M6.5 1A1.5 1.5 0 0 0 5 2.5V3H1.5A1.5 1.5 0 0 0 0 4.5v8A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-8A1.5 1.5 0 0 0 14.5 3H11v-.5A1.5 1.5 0 0 0 9.5 1zm0 1h3a.5.5 0 0 1 .5.5V3H6v-.5a.5.5 0 0 1 .5-.5m1.886 6.914L15 7.151V12.5a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5V7.15l6.614 1.764a1.5 1.5 0 0 0 .772 0M1.5 4h13a.5.5 0 0 1 .5.5v1.616L8.129 7.948a.5.5 0 0 1-.258 0L1 6.116V4.5a.5.5 0 0 1 .5-.5"/>
             </svg>Recent Hires
         </button>
-        <button class="staffing-nav-btn" data-section="all-positions" role="tab">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list-ul" viewBox="0 0 16 16">
-            <path fill-rule="evenodd" d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m-3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2m0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2m0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/>
-            </svg>All Positions
-        </button>
+         <button class="staffing-nav-btn" data-section="all-positions" role="tab">
+             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list-ul" viewBox="0 0 16 16">
+             <path fill-rule="evenodd" d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m-3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2m0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2m0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/>
+             </svg>All Positions
+         </button>
+         <button class="staffing-nav-btn" data-section="managers" role="tab">
+             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-badge" viewBox="0 0 16 16">
+             <path d="M6.5 2a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1zM11 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+             <path d="M4.5 0A2.5 2.5 0 0 0 2 2.5V14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2.5A2.5 2.5 0 0 0 11.5 0zM3 2.5A1.5 1.5 0 0 1 4.5 1h7A1.5 1.5 0 0 1 13 2.5v10.795a4.2 4.2 0 0 0-.776-.492C11.392 12.387 10.1 12 8 12s-3.392.387-4.224.803a4.2 4.2 0 0 0-.776.492z"/>
+             </svg>Managers
+         </button>
     </div>
 
     <div class="staffing-content-container" id="staffingTabsContent">
@@ -765,6 +771,43 @@
         </div>
     </div>
 
+    {{-- Managers tab section --}}
+    <div class="staffing-section" id="managers" role="tabpanel">
+        <h5 style="display:inline-flex;align-items:center;justify-content:center;gap:10px;margin-bottom:1.5rem;background:linear-gradient(135deg,#0ea5e9 0%,#0284c7 100%);color:white;padding:10px 24px;border-radius:60px;font-weight:600;font-size:1.25rem;width:100%;">Managers</h5>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover" id="managersTable">
+                <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Phone</th><th>Office</th><th>Status</th><th>Job Position</th><th>Actions</th></tr></thead>
+                <tbody><tr><td colspan="8" class="text-center">Loading...</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+
+    {{-- Manager Position Modal --}}
+    <div class="staffing-modal-backdrop" id="managerPositionBackdrop"></div>
+    <div class="staffing-modal" id="managerPositionModal">
+        <div class="staffing-modal-card">
+            <div class="staffing-modal-header"><h4 class="staffing-modal-title">Update Position</h4></div>
+            <div class="staffing-modal-body">
+                <form id="managerPositionForm" method="POST" action="">
+                    @csrf
+                    <div class="staffing-modal-form-group">
+                        <label class="staffing-modal-label">Position</label>
+                        <select class="staffing-modal-select" name="position_id" required>
+                            <option value="">-- Select Position --</option>
+                            @foreach(\App\Models\Position::all() as $pos)
+                                <option value="{{ $pos->id }}">{{ $pos->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="staffing-modal-actions">
+                        <button type="button" class="staffing-modal-secondary" onclick="document.getElementById('managerPositionBackdrop').style.display='none';document.getElementById('managerPositionModal').style.display='none';">Cancel</button>
+                        <button type="submit" class="staffing-modal-submit">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     {{-- Edit Position Modal --}}
     <div class="staffing-modal-backdrop" id="editPositionBackdrop"></div>
     <div class="staffing-modal" id="editPositionModal">
@@ -831,6 +874,88 @@
             if (container && section && section.parentNode !== container) {
                 container.appendChild(section);
             }
+            var managersSection = document.getElementById('managers');
+            if (container && managersSection && managersSection.parentNode !== container) {
+                container.appendChild(managersSection);
+            }
+            fetch('https://smartbackend.whencefinancesystem.com/api/remuneration/managers')
+                .then(r => r.json())
+                .then(data => {
+                    var rows = (data.data || []).map(function(m, i){
+                        return '<tr><td>'+(i+1)+'</td><td>'+ (m.first_name||'') +' '+ (m.last_name||'') +'</td><td>'+ (m.email||'') +'</td><td>'+ (m.phone||'') +'</td><td>'+ (m.office_name||'') +'</td><td>'+ (m.status||'') +'</td><td>'+ (m.job_position||'N/A') +'</td><td><button class="btn btn-sm btn-primary" onclick="openManagerPositionModal('+m.id+')">Update Position</button></td></tr>';
+                    }).join('');
+                    var tbody = document.querySelector('#managersTable tbody');
+                    if (tbody) tbody.innerHTML = rows || '<tr><td colspan="8" class="text-center">No managers found.</td></tr>';
+                }).catch(function(){ var tbody = document.querySelector('#managersTable tbody'); if(tbody) tbody.innerHTML = '<tr><td colspan="8" class="text-center">Failed to load.</td></tr>'; });
+        });
+
+        // ── Manager Position Modal ──────────────────────────────────────────
+        var managerPositionBaseUrl = '{{ url('goa_dashboard/personnel') }}';
+        var managerPositionUserId  = null;
+
+        function openManagerPositionModal(userId) {
+            managerPositionUserId = userId;
+            document.getElementById('managerPositionBackdrop').style.display = 'block';
+            document.getElementById('managerPositionModal').style.display    = 'block';
+        }
+
+        document.getElementById('managerPositionBackdrop').addEventListener('click', function() {
+            document.getElementById('managerPositionBackdrop').style.display = 'none';
+            document.getElementById('managerPositionModal').style.display    = 'none';
+        });
+
+        document.getElementById('managerPositionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var positionId  = this.querySelector('[name="position_id"]').value;
+            var submitBtn   = this.querySelector('[type="submit"]');
+            var url         = managerPositionBaseUrl + '/' + managerPositionUserId + '/assign-position';
+
+            submitBtn.disabled    = true;
+            submitBtn.textContent = 'Saving...';
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') 
+                                    ? document.querySelector('meta[name="csrf-token"]').content 
+                                    : '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_id: managerPositionUserId,
+                    position_id: positionId
+                })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                submitBtn.disabled    = false;
+                submitBtn.textContent = 'Save';
+                if (data.success) {
+                    document.getElementById('managerPositionBackdrop').style.display = 'none';
+                    document.getElementById('managerPositionModal').style.display    = 'none';
+                    // refresh the managers table row if possible
+                    var tbody = document.querySelector('#managersTable tbody');
+                    if (tbody) {
+                        var rows = tbody.querySelectorAll('tr');
+                        rows.forEach(function(row) {
+                            var btn = row.querySelector('button[onclick*="openManagerPositionModal(' + managerPositionUserId + ')"]');
+                            if (btn && data.position_name) {
+                                var cells = row.querySelectorAll('td');
+                                if (cells[6]) cells[6].textContent = data.position_name;
+                            }
+                        });
+                    }
+                    alert(data.message || 'Position updated successfully.');
+                } else {
+                    alert(data.message || 'Failed to update position.');
+                }
+            })
+            .catch(function() {
+                submitBtn.disabled    = false;
+                submitBtn.textContent = 'Save';
+                alert('An error occurred. Please try again.');
+            });
         });
 
         // ── Edit Position Modal ──────────────────────────────────────────────

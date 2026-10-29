@@ -444,7 +444,7 @@ Route::group(['prefix' => 'goa_dashboard'], function () {
     Route::post('vacancy/{id}/remove', 'GOAController@removePosition')->name('goa.position.remove');
     Route::post('vacancy/{id}/fill', 'GOAController@fillPosition')->name('goa.position.fill');
     Route::get('position/{id}', 'GOAController@showPosition')->name('goa.position.show');
-    Route::patch('personnel/{user}/assign-position', 'GOAController@assignPosition')->name('goa.personnel.assign-position');
+    Route::post('personnel/{user}/assign-position', 'GOAController@assignPosition')->name('goa.personnel.assign-position');
 
     // ── Asset Manager routes ───────────────────────────────────────────────
     Route::get('asset-manager',                                    'BranchAssetController@dashboard')->name('goa.asset-manager.dashboard');
