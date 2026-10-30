@@ -627,9 +627,9 @@ class GOAController extends Controller
 
     public function assignPosition(Request $request, $user)
     {
-        try {
-           
-            $member = User::where('id', $user)->first();
+        try {;
+            $member = User::where('id', $user->id)->first();
+
             if (!$member) {
                 return response()->json(['success' => false, 'message' => 'User not found.'], 404);
             }
