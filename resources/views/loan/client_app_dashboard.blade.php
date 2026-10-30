@@ -171,7 +171,7 @@ Client App Dashboard
     <div class="col-md-4 col-sm-6">
         <div class="small-box bg-navy">
             <div class="inner">
-                <h3>-</h3>
+                <h3>K{{number_format($client_app_transaction_fees,2)}}</h3>
                 <p>Transaction Fees</p>
             </div>
             <div class="icon">

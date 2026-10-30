@@ -1374,6 +1374,7 @@ public function client_app_dashboard(Request $request)
     $provinceClientCounts = [];
     $provinceClientUsers = [];
     $provinceClientTransactions = [];
+    $client_app_transaction_fees = 0;
 
     // Applications
     try {
@@ -1426,6 +1427,19 @@ public function client_app_dashboard(Request $request)
         \Log::error('Client App Transactions API Error: ' . $e->getMessage());
     }
 
+    // Client App Transaction Fees
+    try {
+        $response = Http::get(
+            'https://withinheremobileapi.com/api/v1/transfer/clients_app/transaction_fees'
+        );
+
+        if ($response->successful()) {
+            $client_app_transaction_fees = $response->json();
+        }
+    } catch (\Exception $e) {
+        \Log::error('Client App Transaction Fees API Error: ' . $e->getMessage());
+    }
+
     return view(
         'loan.client_app_dashboard',
         compact(
@@ -1435,6 +1449,7 @@ public function client_app_dashboard(Request $request)
             'provinceClientUsers',
             'provinceClientTransactions',
             'client_app_transactions',
+            'client_app_transaction_fees',
             'start_date',
             'end_date'
         )
