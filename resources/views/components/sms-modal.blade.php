@@ -51,7 +51,7 @@
         function resetModal() {
             $('#sms-form')[0].reset();
             $('#user-select').hide();
-            $('#sms-user').empty().append('<option value="">Select User</option>').removeAttr('required');
+            $('#sms-user').empty().append('<option value="">For All</option>').removeAttr('required');
             $('#sms-response').hide().empty();
             // Restore field visibility to default (single SMS)
             $('#single-sms-fields').show();
@@ -89,7 +89,7 @@
                 $('.sample-text').show();
                 // Reset user select when switching type
                 $('#user-select').hide();
-                $('#sms-user').empty().append('<option value="">Select User</option>').removeAttr('required');
+                $('#sms-user').empty().append('<option value="">For All</option>').removeAttr('required');
                 $('#sms-office').val('');
             } else {
                 $('#single-sms-fields').show();
@@ -124,7 +124,6 @@
                             });
                         }
                         $('#user-select').show();
-                        $userSelect.attr('required', 'required');
                     },
                     error: function() {
                         $('#sms-user').empty().append('<option value="">Select User</option>');
