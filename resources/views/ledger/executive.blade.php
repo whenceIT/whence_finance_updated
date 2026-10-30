@@ -292,28 +292,32 @@ function renderPage(page) {
             parseFloat(tx.gateway_fee || 0) +
             parseFloat(tx.withinhere_fee || 0);
 
-        let type = tx.transfer_type || 'unknown';
+        let type = tx.transfer_type ?? tx.type ?? 'unknown';
         let status = tx.status || 'pending';
 
-        let amountColor =
-            type === 'collection'
-                ? '#00a65a'
-                : '#dd4b39';
+   let normalizedType = String(type ?? '').trim().toLowerCase();
 
-        let sign =
-            type === 'collection'
-                ? '+'
-                : '-';
+let amountColor =
+    normalizedType === 'collection' ||
+    normalizedType === 'payment'
+        ? '#00a65a'
+        : '#dd4b39';
 
-        let typeLabel =
-            type === 'collection'
-                ? 'label-success'
-                : 'label-danger';
 
-        let statusLabel =
-            status === 'completed'
-                ? 'label-success'
-                : 'label-warning';
+
+
+let isPositive = ['collection', 'payment'].includes(normalizedType);
+
+let sign = isPositive ? '+' : '-';
+
+let typeLabel = isPositive
+    ? 'label-success'
+    : 'label-danger';
+
+let statusLabel =
+    status === 'completed'
+        ? 'label-success'
+        : 'label-warning';
 
         rows += `
             <tr>
