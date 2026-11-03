@@ -355,7 +355,6 @@ use App\Models\Ticket;
                  CREATIVE ARTWORKS & MARKETING
             ============================================ -->
             
-            @hasRole('role.exec', 'role.artworks')
             <li class="treeview @if(Request::is('creative*') || Request::is('job-applications*') || Request::is('daily-reports*') || Request::is('customer-care*') || Request::is('conflict-resolution*') || Request::is('loan-referrals*') || Request::is('lost-client-recoveries*')) active menu-open @endif">
                 <a href="#">
                     <i class="fa fa-paint-brush"></i> <span>Creative Artworks</span>
@@ -495,6 +494,7 @@ use App\Models\Ticket;
                     <li><a href="{{ route('creative.reports') }}"><i class="fa fa-circle-o"></i> All Reports</a></li>
                 </ul>
             </li>
+            @hasRole('role.exec', 'role.artworks')
             @endif
 
             <li class="@if(Request::is('ticket*')) active @endif">
