@@ -376,43 +376,38 @@ class GeneralHelper
         }
 
     }
-
     public static function new_loan_total_balance($id, $date = '')
     {
         if (empty($date)) {
-            $loan = Loan::with('transactions')->find($id);
-            $debit = 0;
-            $credit = 0;
+            $loan = Loan::find($id);
 
-            if (!empty($loan)) {
-                foreach ($loan->transactions as $transaction) {
-                    $debit += $transaction->debit;
-                    $credit += $transaction->credit;
-                }
-
-                //add the current transaction's credit and debit amounts
-                // $currentTransaction = $loan->transactions->where('id', $transactionId)->first();
-                // if (!empty($currentTransaction)) {
-                //   $debit += $currentTransaction->debit;
-                // $credit += $currentTransaction->credit;
-                // }
-
-                return ($debit - $credit);
-            } else {
+            if (empty($loan)) {
                 return 0;
             }
-        }
 
+            // Aggregate through the existing relationship so relationship constraints
+            // and LoanTransaction model scopes are preserved without loading every row.
+            $totals = $loan->transactions()
+                ->selectRaw('COALESCE(SUM(debit), 0) AS debit, COALESCE(SUM(credit), 0) AS credit')
+                ->first();
+
+            return $totals->debit - $totals->credit;
+        }
     }
 
+
     public static function loan_balances_bulk(array $loanIds)
-{
-    return DB::table('loan_transactions')
-        ->whereIn('loan_id', $loanIds)
-        ->groupBy('loan_id')
-        ->selectRaw('loan_id, COALESCE(SUM(debit),0) - COALESCE(SUM(credit),0) as balance')
-        ->pluck('balance', 'loan_id'); // [loan_id => balance]
-}
+    {
+        if (empty($loanIds)) {
+            return collect();
+        }
+
+        return DB::table('loan_transactions')
+            ->whereIn('loan_id', $loanIds)
+            ->groupBy('loan_id')
+            ->selectRaw('loan_id, COALESCE(SUM(debit), 0) - COALESCE(SUM(credit), 0) AS balance')
+            ->pluck('balance', 'loan_id'); // [loan_id => balance]
+    }
 
 
 public static function new_new_loan_total_balance($id)
@@ -429,7 +424,6 @@ public static function new_new_loan_total_balance($id)
     public static function loan_total_balance($id, $date = '')
     {
         if (empty($date)) {
-            $loan = Loan::find($id);
             $items = GeneralHelper::loan_items($id);
             return ($items['principal'] - $items['principal_paid'] - $items['principal_waived'] - $items['principal_written_off'])
                 + ($items['interest'] - $items['interest_paid'] - $items['interest_waived'] - $items['interest_written_off'])
@@ -470,85 +464,72 @@ public static function new_new_loan_total_balance($id)
         return $allocation;
 
     }
-
     public static function loan_total_due_amount($id, $date = '')
     {
-        if (empty($date)) {
-            return (GeneralHelper::loan_total_penalty($id) + GeneralHelper::loan_total_fees($id) + GeneralHelper::loan_total_interest($id) + GeneralHelper::loan_total_principal($id) - GeneralHelper::loan_total_interest_waived($id));
-        } else {
-            return (GeneralHelper::loan_total_penalty($id, $date) + GeneralHelper::loan_total_fees(
-                $id,
-                $date
-            ) + GeneralHelper::loan_total_interest($id, $date) + GeneralHelper::loan_total_principal(
-                        $id,
-                        $date
-                    ) - GeneralHelper::loan_total_interest_waived($id, $date));
+        // These five values came from five SUM queries. Calculate the same
+        // formula in one aggregate query, retaining the original date filter.
+        $query = LoanSchedule::where('loan_id', $id);
 
+        if (!empty($date)) {
+            $query->where('due_date', '<=', $date);
         }
 
+        return $query->selectRaw('(
+            COALESCE(SUM(penalty), 0) +
+            COALESCE(SUM(fees), 0) +
+            COALESCE(SUM(interest), 0) +
+            COALESCE(SUM(principal), 0) -
+            COALESCE(SUM(interest_waived), 0)
+        ) AS total')->value('total') + 0;
     }
 
     public static function loan_total_due_period($id, $date)
     {
-        return (LoanSchedule::where('loan_id', $id)->where(
-            'due_date',
-            $date
-        )->sum('penalty') + LoanSchedule::where('loan_id', $id)->where(
-                'due_date',
-                $date
-            )->sum('fees') + LoanSchedule::where('loan_id', $id)->where(
-                'due_date',
-                $date
-            )->sum('principal') + LoanSchedule::where('loan_id', $id)->where(
-                'due_date',
-                $date
-            )->sum('interest') + LoanSchedule::where('loan_id', $id)->where(
-                'due_date',
-                $date
-            )->sum('interest_waived'));
-
+        // One aggregate query replaces five separate SUM queries.
+        // Keep the existing formula exactly, including adding interest_waived.
+        return LoanSchedule::where('loan_id', $id)
+            ->where('due_date', $date)
+            ->selectRaw('(
+                COALESCE(SUM(penalty), 0) +
+                COALESCE(SUM(fees), 0) +
+                COALESCE(SUM(principal), 0) +
+                COALESCE(SUM(interest), 0) +
+                COALESCE(SUM(interest_waived), 0)
+            ) AS total')
+            ->value('total') + 0;
     }
+
 
     public static function loan_total_paid_period($id, $date)
     {
         return LoanRepayment::where('loan_id', $id)->where('due_date', $date)->sum('amount');
 
     }
-
     public static function loans_total_paid($start_date = '', $end_date = '')
     {
+        // Preserve the original loan filters (including release_date filtering),
+        // but aggregate repayments for all matching loans in one query.
+        $loansQuery = Loan::whereIn('status', ['disbursed', 'closed', 'written_off']);
 
-        if (empty($start_date)) {
-            $paid = 0;
-            foreach (Loan::whereIn('status', ['disbursed', 'closed', 'written_off'])->get() as $key) {
-                $paid = $paid + LoanTransaction::where(
-                    'loan_id',
-                    $key->id
-                )->where(
-                        'transaction_type',
-                        'repayment'
-                    )->where('reversed', 0)->sum('credit');
-            }
-            return $paid;
-        } else {
-            $paid = 0;
-            foreach (Loan::whereIn('status', ['disbursed', 'closed', 'written_off'])->whereBetween(
-                'release_date',
-                [$start_date, $end_date]
-            )->get() as $key) {
-                $paid = $paid + LoanTransaction::where(
-                    'loan_id',
-                    $key->id
-                )->where(
-                        'transaction_type',
-                        'repayment'
-                    )->where('reversed', 0)->sum('credit');
-            }
-            return $paid;
-
+        if (!empty($start_date)) {
+            $loansQuery->whereBetween('release_date', [$start_date, $end_date]);
         }
 
+        $paymentsByLoan = LoanTransaction::selectRaw('loan_id, COALESCE(SUM(credit), 0) AS paid')
+            ->whereIn('loan_id', $loansQuery->select('id'))
+            ->where('transaction_type', 'repayment')
+            ->where('reversed', 0)
+            ->groupBy('loan_id')
+            ->get();
+
+        $paid = 0;
+        foreach ($paymentsByLoan as $payment) {
+            $paid += $payment->paid;
+        }
+
+        return $paid;
     }
+
 
     public static function diff_in_months(\DateTime $date1, \DateTime $date2)
     {
@@ -598,56 +579,46 @@ public static function new_new_loan_total_balance($id)
         }
 
     }
-
     public static function total_payroll($start_date = '', $end_date = '')
     {
-        if (empty($start_date)) {
-            $payroll = 0;
-            foreach (Payroll::where('branch_id', session('branch_id'))->get() as $key) {
-                $payroll = $payroll + GeneralHelper::single_payroll_total_pay($key->id);
-            }
-            return $payroll;
-        } else {
-            $payroll = 0;
-            foreach (Payroll::where('branch_id', session('branch_id'))->whereBetween(
-                'date',
-                [$start_date, $end_date]
-            )->get() as $key) {
-                $payroll = $payroll + GeneralHelper::single_payroll_total_pay($key->id);
-            }
-            return $payroll;
+        // Replace one PayrollMeta SUM per payroll with a single SUM over the
+        // same branch/date-filtered payroll set.
+        $payrollQuery = Payroll::where('branch_id', session('branch_id'));
 
+        if (!empty($start_date)) {
+            $payrollQuery->whereBetween('date', [$start_date, $end_date]);
         }
 
+        return PayrollMeta::whereIn('payroll_id', $payrollQuery->select('id'))
+            ->where('position', 'bottom_left')
+            ->sum('value') + 0;
     }
-
     public static function loans_total_principal($start_date = '', $end_date = '')
     {
-        if (empty($start_date)) {
-            $principal = 0;
-            foreach (Loan::where('branch_id', session('branch_id'))->whereIn(
-                'status',
-                ['disbursed', 'closed', 'written_off']
-            )->get() as $key) {
-                $principal = $principal + LoanSchedule::where('loan_id', $key->id)->sum('principal');
-            }
-            return $principal;
-        } else {
-            $principal = 0;
-            foreach (Loan::where('branch_id', session('branch_id'))->whereIn(
-                'status',
-                ['disbursed', 'closed', 'written_off']
-            )->whereBetween(
-                    'release_date',
-                    [$start_date, $end_date]
-                )->get() as $key) {
-                $principal = $principal + $key->principal;
-            }
-            return $principal;
+        $loansQuery = Loan::where('branch_id', session('branch_id'))
+            ->whereIn('status', ['disbursed', 'closed', 'written_off']);
 
+        if (empty($start_date)) {
+            // Keep the original calculation based on schedule principal, but
+            // retrieve grouped totals in one query instead of one query per loan.
+            $principalByLoan = LoanSchedule::selectRaw('loan_id, COALESCE(SUM(principal), 0) AS principal')
+                ->whereIn('loan_id', $loansQuery->select('id'))
+                ->groupBy('loan_id')
+                ->get();
+
+            $principal = 0;
+            foreach ($principalByLoan as $row) {
+                $principal += $row->principal;
+            }
+
+            return $principal;
         }
 
+        // The original date-filtered branch sums loans.principal, not schedule principal.
+        return $loansQuery->whereBetween('release_date', [$start_date, $end_date])
+            ->sum('principal') + 0;
     }
+
 
 
     public static function total_other_income($start_date = '', $end_date = '')
@@ -700,64 +671,33 @@ public static function new_new_loan_total_balance($id)
         }
 
     }
-
     public static function total_savings_transactions($id, $start_date = '', $end_date = '')
     {
-        $interest = 0;
-        $deposits = 0;
-        $withdrawals = 0;
-        $fees = 0;
-        $guarantee = 0;
-        $allocation = [];
-        if (empty($start_date)) {
-            foreach (SavingTransaction::where('savings_id', $id)->where('reversed', 0)->get() as $key) {
-                if ($key->type == "interest") {
-                    $interest = $interest + $key->credit;
-                }
-                if ($key->type == "deposit") {
-                    $deposits = $deposits + $key->credit;
-                }
-                if ($key->type == "interest") {
-                    $withdrawals = $withdrawals + $key->debit;
-                }
-                if ($key->type == "bank_fees") {
-                    $fees = $fees + $key->credit;
-                }
-                if ($key->type == "guarantee") {
-                    $guarantee = $guarantee + $key->credit;
-                }
-            }
+        $query = SavingTransaction::where('savings_id', $id)->where('reversed', 0);
 
-        } else {
-            foreach (SavingTransaction::where('savings_id', $id)->where('reversed', 0)->whereBetween(
-                'date',
-                [$start_date, $end_date]
-            )->get() as $key) {
-                if ($key->type == "interest") {
-                    $interest = $interest + $key->credit;
-                }
-                if ($key->type == "deposit") {
-                    $deposits = $deposits + $key->credit;
-                }
-                if ($key->type == "interest") {
-                    $withdrawals = $withdrawals + $key->debit;
-                }
-                if ($key->type == "bank_fees") {
-                    $fees = $fees + $key->credit;
-                }
-                if ($key->type == "guarantee") {
-                    $guarantee = $guarantee + $key->credit;
-                }
-            }
-
+        if (!empty($start_date)) {
+            $query->whereBetween('date', [$start_date, $end_date]);
         }
-        $allocation["interest"] = $interest;
-        $allocation["deposits"] = $deposits;
-        $allocation["withdrawals"] = $withdrawals;
-        $allocation["fees"] = $fees;
-        $allocation["guarantee"] = $guarantee;
-        return $allocation;
+
+        // Preserve the original type-to-field mapping, including the existing
+        // withdrawals calculation using debit rows where type = "interest".
+        $totals = $query->selectRaw("            COALESCE(SUM(CASE WHEN type = 'interest' THEN credit ELSE 0 END), 0) AS interest,
+            COALESCE(SUM(CASE WHEN type = 'deposit' THEN credit ELSE 0 END), 0) AS deposits,
+            COALESCE(SUM(CASE WHEN type = 'interest' THEN debit ELSE 0 END), 0) AS withdrawals,
+            COALESCE(SUM(CASE WHEN type = 'bank_fees' THEN credit ELSE 0 END), 0) AS fees,
+            COALESCE(SUM(CASE WHEN type = 'guarantee' THEN credit ELSE 0 END), 0) AS guarantee
+        ")
+            ->first();
+
+        return [
+            'interest' => $totals->interest,
+            'deposits' => $totals->deposits,
+            'withdrawals' => $totals->withdrawals,
+            'fees' => $totals->fees,
+            'guarantee' => $totals->guarantee,
+        ];
     }
+
 
     public static function total_savings_withdrawals($start_date = '', $end_date = '')
     {
@@ -885,270 +825,182 @@ public static function new_new_loan_total_balance($id)
         }
 
     }
-
     public static function loans_total_due_item($item, $start_date = '', $end_date = '')
     {
-        if (empty($start_date)) {
-            $amount = 0;
-            foreach (Loan::where('branch_id', session('branch_id'))->whereIn(
-                'status',
-                ['disbursed', 'closed', 'written_off']
-            )->get() as $key) {
-                if ($item == 'principal') {
-                    $amount = $amount + GeneralHelper::loan_total_principal($key->id);
-                }
-                if ($item == 'interest') {
-                    $amount = $amount + GeneralHelper::loan_total_interest($key->id);
-                }
-                if ($item == 'fees') {
-                    $amount = $amount + GeneralHelper::loan_total_fees($key->id);
-                }
-                if ($item == 'penalty') {
-                    $amount = $amount + GeneralHelper::loan_total_penalty($key->id);
-                }
-
-            }
-            return $amount;
-        } else {
-            $amount = 0;
-            foreach (Loan::where('branch_id', session('branch_id'))->whereIn(
-                'status',
-                ['disbursed', 'closed', 'written_off']
-            )->whereBetween(
-                    'release_date',
-                    [$start_date, $end_date]
-                )->get() as $key) {
-                if ($item == 'principal') {
-                    $amount = $amount + GeneralHelper::loan_total_principal($key->id);
-                }
-                if ($item == 'interest') {
-                    $amount = $amount + GeneralHelper::loan_total_interest($key->id);
-                }
-                if ($item == 'fees') {
-                    $amount = $amount + GeneralHelper::loan_total_fees($key->id);
-                }
-                if ($item == 'penalty') {
-                    $amount = $amount + GeneralHelper::loan_total_penalty($key->id);
-                }
-            }
-            return $amount;
+        $columns = ['principal', 'interest', 'fees', 'penalty'];
+        if (!in_array($item, $columns, true)) {
+            return 0;
         }
 
-    }
+        $loansQuery = Loan::where('branch_id', session('branch_id'))
+            ->whereIn('status', ['disbursed', 'closed', 'written_off']);
 
+        if (!empty($start_date)) {
+            $loansQuery->whereBetween('release_date', [$start_date, $end_date]);
+        }
+
+        // One grouped schedule query replaces one SUM query per loan.
+        $amountsByLoan = LoanSchedule::selectRaw(
+            'loan_id, COALESCE(SUM(' . $item . '), 0) AS amount'
+        )
+            ->whereIn('loan_id', $loansQuery->select('id'))
+            ->groupBy('loan_id')
+            ->get();
+
+        $amount = 0;
+        foreach ($amountsByLoan as $row) {
+            $amount += $row->amount;
+        }
+
+        return $amount;
+    }
     public static function loans_product_total_due_items($id, $start_date = '', $end_date = '')
     {
-        if (empty($start_date)) {
-            $interest = 0;
-            $penalty = 0;
-            $fees = 0;
-            $principal = 0;
-            foreach (Loan::where('loans.loan_product_id', $id)->where(
-                'loans.branch_id',
-                session('branch_id')
-            )->whereIn(
-                    'loans.status',
-                    ['disbursed', 'closed', 'written_off']
-                )->join(
-                    'loan_schedules',
-                    'loans.id',
-                    '=',
-                    'loan_schedules.loan_id'
-                )->where('loan_schedules.deleted_at', NULL)->get() as $key) {
-                $interest = $interest + $key->interest;
-                $penalty = $penalty + $key->penalty;
-                $fees = $fees + $key->fees;
-                $principal = $principal + $key->principal;
+        $query = Loan::query()
+            ->where('loans.loan_product_id', $id)
+            ->where('loans.branch_id', session('branch_id'))
+            ->whereIn('loans.status', ['disbursed', 'closed', 'written_off'])
+            ->join('loan_schedules', 'loans.id', '=', 'loan_schedules.loan_id')
+            ->whereNull('loan_schedules.deleted_at');
 
-            }
-            return ["interest" => $interest, 'principal' => $principal, 'penalty' => $penalty, 'fees' => $fees];
-        } else {
-            $interest = 0;
-            $penalty = 0;
-            $fees = 0;
-            $principal = 0;
-            foreach (Loan::where('loans.loan_product_id', $id)->where(
-                'loans.branch_id',
-                session('branch_id')
-            )->whereIn(
-                    'loans.status',
-                    ['disbursed', 'closed', 'written_off']
-                )->join(
-                    'loan_schedules',
-                    'loans.id',
-                    '=',
-                    'loan_schedules.loan_id'
-                )->whereBetween(
-                    'loan_schedules.due_date',
-                    [$start_date, $end_date]
-                )->where('loan_schedules.deleted_at', NULL)->get() as $key) {
-                $interest = $interest + $key->interest;
-                $penalty = $penalty + $key->penalty;
-                $fees = $fees + $key->fees;
-                $principal = $principal + $key->principal;
-            }
-            return ["interest" => $interest, 'principal' => $principal, 'penalty' => $penalty, 'fees' => $fees];
+        if (!empty($start_date)) {
+            $query->whereBetween('loan_schedules.due_date', [$start_date, $end_date]);
         }
 
-    }
+        $totals = $query->selectRaw('
+            COALESCE(SUM(loan_schedules.interest), 0) AS interest,
+            COALESCE(SUM(loan_schedules.principal), 0) AS principal,
+            COALESCE(SUM(loan_schedules.penalty), 0) AS penalty,
+            COALESCE(SUM(loan_schedules.fees), 0) AS fees
+        ')->first();
 
+        return [
+            'interest' => $totals->interest,
+            'principal' => $totals->principal,
+            'penalty' => $totals->penalty,
+            'fees' => $totals->fees,
+        ];
+    }
     public static function loans_product_total_paid_items($id, $start_date = '', $end_date = '')
     {
-        if (empty($start_date)) {
-            $interest = 0;
-            $penalty = 0;
-            $fees = 0;
-            $principal = 0;
-            foreach (Loan::where('loans.loan_product_id', $id)->where(
-                'loans.branch_id',
-                session('branch_id')
-            )->whereIn(
-                    'loans.status',
-                    ['disbursed', 'closed', 'written_off']
-                )->join(
-                    'loan_repayments',
-                    'loans.id',
-                    '=',
-                    'loan_repayments.loan_id'
-                )->where('loan_repayments.deleted_at', NULL)->get() as $key) {
-                $interest = $interest + $key->interest;
-                $penalty = $penalty + $key->penalty;
-                $fees = $fees + $key->fees;
-                $principal = $principal + $key->principal;
+        $query = Loan::query()
+            ->where('loans.loan_product_id', $id)
+            ->where('loans.branch_id', session('branch_id'))
+            ->whereIn('loans.status', ['disbursed', 'closed', 'written_off'])
+            ->join('loan_repayments', 'loans.id', '=', 'loan_repayments.loan_id')
+            ->whereNull('loan_repayments.deleted_at');
 
-            }
-            return ["interest" => $interest, 'principal' => $principal, 'penalty' => $penalty, 'fees' => $fees];
-        } else {
-            $interest = 0;
-            $penalty = 0;
-            $fees = 0;
-            $principal = 0;
-            foreach (Loan::where('loans.loan_product_id', $id)->where(
-                'loans.branch_id',
-                session('branch_id')
-            )->whereIn(
-                    'loans.status',
-                    ['disbursed', 'closed', 'written_off']
-                )->join(
-                    'loan_repayments',
-                    'loans.id',
-                    '=',
-                    'loan_repayments.loan_id'
-                )->whereBetween(
-                    'loan_repayments.collection_date',
-                    [$start_date, $end_date]
-                )->where('loan_repayments.deleted_at', NULL)->get() as $key) {
-                $interest = $interest + $key->interest;
-                $penalty = $penalty + $key->penalty;
-                $fees = $fees + $key->fees;
-                $principal = $principal + $key->principal;
-            }
-            return ["interest" => $interest, 'principal' => $principal, 'penalty' => $penalty, 'fees' => $fees];
+        if (!empty($start_date)) {
+            $query->whereBetween('loan_repayments.collection_date', [$start_date, $end_date]);
         }
 
+        $totals = $query->selectRaw('
+            COALESCE(SUM(loan_repayments.interest), 0) AS interest,
+            COALESCE(SUM(loan_repayments.principal), 0) AS principal,
+            COALESCE(SUM(loan_repayments.penalty), 0) AS penalty,
+            COALESCE(SUM(loan_repayments.fees), 0) AS fees
+        ')->first();
+
+        return [
+            'interest' => $totals->interest,
+            'principal' => $totals->principal,
+            'penalty' => $totals->penalty,
+            'fees' => $totals->fees,
+        ];
     }
 
     public static function loans_borrower_total_due_item($id, $item, $start_date = '', $end_date = '')
     {
-        if (empty($start_date)) {
-            $amount = 0;
-            foreach (Loan::where('borrower_id', $id)->where('branch_id', session('branch_id'))->whereIn(
-                'status',
-                ['disbursed', 'closed', 'written_off']
-            )->get() as $key) {
-                if ($item == 'principal') {
-                    $amount = $amount + GeneralHelper::loan_total_principal($key->id);
-                }
-                if ($item == 'interest') {
-                    $amount = $amount + GeneralHelper::loan_total_interest($key->id);
-                }
-                if ($item == 'fees') {
-                    $amount = $amount + GeneralHelper::loan_total_fees($key->id);
-                }
-                if ($item == 'penalty') {
-                    $amount = $amount + GeneralHelper::loan_total_penalty($key->id);
-                }
-
-            }
-            return $amount;
-        } else {
-            $amount = 0;
-            foreach (Loan::where('borrower_id', $id)->where('branch_id', session('branch_id'))->whereIn(
-                'status',
-                ['disbursed', 'closed', 'written_off']
-            )->whereBetween(
-                    'release_date',
-                    [$start_date, $end_date]
-                )->get() as $key) {
-                if ($item == 'principal') {
-                    $amount = $amount + GeneralHelper::loan_total_principal($key->id);
-                }
-                if ($item == 'interest') {
-                    $amount = $amount + GeneralHelper::loan_total_interest($key->id);
-                }
-                if ($item == 'fees') {
-                    $amount = $amount + GeneralHelper::loan_total_fees($key->id);
-                }
-                if ($item == 'penalty') {
-                    $amount = $amount + GeneralHelper::loan_total_penalty($key->id);
-                }
-            }
-            return $amount;
+        $columns = ['principal', 'interest', 'fees', 'penalty'];
+        if (!in_array($item, $columns, true)) {
+            return 0;
         }
 
+        $loansQuery = Loan::where('borrower_id', $id)
+            ->where('branch_id', session('branch_id'))
+            ->whereIn('status', ['disbursed', 'closed', 'written_off']);
+
+        if (!empty($start_date)) {
+            $loansQuery->whereBetween('release_date', [$start_date, $end_date]);
+        }
+
+        $amountsByLoan = LoanSchedule::selectRaw(
+            'loan_id, COALESCE(SUM(' . $item . '), 0) AS amount'
+        )
+            ->whereIn('loan_id', $loansQuery->select('id'))
+            ->groupBy('loan_id')
+            ->get();
+
+        $amount = 0;
+        foreach ($amountsByLoan as $row) {
+            $amount += $row->amount;
+        }
+
+        return $amount;
     }
 
     public static function loans_total_default($start_date = '', $end_date = '')
     {
-        if (empty($start_date)) {
-            $principal = 0;
-            foreach (Loan::where('branch_id', session('branch_id'))->where('status', 'written_off')->get() as $key) {
-                $principal = $principal + ($key->principal - GeneralHelper::loan_total_paid($key->id));
-            }
-            return $principal;
-        } else {
-            $principal = 0;
-            foreach (Loan::where('branch_id', session('branch_id'))->where(
-                'status',
-                'written_off'
-            )->whereBetween(
-                    'release_date',
-                    [$start_date, $end_date]
-                )->get() as $key) {
-                $principal = $principal + ($key->principal - GeneralHelper::loan_total_paid($key->id));
-            }
-            return $principal;
+        $loansQuery = Loan::where('branch_id', session('branch_id'))
+            ->where('status', 'written_off');
 
+        if (!empty($start_date)) {
+            $loansQuery->whereBetween('release_date', [$start_date, $end_date]);
         }
 
-    }
+        // Fetch the same written-off loans, then calculate their repayment totals
+        // in one grouped query instead of calling loan_total_paid() per loan.
+        $loans = $loansQuery->get(['id', 'principal']);
+        if ($loans->isEmpty()) {
+            return 0;
+        }
 
+        $paidByLoan = LoanTransaction::selectRaw('loan_id, COALESCE(SUM(credit), 0) AS paid')
+            ->whereIn('loan_id', $loans->pluck('id'))
+            ->where('transaction_type', 'repayment')
+            ->where('reversed', 0)
+            ->groupBy('loan_id')
+            ->pluck('paid', 'loan_id');
+
+        $principal = 0;
+        foreach ($loans as $loan) {
+            $principal += $loan->principal - ($paidByLoan[$loan->id] ?? 0);
+        }
+
+        return $principal;
+    }
     public static function loans_total_due($start_date = '', $end_date = '')
     {
-        if (empty($start_date)) {
-            $due = 0;
-            foreach (Loan::where('branch_id', session('branch_id'))->whereIn(
-                'status',
-                ['disbursed', 'closed', 'written_off']
-            )->get() as $key) {
-                $due = $due + GeneralHelper::loan_total_due_amount($key->id);
-            }
-            return $due;
-        } else {
-            $due = 0;
-            foreach (Loan::where('branch_id', session('branch_id'))->whereIn(
-                'status',
-                ['disbursed', 'closed', 'written_off']
-            )->whereBetween(
-                    'release_date',
-                    [$start_date, $end_date]
-                )->get() as $key) {
-                $due = $due + GeneralHelper::loan_total_due_amount($key->id);
-            }
-            return $due;
+        $loansQuery = Loan::where('branch_id', session('branch_id'))
+            ->whereIn('status', ['disbursed', 'closed', 'written_off']);
 
+        if (!empty($start_date)) {
+            $loansQuery->whereBetween('release_date', [$start_date, $end_date]);
         }
+
+        // Match loan_total_due_amount() per loan while avoiding five SUM queries
+        // for every loan. Grouping keeps the per-loan calculation intact.
+        $dueByLoan = LoanSchedule::selectRaw('
+            loan_id,
+            COALESCE(SUM(penalty), 0) AS penalty,
+            COALESCE(SUM(fees), 0) AS fees,
+            COALESCE(SUM(interest), 0) AS interest,
+            COALESCE(SUM(principal), 0) AS principal,
+            COALESCE(SUM(interest_waived), 0) AS interest_waived
+        ')
+            ->whereIn('loan_id', $loansQuery->select('id'))
+            ->groupBy('loan_id')
+            ->get();
+
+        $due = 0;
+        foreach ($dueByLoan as $row) {
+            $due += $row->penalty + $row->fees + $row->interest
+                + $row->principal - $row->interest_waived;
+        }
+
+        return $due;
     }
+
 
     public static function loans_count($start_date = '', $end_date = '')
     {
@@ -1240,118 +1092,82 @@ public static function new_new_loan_total_balance($id)
 
         }
     }
-
     public static function payments_product_count($id, $start_date = '', $end_date = '')
     {
-        if (empty($start_date)) {
-            $due = 0;
-            foreach (Loan::where('loan_product_id', $id)->where('branch_id', session('branch_id'))->whereIn(
-                'status',
-                ['disbursed', 'closed', 'written_off']
-            )->get() as $key) {
-                $due = $due + LoanTransaction::where(
-                    'loan_id',
-                    $key->id
-                )->where(
-                        'transaction_type',
-                        'repayment'
-                    )->where('reversed', 0)->count();
-            }
-            return $due;
-        } else {
-            $due = 0;
-            foreach (Loan::where('loan_product_id', $id)->where('branch_id', session('branch_id'))->whereIn(
-                'status',
-                ['disbursed', 'closed', 'written_off']
-            )->whereBetween(
-                    'release_date',
-                    [$start_date, $end_date]
-                )->get() as $key) {
-                $due = $due + LoanTransaction::where(
-                    'loan_id',
-                    $key->id
-                )->where(
-                        'transaction_type',
-                        'repayment'
-                    )->where('reversed', 0)->count();
-            }
-            return $due;
+        $loansQuery = Loan::where('loan_product_id', $id)
+            ->where('branch_id', session('branch_id'))
+            ->whereIn('status', ['disbursed', 'closed', 'written_off']);
 
+        if (!empty($start_date)) {
+            $loansQuery->whereBetween('release_date', [$start_date, $end_date]);
         }
-    }
 
+        // Count matching repayment transactions across all matching loans at once.
+        return LoanTransaction::whereIn('loan_id', $loansQuery->select('id'))
+            ->where('transaction_type', 'repayment')
+            ->where('reversed', 0)
+            ->count();
+    }
     public static function payments_borrower_count($id, $start_date = '', $end_date = '')
     {
-        if (empty($start_date)) {
-            $due = 0;
-            foreach (Loan::where('borrower_id', $id)->where('branch_id', session('branch_id'))->whereIn(
-                'status',
-                ['disbursed', 'closed', 'written_off']
-            )->get() as $key) {
-                $due = $due + LoanTransaction::where(
-                    'loan_id',
-                    $key->id
-                )->where(
-                        'transaction_type',
-                        'repayment'
-                    )->where('reversed', 0)->count();
-            }
-            return $due;
-        } else {
-            $due = 0;
-            foreach (Loan::where('borrower_id', $id)->where('branch_id', session('branch_id'))->whereIn(
-                'status',
-                ['disbursed', 'closed', 'written_off']
-            )->whereBetween(
-                    'release_date',
-                    [$start_date, $end_date]
-                )->get() as $key) {
-                $due = $due + LoanTransaction::where(
-                    'loan_id',
-                    $key->id
-                )->where(
-                        'transaction_type',
-                        'repayment'
-                    )->where('reversed', 0)->count();
-            }
-            return $due;
+        $loansQuery = Loan::where('borrower_id', $id)
+            ->where('branch_id', session('branch_id'))
+            ->whereIn('status', ['disbursed', 'closed', 'written_off']);
 
+        if (!empty($start_date)) {
+            $loansQuery->whereBetween('release_date', [$start_date, $end_date]);
         }
-    }
 
+        return LoanTransaction::whereIn('loan_id', $loansQuery->select('id'))
+            ->where('transaction_type', 'repayment')
+            ->where('reversed', 0)
+            ->count();
+    }
     public static function borrower_loans_total_due($id)
     {
+        $loansQuery = Loan::whereIn('status', ['disbursed', 'closed', 'written_off'])
+            ->where('borrower_id', $id);
+
+        $dueByLoan = LoanSchedule::selectRaw('
+            loan_id,
+            COALESCE(SUM(penalty), 0) AS penalty,
+            COALESCE(SUM(fees), 0) AS fees,
+            COALESCE(SUM(interest), 0) AS interest,
+            COALESCE(SUM(principal), 0) AS principal,
+            COALESCE(SUM(interest_waived), 0) AS interest_waived
+        ')
+            ->whereIn('loan_id', $loansQuery->select('id'))
+            ->groupBy('loan_id')
+            ->get();
 
         $due = 0;
-        foreach (Loan::whereIn(
-            'status',
-            ['disbursed', 'closed', 'written_off']
-        )->where('borrower_id', $id)->get() as $key) {
-            $due = $due + GeneralHelper::loan_total_due_amount($key->id);
+        foreach ($dueByLoan as $row) {
+            $due += $row->penalty + $row->fees + $row->interest
+                + $row->principal - $row->interest_waived;
         }
+
         return $due;
-
     }
-
     public static function borrower_loans_total_paid($id)
     {
+        $loansQuery = Loan::whereIn('status', ['disbursed', 'closed', 'written_off'])
+            ->where('borrower_id', $id);
+
+        $paymentsByLoan = LoanTransaction::selectRaw('loan_id, COALESCE(SUM(credit), 0) AS paid')
+            ->whereIn('loan_id', $loansQuery->select('id'))
+            ->where('transaction_type', 'repayment')
+            ->where('reversed', 0)
+            ->groupBy('loan_id')
+            ->get();
 
         $paid = 0;
-        foreach (Loan::whereIn(
-            'status',
-            ['disbursed', 'closed', 'written_off']
-        )->where('borrower_id', $id)->get() as $key) {
-            $paid = $paid + LoanTransaction::where(
-                'loan_id',
-                $key->id
-            )->where(
-                    'transaction_type',
-                    'repayment'
-                )->where('reversed', 0)->sum('credit');
+        foreach ($paymentsByLoan as $payment) {
+            $paid += $payment->paid;
         }
-        return $paid;
 
+        return $paid;
     }
+
 
     public static function audit_trail($action = "", $module = "", $notes = "")
     {
@@ -1381,68 +1197,56 @@ public static function new_new_loan_total_balance($id)
         }
 
     }
-
     public static function client_savings_account_balance($id)
     {
-
-        $balance = 0;
-        foreach (Savings::where('client_id', $id)->get() as $key) {
-            $balance = $balance + GeneralHelper::savings_account_balance($key->id);
-        }
-        return $balance;
-
+        // Aggregate transactions across the client's savings accounts in one query.
+        return SavingsTransaction::whereIn(
+            'savings_id',
+            Savings::where('client_id', $id)->select('id')
+        )
+            ->where('reversed', 0)
+            ->selectRaw('COALESCE(SUM(credit), 0) - COALESCE(SUM(debit), 0) AS balance')
+            ->value('balance') + 0;
     }
-
     public static function total_client_savings_account_balance($id)
     {
-
-        $balance = 0;
         $client_ids = [];
         foreach (Sentinel::findUserById($id)->client_users as $key) {
             array_push($client_ids, $key->client_id);
         }
+
         $group_ids = [];
         foreach (Sentinel::findUserById($id)->group_users as $key) {
             array_push($group_ids, $key->group_id);
         }
-        foreach (Savings::where(function ($query) use ($client_ids, $group_ids) {
+
+        // Preserve the same client/group account set, but calculate all balances
+        // together instead of issuing one savings-transactions query per account.
+        $savingsQuery = Savings::where(function ($query) use ($client_ids, $group_ids) {
             $query->whereIn('client_id', $client_ids)
                 ->orWhereIn('group_id', $group_ids);
-        })->get() as $key) {
-            $balance = $balance + GeneralHelper::savings_account_balance($key->id);
-        }
-        return $balance;
+        })->select('id');
 
+        return SavingsTransaction::whereIn('savings_id', $savingsQuery)
+            ->where('reversed', 0)
+            ->selectRaw('COALESCE(SUM(credit), 0) - COALESCE(SUM(debit), 0) AS balance')
+            ->value('balance') + 0;
     }
-
 
     public static function asset_valuation($id, $start_date = '')
     {
+        $query = AssetValuation::where('asset_id', $id);
 
-        if (empty($start_date)) {
-            $value = 0;
-            if (!empty(AssetValuation::where('asset_id', $id)->orderBy('date', 'desc')->first())) {
-                $value = AssetValuation::where('asset_id', $id)->orderBy('date', 'desc')->first()->amount;
-            }
-            return $value;
-        } else {
-            $value = 0;
-            if (
-                !empty(AssetValuation::where('asset_id', $id)->where('date', '<=', $start_date)->orderBy(
-                    'date',
-                    'desc'
-                )->first())
-            ) {
-                $value = AssetValuation::where('asset_id', $id)->where('date', '<=', $start_date)->orderBy(
-                    'date',
-                    'desc'
-                )->first()->amount;
-            }
-            return $value;
-
+        if (!empty($start_date)) {
+            $query->where('date', '<=', $start_date);
         }
 
+        // Reuse the first result rather than executing the identical query twice.
+        $valuation = $query->orderBy('date', 'desc')->first();
+
+        return $valuation ? $valuation->amount : 0;
     }
+
 
     public static function asset_type_valuation($id, $start_date = '')
     {
@@ -1629,55 +1433,50 @@ public static function new_new_loan_total_balance($id)
 
         return ProductCheckoutItem::where('product_check_out_id', $id)->sum('total_cost');
     }
-
     public static function check_ins_total_amount($start_date = '', $end_date = '')
     {
-        if (empty($start_date)) {
-            $due = 0;
-            foreach (ProductCheckin::where('branch_id', session('branch_id'))->get() as $key) {
-                $due = $due + GeneralHelper::check_in_total_amount($key->id);
-            }
-            return $due;
-        } else {
-            $due = 0;
-            foreach (ProductCheckin::where('branch_id', session('branch_id'))->whereBetween(
-                'date',
-                [$start_date, $end_date]
-            )->get() as $key) {
-                $due = $due + GeneralHelper::check_in_total_amount($key->id);
-            }
-            return $due;
+        $checkinsQuery = ProductCheckin::where('branch_id', session('branch_id'));
 
+        if (!empty($start_date)) {
+            $checkinsQuery->whereBetween('date', [$start_date, $end_date]);
         }
-    }
 
+        // Same parent set and same item total, without one child SUM per check-in.
+        return ProductCheckinItem::whereIn(
+            'product_check_in_id',
+            $checkinsQuery->select('id')
+        )->sum('total_cost') + 0;
+    }
     public static function check_outs_total_amount($start_date = '', $end_date = '')
     {
         if (empty($start_date)) {
-            $due = 0;
-            foreach (ProductCheckout::where('branch_id', session('branch_id'))->get() as $key) {
-                $due = $due + GeneralHelper::check_in_total_amount($key->id);
-            }
-            return $due;
-        } else {
-            $due = 0;
-            foreach (ProductCheckout::where('branch_id', session('branch_id'))->whereBetween(
-                'date',
-                [$start_date, $end_date]
-            )->get() as $key) {
-                if ($key->type == 'cash') {
-                    $due = $due + GeneralHelper::check_in_total_amount($key->id);
-                } else {
-                    if (!empty($key->loan)) {
-                        $due = $due + GeneralHelper::loan_total_due_amount($key->loan_id);
-                    }
-                }
+            // Preserve the existing behavior: this method currently calls
+            // check_in_total_amount() using each checkout ID.
+            $checkoutsQuery = ProductCheckout::where('branch_id', session('branch_id'));
 
-            }
-            return $due;
-
+            return ProductCheckinItem::whereIn(
+                'product_check_in_id',
+                $checkoutsQuery->select('id')
+            )->sum('total_cost') + 0;
         }
+
+        $due = 0;
+        foreach (ProductCheckout::where('branch_id', session('branch_id'))->whereBetween(
+            'date',
+            [$start_date, $end_date]
+        )->get() as $key) {
+            if ($key->type == 'cash') {
+                $due = $due + GeneralHelper::check_in_total_amount($key->id);
+            } else {
+                if (!empty($key->loan)) {
+                    $due = $due + GeneralHelper::loan_total_due_amount($key->loan_id);
+                }
+            }
+        }
+
+        return $due;
     }
+
 
     public static function stock_total_cost_amount()
     {
@@ -1710,280 +1509,171 @@ public static function new_new_loan_total_balance($id)
             $payments = $payments + $payment->amount;
         }
     }
-
     public static function loan_items($id, $start_date = '', $end_date = '')
     {
-        $allocation = [];
         $loan = Loan::find($id);
-        $principal = 0;
-        $principal_paid = 0;
-        $principal_written_off = 0;
-        $fees = 0;
-        $fees_paid = 0;
-        $penalty = 0;
-        $penalty_paid = 0;
-        $penalty_written_off = 0;
-        $interest_waived = 0;
-        $penalty_waived = 0;
-        $fees_waived = 0;
-        $fees_written_off = 0;
-        $principal_waived = 0;
-        $interest = 0;
-        $interest_paid = 0;
-        $interest_written_off = 0;
-        foreach ($loan->repayment_schedules as $schedule) {
-            $principal = $principal + $schedule->principal;
-            $interest = $interest + $schedule->interest;
-            $penalty = $penalty + $schedule->penalty;
-            $fees = $fees + $schedule->fees;
-            $principal_paid = $principal_paid + $schedule->principal_paid;
-            $interest_paid = $interest_paid + $schedule->interest_paid;
-            $penalty_paid = $penalty_paid + $schedule->penalty_paid;
-            $fees_paid = $fees_paid + $schedule->fees_paid;
-            $principal_waived = $principal_waived + $schedule->principal_waived;
-            $interest_waived = $interest_waived + $schedule->interest_waived;
-            $penalty_waived = $penalty_waived + $schedule->penalty_waived;
-            $fees_waived = $fees_waived + $schedule->fees_waived;
 
-            $principal_written_off = $principal_written_off + $schedule->principal_written_off;
-            $interest_written_off = $interest_written_off + $schedule->interest_written_off;
-            $penalty_written_off = $penalty_written_off + $schedule->penalty_written_off;
-            $fees_written_off = $fees_written_off + $schedule->fees_written_off;
+        // Keep the original relationship so any relationship constraints and
+        // repayment-schedule model scopes remain in effect. Aggregate in SQL
+        // instead of hydrating every repayment schedule into PHP.
+        $totals = $loan->repayment_schedules()
+            ->selectRaw('
+                COALESCE(SUM(principal), 0) AS principal,
+                COALESCE(SUM(interest), 0) AS interest,
+                COALESCE(SUM(fees), 0) AS fees,
+                COALESCE(SUM(penalty), 0) AS penalty,
+                COALESCE(SUM(principal_paid), 0) AS principal_paid,
+                COALESCE(SUM(interest_paid), 0) AS interest_paid,
+                COALESCE(SUM(fees_paid), 0) AS fees_paid,
+                COALESCE(SUM(penalty_paid), 0) AS penalty_paid,
+                COALESCE(SUM(principal_waived), 0) AS principal_waived,
+                COALESCE(SUM(interest_waived), 0) AS interest_waived,
+                COALESCE(SUM(fees_waived), 0) AS fees_waived,
+                COALESCE(SUM(penalty_waived), 0) AS penalty_waived,
+                COALESCE(SUM(principal_written_off), 0) AS principal_written_off,
+                COALESCE(SUM(interest_written_off), 0) AS interest_written_off,
+                COALESCE(SUM(fees_written_off), 0) AS fees_written_off,
+                COALESCE(SUM(penalty_written_off), 0) AS penalty_written_off
+            ')
+            ->first();
 
-        }
-        $allocation["principal"] = $principal;
-        $allocation["interest"] = $interest;
-        $allocation["fees"] = $fees;
-        $allocation["penalty"] = $penalty;
-
-        $allocation["interest_waived"] = $interest_waived;
-        $allocation["principal_waived"] = $principal_waived;
-        $allocation["penalty_waived"] = $penalty_waived;
-        $allocation["fees_waived"] = $fees_waived;
-
-        $allocation["interest_paid"] = $interest_paid;
-        $allocation["principal_paid"] = $principal_paid;
-        $allocation["penalty_paid"] = $penalty_paid;
-        $allocation["fees_paid"] = $fees_paid;
-
-        $allocation["interest_written_off"] = $interest_written_off;
-        $allocation["principal_written_off"] = $principal_written_off;
-        $allocation["penalty_written_off"] = $penalty_written_off;
-        $allocation["fees_written_off"] = $fees_written_off;
-
-        return $allocation;
+        return [
+            'principal' => $totals->principal,
+            'interest' => $totals->interest,
+            'fees' => $totals->fees,
+            'penalty' => $totals->penalty,
+            'interest_waived' => $totals->interest_waived,
+            'principal_waived' => $totals->principal_waived,
+            'penalty_waived' => $totals->penalty_waived,
+            'fees_waived' => $totals->fees_waived,
+            'interest_paid' => $totals->interest_paid,
+            'principal_paid' => $totals->principal_paid,
+            'penalty_paid' => $totals->penalty_paid,
+            'fees_paid' => $totals->fees_paid,
+            'interest_written_off' => $totals->interest_written_off,
+            'principal_written_off' => $totals->principal_written_off,
+            'penalty_written_off' => $totals->penalty_written_off,
+            'fees_written_off' => $totals->fees_written_off,
+        ];
     }
-
     public static function loan_due_items($id, $start_date = '', $end_date = '')
     {
-        $allocation = [];
-        $principal = 0;
-        $fees = 0;
-        $penalty = 0;
-        $interest = 0;
-        if (empty($start_date)) {
-            $schedules = LoanSchedule::where('loan_id', $id)->get();
-        } else {
-            $schedules = LoanSchedule::where('loan_id', $id)->whereBetween(
-                'due_date',
-                [$start_date, $end_date]
-            )->get();
-        }
-        foreach ($schedules as $schedule) {
-            $interest = $interest + $schedule->interest;
-            $penalty = $penalty + $schedule->penalty;
-            $fees = $fees + $schedule->fees;
-            $principal = $principal + $schedule->principal;
-        }
-        $allocation["principal"] = $principal;
-        $allocation["interest"] = $interest;
-        $allocation["fees"] = $fees;
-        $allocation["penalty"] = $penalty;
-        return $allocation;
-    }
+        $query = LoanSchedule::where('loan_id', $id);
 
+        if (!empty($start_date)) {
+            $query->whereBetween('due_date', [$start_date, $end_date]);
+        }
+
+        $totals = $query->selectRaw('
+            COALESCE(SUM(principal), 0) AS principal,
+            COALESCE(SUM(interest), 0) AS interest,
+            COALESCE(SUM(fees), 0) AS fees,
+            COALESCE(SUM(penalty), 0) AS penalty
+        ')->first();
+
+        return [
+            'principal' => $totals->principal,
+            'interest' => $totals->interest,
+            'fees' => $totals->fees,
+            'penalty' => $totals->penalty,
+        ];
+    }
     public static function schedule_due_amount($id)
     {
         $schedule = LoanSchedule::find($id);
         $amount = 0;
+
         $payments = LoanRepayment::where('loan_id', $schedule->loan_id)->sum('amount');
-        foreach (LoanSchedule::where('due_date', '<=', $schedule->due_date)->where(
-            'loan_id',
-            $schedule->loan_id
-        )->get() as $key) {
-            if ($key->id != $id) {
-                $payments = $payments - ($key->interest + $key->penalty + $key->fees + $key->principal);
-            }
-        }
-        if ($payments > 0 && $payments > ($schedule->interest + $schedule->penalty + $schedule->fees + $schedule->principal)) {
+
+        // The former loop subtracted every other schedule's amount in the
+        // selected loan/due-date range. Calculate that same total in MySQL.
+        $previousSchedulesTotal = LoanSchedule::where('due_date', '<=', $schedule->due_date)
+            ->where('loan_id', $schedule->loan_id)
+            ->where('id', '!=', $id)
+            ->selectRaw('COALESCE(SUM(
+                COALESCE(interest, 0) +
+                COALESCE(penalty, 0) +
+                COALESCE(fees, 0) +
+                COALESCE(principal, 0)
+            ), 0) AS total')
+            ->value('total');
+
+        $payments -= $previousSchedulesTotal;
+        $scheduleAmount = $schedule->interest + $schedule->penalty
+            + $schedule->fees + $schedule->principal;
+
+        if ($payments > 0 && $payments > $scheduleAmount) {
             $amount = 0;
-        } elseif ($payments > 0 && $payments < ($schedule->interest + $schedule->penalty + $schedule->fees + $schedule->principal)) {
-            $amount = $schedule->interest + $schedule->penalty + $schedule->fees + $schedule->principal - $payments;
+        } elseif ($payments > 0 && $payments < $scheduleAmount) {
+            $amount = $scheduleAmount - $payments;
         } else {
-            $amount = $schedule->interest + $schedule->penalty + $schedule->fees + $schedule->principal;
+            $amount = $scheduleAmount;
         }
+
         return $amount;
     }
 
     public static function loans_paid_items($start_date = '', $end_date = '')
     {
-        $allocation = [];
-        $principal = 0;
-        $fees = 0;
-        $penalty = 0;
-        $interest = 0;
-        $interest_waived = 0;
-        $over_payments = 0;
-        if (empty($start_date)) {
-            $principal = $principal + JournalEntry::where(
-                'transaction_type',
-                'repayment'
-            )->where('transaction_sub_type', 'repayment_principal')->where(
-                    'reversed',
-                    0
-                )->where('branch_id', session('branch_id'))->sum('credit');
-            $interest = $interest + JournalEntry::where('transaction_type', 'repayment')->where(
-                'transaction_sub_type',
-                'repayment_interest'
-            )->where('reversed', 0)->where(
-                    'branch_id',
-                    session('branch_id')
-                )->sum('credit');
-            $fees = $fees + JournalEntry::where('transaction_type', 'repayment')->where(
-                'transaction_sub_type',
-                'repayment_fees'
-            )->where('reversed', 0)->where('branch_id', session('branch_id'))->sum('credit');
-            $penalty = $penalty + JournalEntry::where('transaction_type', 'repayment')->where(
-                'transaction_sub_type',
-                'repayment_penalty'
-            )->where('reversed', 0)->where('branch_id', session('branch_id'))->sum('credit');
-            $over_payments = $over_payments + JournalEntry::where(
-                'transaction_type',
-                'repayment'
-            )->where(
-                    'transaction_sub_type',
-                    'overpayment'
-                )->where('reversed', 0)->where('branch_id', session('branch_id'))->sum('credit');
-        } else {
+        // Combine the five JournalEntry SUM queries into one grouped query.
+        $query = JournalEntry::where('transaction_type', 'repayment')
+            ->whereIn('transaction_sub_type', [
+                'repayment_principal',
+                'repayment_interest',
+                'repayment_fees',
+                'repayment_penalty',
+                'overpayment',
+            ])
+            ->where('reversed', 0)
+            ->where('branch_id', session('branch_id'));
 
-            $principal = $principal + JournalEntry::where(
-                'transaction_type',
-                'repayment'
-            )->where('transaction_sub_type', 'repayment_principal')->where(
-                    'reversed',
-                    0
-                )->whereBetween(
-                    'date',
-                    [$start_date, $end_date]
-                )->where('branch_id', session('branch_id'))->sum('credit');
-            $interest = $interest + JournalEntry::where('transaction_type', 'repayment')->where(
-                'transaction_sub_type',
-                'repayment_interest'
-            )->where('reversed', 0)->whereBetween(
-                    'date',
-                    [$start_date, $end_date]
-                )->where('branch_id', session('branch_id'))->sum('credit');
-            $fees = $fees + JournalEntry::where('transaction_type', 'repayment')->where(
-                'transaction_sub_type',
-                'repayment_fees'
-            )->where('reversed', 0)->whereBetween(
-                    'date',
-                    [$start_date, $end_date]
-                )->where('branch_id', session('branch_id'))->sum('credit');
-            $penalty = $penalty + JournalEntry::where('transaction_type', 'repayment')->where(
-                'transaction_sub_type',
-                'repayment_penalty'
-            )->where('reversed', 0)->whereBetween(
-                    'date',
-                    [$start_date, $end_date]
-                )->where('branch_id', session('branch_id'))->sum('credit');
-            $over_payments = $over_payments + JournalEntry::where(
-                'transaction_type',
-                'repayment'
-            )->where(
-                    'transaction_sub_type',
-                    'overpayment'
-                )->where('reversed', 0)->whereBetween(
-                    'date',
-                    [$start_date, $end_date]
-                )->where('branch_id', session('branch_id'))->sum('credit');
+        if (!empty($start_date)) {
+            $query->whereBetween('date', [$start_date, $end_date]);
         }
 
-        $allocation["principal"] = $principal;
-        $allocation["interest"] = $interest;
-        $allocation["fees"] = $fees;
-        $allocation["penalty"] = $penalty;
-        $allocation["over_payments"] = $over_payments;
-        return $allocation;
+        $totals = $query->selectRaw('transaction_sub_type, COALESCE(SUM(credit), 0) AS total')
+            ->groupBy('transaction_sub_type')
+            ->get()
+            ->keyBy('transaction_sub_type');
+
+        return [
+            'principal' => $totals->get('repayment_principal')->total ?? 0,
+            'interest' => $totals->get('repayment_interest')->total ?? 0,
+            'fees' => $totals->get('repayment_fees')->total ?? 0,
+            'penalty' => $totals->get('repayment_penalty')->total ?? 0,
+            'over_payments' => $totals->get('overpayment')->total ?? 0,
+        ];
     }
 
     public static function loans_due_items($start_date = '', $end_date = '')
     {
-        $allocation = [];
-        $principal = 0;
-        $fees = 0;
-        $penalty = 0;
-        $interest = 0;
+        // Keep the original Loan join, branch/status filters, and explicit
+        // schedule soft-delete filter, but aggregate in MySQL rather than PHP.
+        $query = Loan::query()
+            ->where('loans.branch_id', session('branch_id'))
+            ->whereIn('loans.status', ['disbursed', 'closed', 'written_off'])
+            ->join('loan_schedules', 'loans.id', '=', 'loan_schedules.loan_id')
+            ->whereNull('loan_schedules.deleted_at');
 
-        if (empty($start_date)) {
-            foreach (Loan::select(
-                "loan_schedules.principal",
-                "loan_schedules.interest",
-                "loan_schedules.penalty",
-                "loan_schedules.fees"
-            )->where(
-                    'loans.branch_id',
-                    session('branch_id')
-                )->whereIn(
-                    'loans.status',
-                    ['disbursed', 'closed', 'written_off']
-                )->join(
-                    'loan_schedules',
-                    'loans.id',
-                    '=',
-                    'loan_schedules.loan_id'
-                )->where('loan_schedules.deleted_at', NULL)->get() as $key) {
-                $interest = $interest + $key->interest;
-                $penalty = $penalty + $key->penalty;
-                $fees = $fees + $key->fees;
-                $principal = $principal + $key->principal;
-
-            }
-
-        } else {
-            foreach (Loan::select(
-                "loan_schedules.principal",
-                "loan_schedules.interest",
-                "loan_schedules.penalty",
-                "loan_schedules.fees"
-            )->where(
-                    'loans.branch_id',
-                    session('branch_id')
-                )->whereIn(
-                    'loans.status',
-                    ['disbursed', 'closed', 'written_off']
-                )->join(
-                    'loan_schedules',
-                    'loans.id',
-                    '=',
-                    'loan_schedules.loan_id'
-                )->whereBetween(
-                    'loan_schedules.due_date',
-                    [$start_date, $end_date]
-                )->where('loan_schedules.deleted_at', NULL)->get() as $key) {
-                $interest = $interest + $key->interest;
-                $penalty = $penalty + $key->penalty;
-                $fees = $fees + $key->fees;
-                $principal = $principal + $key->principal;
-            }
+        if (!empty($start_date)) {
+            $query->whereBetween('loan_schedules.due_date', [$start_date, $end_date]);
         }
 
-        $allocation["principal"] = $principal;
-        $allocation["interest"] = $interest;
-        $allocation["fees"] = $fees;
-        $allocation["penalty"] = $penalty;
-        return $allocation;
+        $totals = $query->selectRaw('
+            COALESCE(SUM(loan_schedules.principal), 0) AS principal,
+            COALESCE(SUM(loan_schedules.interest), 0) AS interest,
+            COALESCE(SUM(loan_schedules.fees), 0) AS fees,
+            COALESCE(SUM(loan_schedules.penalty), 0) AS penalty
+        ')->first();
+
+        return [
+            'principal' => $totals->principal,
+            'interest' => $totals->interest,
+            'fees' => $totals->fees,
+            'penalty' => $totals->penalty,
+        ];
     }
+
 
     public static function determine_posting_days($id)
     {
@@ -2989,7 +2679,7 @@ public static function new_new_loan_total_balance($id)
      * 
      * @return int Count of pending recovery cases
      */
-    public static function  pending_recovery_case_approvals_count()
+    public static function pending_recovery_case_approvals_count()
     {
         try {
             $user = Sentinel::getUser();
@@ -2997,39 +2687,26 @@ public static function new_new_loan_total_balance($id)
             $role = \App\Models\UserRole::where('user_id', $userId)->first();
             $province_id = $user->province_id;
             $office_id = $user->office_id;
-            $offices = \App\Models\Office::get();
-            $count = 0;
 
             if ($role && $role->role_id == "6") {
-                // Province manager - count all offices in province
-                foreach ($offices as $office) {
-                    if ($office->province_id == $province_id) {
-                        $count += \App\Models\RecoveryCase::where('origin_branch_id', $office->id)
-                            ->whereNull('approved_date')
-                            ->count();
-                    }
-                }
+                // Count all pending cases for offices in the user's province
+                // using a subquery instead of loading offices and counting one by one.
+                return \App\Models\RecoveryCase::whereIn(
+                    'origin_branch_id',
+                    \App\Models\Office::where('province_id', $province_id)->select('id')
+                )->whereNull('approved_date')->count();
             } elseif ($role == "10") {
-                // Admin sees all
-                $count = \App\Models\RecoveryCase::whereNull('approved_date')->count();
-            } else {
-                // Regular user sees office-specific
-                $count = \App\Models\RecoveryCase::where('origin_branch_id', $office_id)
-                    ->whereNull('approved_date')
-                    ->count();
+                // Preserve the existing role comparison exactly.
+                return \App\Models\RecoveryCase::whereNull('approved_date')->count();
             }
 
-            return $count ?? 0;
+            return \App\Models\RecoveryCase::where('origin_branch_id', $office_id)
+                ->whereNull('approved_date')
+                ->count();
         } catch (\Throwable $th) {
             dd($th);
         }
     }
-
-    /**
-     * Get the count of pending recoveries (debt recovery) approvals based on user role
-     * 
-     * @return int Count of pending debt recovery transactions
-     */
     public static function pending_recoveries_approvals_count()
     {
         $user = Sentinel::getUser();
@@ -3037,36 +2714,22 @@ public static function new_new_loan_total_balance($id)
         $role = \App\Models\UserRole::where('user_id', $userId)->first();
         $province_id = $user->province_id;
         $office_id = $user->office_id;
-        $offices = \App\Models\Office::get();
 
         if ($role && $role->role_id == "6") {
-            // Province manager - count all offices in province
-            $count = 0;
-            foreach ($offices as $office) {
-                if ($office->province_id == $province_id) {
-                    $count += \App\Models\LoanTransactionUnapproved::where('office_id', $office->id)
-                        ->where('payment_apply_to', 'debt_recovery')
-                        ->count();
-                }
-            }
-            return $count;
+            // Replace per-office counts with one count over the province's offices.
+            return \App\Models\LoanTransactionUnapproved::whereIn(
+                'office_id',
+                \App\Models\Office::where('province_id', $province_id)->select('id')
+            )->where('payment_apply_to', 'debt_recovery')->count();
         } elseif ($user->hasAccess('settings')) {
-            // Admin sees all
             return \App\Models\LoanTransactionUnapproved::where('payment_apply_to', 'debt_recovery')->count();
-        } else {
-            // Regular user sees office-specific
-            return \App\Models\LoanTransactionUnapproved::where('office_id', $office_id)
-                ->where('payment_apply_to', 'debt_recovery')
-                ->count();
         }
+
+        return \App\Models\LoanTransactionUnapproved::where('office_id', $office_id)
+            ->where('payment_apply_to', 'debt_recovery')
+            ->count();
     }
 
-    /**
-     * Format user details for display
-     *
-     * @param \App\Models\User|null $user
-     * @return string
-     */
     public static function formatUserDetails($user_id)
     {
         if (!$user_id) {

@@ -4363,6 +4363,73 @@ CURRENT BALANCE DASHBOARD
         </div>
         <!-- /.modal-dialog -->
     </div>
+
+    <div class="modal fade" id="nameMismatchModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content" style="border-radius: 12px; overflow: hidden; border: none;">
+
+            <div style="background: #fff1f0; padding: 25px 20px 15px; text-align: center;">
+
+                <div style="
+                    width: 65px;
+                    height: 65px;
+                    background: #ffe0dd;
+                    border-radius: 50%;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin-bottom: 12px;
+                ">
+                    <i class="fa fa-shield" style="font-size: 30px; color: #dc3545;"></i>
+                </div>
+
+                <h4 style="font-weight: 700; color: #c82333; margin-top: 5px;">
+                    Disbursement Blocked
+                </h4>
+
+                <p style="color: #666; font-size: 13px; margin-bottom: 5px;">
+                    Account name verification failed.
+                </p>
+
+            </div>
+
+            <div class="modal-body" style="padding: 20px;">
+
+                <p style="font-size: 13px; color: #666; text-align: center;">
+                    The account holder's name does not match the registered client's name.
+                    This disbursement cannot proceed.
+                </p>
+
+                <div style="
+                    background: #f8f9fa;
+                    border-radius: 8px;
+                    padding: 12px;
+                    margin-top: 15px;
+                ">
+                    <small style="color: #888;">REGISTERED CLIENT NAME</small>
+                    <h5 id="mismatchClientName" style="font-weight: 600; margin-top: 5px;"></h5>
+
+                    <hr style="margin: 12px 0;">
+
+                    <small style="color: #888;">ACCOUNT HOLDER NAME</small>
+                    <h5 id="mismatchAccountName" style="font-weight: 600; color: #dc3545; margin-top: 5px;"></h5>
+                </div>
+
+            </div>
+
+            <div class="modal-footer" style="border-top: none; padding: 0 20px 20px;">
+                <button type="button"
+                        class="btn btn-danger btn-block"
+                        data-dismiss="modal"
+                        style="border-radius: 6px; padding: 10px; font-weight: 600;">
+                    <i class="fa fa-check"></i> Understood
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
     <div class="modal fade" id="view_guarantor">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -4442,6 +4509,29 @@ function getOperator(phoneNumber){
 }
 
 $(document).ready(function () {
+
+
+let accountNameMatchesClient = true;
+
+const clientName = "{{ trim(($loan->client->first_name ?? '') . ' ' . ($loan->client->last_name ?? '')) }}";
+
+function normalizeName(name) {
+    return (name || '')
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, ' ');
+}
+
+function checkAccountName(accountName) {
+
+    accountNameMatchesClient =
+        normalizeName(accountName) === normalizeName(clientName);
+
+    console.log("CLIENT NAME:", clientName);
+    console.log("ACCOUNT NAME:", accountName);
+    console.log("NAME MATCH:", accountNameMatchesClient);
+
+}
 
 let generatedOTP = null;
 let alternateNumberUsed = false;
@@ -4619,6 +4709,8 @@ if($('#alternateNumberDiv').is(':visible')){
                                 $('#accountName').text(
                                     resolveResponse.data.accountName
                                 );
+
+                                checkAccountName(resolveResponse.data.accountName);
 
                                 $('#resolvedPhone').text(
                                     resolveResponse.data.phone
@@ -4798,6 +4890,16 @@ if($('#alternateNumberDiv').is(':visible')){
 
 
 $('#confirmDisbursement').on('click', function () {
+
+if (!accountNameMatchesClient) {
+
+    $('#mismatchClientName').text(clientName);
+    $('#mismatchAccountName').text($('#accountName').text());
+
+    $('#nameMismatchModal').modal('show');
+
+    return;
+}
 
 
     if(alternateNumberUsed){
