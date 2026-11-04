@@ -134,14 +134,13 @@ class SmsController extends Controller
                     $balanceInfo = $loan->calculateBalance();
                     $balance     = $balanceInfo['balance'] ?? 0;
                     $principal   = $loanData->principal ?? $loan->approved_amount ?? 0;
-
+                    $principalWithInterest = $principal + ($principal * 0.4);
                     if ($request->message_type === 'overdue') {
-                        $message  = 'Dear Customer, this is a reminder that your loan of ZMW ' . number_format($principal, 2);
+                        $message  = 'Dear Customer, this is a reminder that your loan of ZMW ' . number_format($principalWithInterest, 2);
                         $message .= ' with outstanding balance of ZMW ' . number_format($balance, 2);
                         $message .= ' is overdue. Kindly make your payment to avoid penalties or further legal action. For assistance, contact 0773425477.';
                     } else {
                         // balances
-                        $principalWithInterest = $principal + ($principal * 0.4);
                         $message  = 'Dear Customer, your loan of ZMW ' . number_format($principalWithInterest, 2);
                         $message .= ' has an outstanding balance of ZMW ' . number_format($balance, 2);
                         $message .= '. Please make your payment on time to avoid penalties. For assistance, contact 0773425477.';
