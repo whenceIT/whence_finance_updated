@@ -384,23 +384,6 @@ use App\Models\Ticket;
                         </ul>
                     </li>
                     
-                    <!-- Daily Reports Module -->
-                    <li class="treeview @if(Request::is('daily-reports*')) active menu-open @endif">
-                        <a href="#">
-                            <i class="fa fa-circle-o"></i> Daily Reports
-                            <span class="pull-right-container">
-                                <i class="fa fa-angle-left pull-right"></i>
-                            </span>
-                        </a>
-                        <ul class="treeview-menu">
-                            <li><a href="{{ route('daily-reports.index') }}"><i class="fa fa-circle-o"></i> View Reports</a></li>
-                            <li><a href="{{ route('daily-reports.income.create') }}"><i class="fa fa-circle-o"></i> Record Income</a></li>
-                            <li><a href="{{ route('daily-reports.expense.create') }}"><i class="fa fa-circle-o"></i> Record Expense</a></li>
-                            <li><a href="{{ route('daily-reports.branch-report') }}"><i class="fa fa-circle-o"></i> Branch Financial Report</a></li>
-                            <li><a href="{{ route('daily-reports.reports') }}"><i class="fa fa-circle-o"></i> Summary Reports</a></li>
-                        </ul>
-                    </li>
-                    
                     <!-- Customer Care Reports Module -->
                     <li class="treeview @if(Request::is('customer-care*')) active menu-open @endif">
                         <a href="#">
@@ -475,6 +458,23 @@ use App\Models\Ticket;
                         </ul>
                     </li>
                     
+                    <!-- Daily Reports Module -->
+                    <li class="treeview @if(Request::is('daily-reports*')) active menu-open @endif">
+                        <a href="#">
+                            <i class="fa fa-circle-o"></i> Daily Reports
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="{{ route('daily-reports.index') }}"><i class="fa fa-circle-o"></i> View Reports</a></li>
+                            <li><a href="{{ route('daily-reports.income.create') }}"><i class="fa fa-circle-o"></i> Record Income</a></li>
+                            <li><a href="{{ route('daily-reports.expense.create') }}"><i class="fa fa-circle-o"></i> Record Expense</a></li>
+                            <li><a href="{{ route('daily-reports.branch-report') }}"><i class="fa fa-circle-o"></i> Branch Financial Report</a></li>
+                            <li><a href="{{ route('daily-reports.reports') }}"><i class="fa fa-circle-o"></i> Summary Reports</a></li>
+                        </ul>
+                    </li>
+                    
                     <!-- Setup/Configuration -->
                     <li class="treeview @if(Request::is('creative/setup*')) active menu-open @endif">
                         <a href="#">
@@ -487,7 +487,6 @@ use App\Models\Ticket;
                             <li><a href="{{ route('creative.setup.categories') }}"><i class="fa fa-circle-o"></i> Complaint Categories</a></li>
                             <li><a href="{{ route('creative.setup.expense-categories') }}"><i class="fa fa-circle-o"></i> Expense Categories</a></li>
                             <li><a href="{{ route('creative.setup.income-categories') }}"><i class="fa fa-circle-o"></i> Income Categories</a></li>
-                            <li><a href="{{ route('creative.setup.positions') }}"><i class="fa fa-circle-o"></i> Job Positions</a></li>
                         </ul>
                     </li>
                     

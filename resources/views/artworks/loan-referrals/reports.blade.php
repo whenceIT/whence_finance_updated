@@ -1,8 +1,6 @@
 @extends('layouts.master')
-@section('title')
-    Loan Referrals Reports
-@endsection
+@section('title') reports @endsection
 @section('content')
-    <section class="content-header"><h1>Loan Referrals Reports</h1></section>
-    <section class="content"><div class="box"><div class="box-body"><p>Loan referrals reports.</p></div></div></section>
+<section class="content-header"><h1>reports</h1></section>
+<section class="content"><div class="box"><div class="box-body"><p>reports page.</p></div></div></section>
 @endsection
