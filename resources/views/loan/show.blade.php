@@ -4519,18 +4519,31 @@ function normalizeName(name) {
     return (name || '')
         .toLowerCase()
         .trim()
-        .replace(/\s+/g, ' ');
+        .replace(/[^a-z\s]/g, '')
+        .replace(/\s+/g, ' ')
+        .split(' ')
+        .filter(Boolean);
 }
 
 function checkAccountName(accountName) {
 
+    // Registered client names
+    let clientFirstName = normalizeName("{{ $loan->client->first_name ?? '' }}");
+    let clientLastName = normalizeName("{{ $loan->client->last_name ?? '' }}");
+
+    // Account holder name
+    let accountNames = normalizeName(accountName);
+
+    // Get the main first and last name
+    let firstName = clientFirstName[0];
+    let lastName = clientLastName[clientLastName.length - 1];
+
+    // Both names must exist in the account holder's name.
+    let firstNameMatches = accountNames.includes(firstName);
+    let lastNameMatches = accountNames.includes(lastName);
+
     accountNameMatchesClient =
-        normalizeName(accountName) === normalizeName(clientName);
-
-    console.log("CLIENT NAME:", clientName);
-    console.log("ACCOUNT NAME:", accountName);
-    console.log("NAME MATCH:", accountNameMatchesClient);
-
+        firstNameMatches && lastNameMatches;
 }
 
 let generatedOTP = null;
