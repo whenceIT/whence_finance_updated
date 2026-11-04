@@ -108,32 +108,41 @@
             var officeId = $(this).val();
             if (officeId) {
                 $('#user-select').hide();
-                $('#sms-user').empty().append('<option value="">Loading...</option>');
+                $('#sms-user').empty().append('<option value="">Loading...</option>').removeAttr('required');
+                $('[type=submit]', '#sms-form').prop('disabled', true);
 
                 $.ajax({
                     url: '/api/get-office-users/' + officeId,
                     method: 'GET',
                     success: function(users) {
                         var $userSelect = $('#sms-user');
-                        $userSelect.empty().append('<option value="">Select User</option>');
+                        $userSelect.empty()
+                            .append($('<option>', { value: '', text: 'Select User', disabled: true, selected: true }))
+                            .append($('<option>', { value: 'all', text: 'All Clients in Office' }));
                         if (users.length === 0) {
                             $userSelect.append('<option value="" disabled>No users found for this office</option>');
                         } else {
                             $.each(users, function(i, user) {
-                                $userSelect.append('<option value="' + user.id + '">' + user.name + '</option>');
+                                $userSelect.append($('<option>', { value: user.id, text: user.name }));
                             });
                         }
+                        $userSelect.attr('required', 'required');
                         $('#user-select').show();
+                        $('[type=submit]', '#sms-form').prop('disabled', false);
                     },
                     error: function() {
-                        $('#sms-user').empty().append('<option value="">Select User</option>');
+                        $('#sms-user').empty()
+                            .append($('<option>', { value: '', text: 'Unable to load users', disabled: true, selected: true }))
+                            .attr('required', 'required');
                         $('#user-select').show();
+                        $('[type=submit]', '#sms-form').prop('disabled', false);
                         alert('Failed to load users for this office. Please try again.');
                     }
                 });
             } else {
                 $('#user-select').hide();
                 $('#sms-user').empty().append('<option value="">Select User</option>').removeAttr('required');
+                $('[type=submit]', '#sms-form').prop('disabled', false);
             }
         });
 
@@ -147,11 +156,11 @@
 
             if (messageType === 'single') {
                 url = '/api/send-sms';
-            } else if (userId) {
+            } else if (userId && userId !== 'all') {
                 // User selected — send to that officer's clients only
                 url = '/api/send-officer-sms';
             } else {
-                // Office selected but no user — send to whole office
+                // "All Clients in Office" — send to the selected office
                 url = '/api/send-bulk-sms';
             }
 

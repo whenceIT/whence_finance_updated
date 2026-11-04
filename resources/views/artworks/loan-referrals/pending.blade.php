@@ -1,7 +1,6 @@
 @extends('layouts.master')
 @section('title') Pending Repayment @endsection
 @section('content')
-<section class="content-header"><h1>Pending Repayment</h1></section>
 <section class="content"><div class="box"><div class="box-body">
 <table class="table table-bordered"><tr><th>Ref</th><th>Client</th><th>Branch</th><th>Profit Share</th><th>Paid</th></tr>
 @foreach($items as $r)

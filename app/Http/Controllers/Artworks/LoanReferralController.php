@@ -4,6 +4,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Artworks\LoanReferral;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class LoanReferralController extends Controller
 {
@@ -39,9 +40,39 @@ class LoanReferralController extends Controller
     }
     public function pending(){ $items = LoanReferral::where('repayment_status','Unpaid')->orderBy('created_at','desc')->paginate(20); return view('artworks.loan-referrals.pending', compact('items')); }
     public function due(){ $items = LoanReferral::where('profit_share','>',0)->where('repayment_status','Unpaid')->orderBy('created_at','desc')->paginate(20); return view('artworks.loan-referrals.due', compact('items')); }
-    public function payments(){ $items = LoanReferral::where('amount_paid','>',0)->orderBy('updated_at','desc')->paginate(20); $all = LoanReferral::orderBy('referral_reference')->get(); return view('artworks.loan-referrals.payments', compact('items','all')); }
+    public function payments()
+    {
+        $items = LoanReferral::where('amount_paid','>',0)->orderBy('updated_at','desc')->paginate(20);
+        $all = LoanReferral::orderBy('referral_reference')->get();
+        $newLoans = DB::table('loans')
+            ->join('clients', 'clients.id', '=', 'loans.client_id')
+            ->join('creative_loan_referrals as referrals', 'referrals.nrc_number', '=', 'clients.nrc_number')
+            ->whereIn('referrals.id', $items->getCollection()->pluck('id'))
+            ->whereColumn('loans.created_at', '>', 'referrals.created_at')
+            ->whereNull('loans.deleted_at')
+            ->whereNull('clients.deleted_at')
+            ->select(
+                'referrals.id as referral_id',
+                'loans.id',
+                'loans.account_number',
+                'loans.status',
+                'loans.approved_amount',
+                'loans.principal',
+                'loans.created_at'
+            )
+            ->orderByDesc('loans.created_at')
+            ->get()
+            ->groupBy('referral_id');
+
+        $items->getCollection()->transform(function ($referral) use ($newLoans) {
+            $referral->new_loans = $newLoans->get($referral->id, collect());
+            return $referral;
+        });
+
+        return view('artworks.loan-referrals.payments', compact('items','all'));
+    }
+    public function recordPayment(Request $request){ $this->validate($request,['referral_id'=>'required|integer','amount'=>'required|numeric|min:0.01']); $r=LoanReferral::findOrFail($request->referral_id); $r->profit_share=$request->amount; if($r->amount_paid>=$r->profit_share && $r->profit_share>0){ $r->repayment_status='Paid'; } $r->save(); return redirect()->back()->with('success','Payment recorded.'); }
     public function reports(){ return view('artworks.loan-referrals.reports'); }
 }
-
 
 

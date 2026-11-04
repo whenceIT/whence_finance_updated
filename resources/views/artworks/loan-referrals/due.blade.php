@@ -1,7 +1,6 @@
 @extends('layouts.master')
 @section('title') Profit Share Due @endsection
 @section('content')
-<section class="content-header"><h1>Profit Share Due</h1></section>
 <section class="content"><div class="box"><div class="box-body">
 <table class="table table-bordered"><tr><th>Ref</th><th>Client</th><th>Branch</th><th>Profit Share</th><th>Paid</th><th>Outstanding</th></tr>
 @foreach($items as $r)

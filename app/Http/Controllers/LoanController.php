@@ -313,7 +313,7 @@ public function search(Request $request)
           
       if($roleNew->role_id == '4' || $roleNew->role_id == '12' || $roleNew->role_id == "6"){
 
- $branchStaffCount = User::where('office_id', $office_id)->where('status','Active')->count();
+        $branchStaffCount = User::where('office_id', $office_id)->where('status','Active')->count();
        $existing_payroll_count = Payroll::where('office_id', $office_id)
     ->whereYear('payroll_date', now()->year)
     ->whereMonth('payroll_date', now()->month)

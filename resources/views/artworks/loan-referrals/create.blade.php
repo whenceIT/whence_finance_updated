@@ -1,7 +1,6 @@
 @extends('layouts.master')
 @section('title') Register Referral @endsection
 @section('content')
-<section class="content-header"><h1>Register Referral</h1></section>
 <section class="content"><div class="box"><div class="box-body">
 <form method="POST" action="{{ route('loan-referrals.store') }}">@csrf
 <div class="form-group"><label>Client Name</label><input type="text" name="client_name" class="form-control" required></div>

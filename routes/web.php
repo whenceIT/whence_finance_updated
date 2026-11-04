@@ -2529,6 +2529,7 @@ Route::group(['prefix' => 'loan-referrals', 'namespace' => 'Artworks'], function
     Route::get('/pending', 'LoanReferralController@pending')->name('loan-referrals.pending');
     Route::get('/due', 'LoanReferralController@due')->name('loan-referrals.due');
     Route::get('/payments', 'LoanReferralController@payments')->name('loan-referrals.payments');
+    Route::post('/payments', 'LoanReferralController@recordPayment')->name('loan-referrals.payments.store');
     Route::get('/reports', 'LoanReferralController@reports')->name('loan-referrals.reports');
 });
 
@@ -2536,6 +2537,7 @@ Route::group(['prefix' => 'loan-referrals', 'namespace' => 'Artworks'], function
 Route::group(['prefix' => 'lost-client-recoveries', 'namespace' => 'Artworks'], function () {
     Route::get('/', 'LostClientRecoveryController@index')->name('lost-client-recoveries.index');
     Route::get('/create', 'LostClientRecoveryController@create')->name('lost-client-recoveries.create');
+    Route::post('/store', 'LostClientRecoveryController@store')->name('lost-client-recoveries.store');
     Route::get('/repayment', 'LostClientRecoveryController@repayment')->name('lost-client-recoveries.repayment');
     Route::get('/profit-share', 'LostClientRecoveryController@profitShare')->name('lost-client-recoveries.profit-share');
     Route::get('/payments', 'LostClientRecoveryController@payments')->name('lost-client-recoveries.payments');
@@ -2574,6 +2576,10 @@ Route::group(['prefix' => 'customer-care', 'namespace' => 'Artworks'], function 
     Route::post('/calendar/store', 'CustomerCareController@storeActivity')->name('customer-care.calendar.store');
     Route::get('/reports', 'CustomerCareController@reports')->name('customer-care.reports');
 });
+
+
+
+
 
 
 
