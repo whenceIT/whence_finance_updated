@@ -20,6 +20,7 @@ class Expense extends Model
         'gl_account_id',
         'notes',
         'is_attribution',
+        
     ];
 
     public function office()
