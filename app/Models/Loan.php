@@ -371,14 +371,10 @@ class Loan extends Model
         return DB::select($sql, $params);
     }
 
-    public function loan_remainder($officer_id = null)
+    public static function loan_remainder($officer_id = null)
     {
         $officer_condition = $officer_id ? "l.loan_officer_id = ?" : "1=1";
         $params = [];
-
-        if ($office_id) {
-            $params[] = $office_id;
-        }
 
         if ($officer_id) {
             $params[] = $officer_id;
