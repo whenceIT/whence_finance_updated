@@ -4,7 +4,10 @@
     </div>
     <div class="card-body" style="padding: 0;">
         @php
-            $exemptions = \App\Models\DepositMonthExemption::with(['office', 'depositType'])->get();
+            $exemptions = \App\Models\DepositMonthExemption::with(['office', 'depositType'])
+                ->join('offices', 'offices.id', '=', 'deposit_month_exemptions.office_id')
+                ->orderBy('offices.created_at', 'DESC')
+                ->get();
             $depositTypes = \App\Models\DepositType::orderBy('name')->get();
             $offices = \App\Models\Office::orderBy('name')->get();
         @endphp
@@ -59,6 +62,9 @@
                                 <button type="button" class="btn btn-sm btn-primary" onclick="openEditExemptModal({{ json_encode($exemption) }})">
                                     <i class="fa fa-edit"></i> Edit
                                 </button>
+                                <button type="button" class="btn btn-sm btn-danger" onclick="deleteExempt({{ $exemption->id }})">
+                                    <i class="fa fa-trash"></i> Delete
+                                </button>
                             </td>
                         </tr>
                     @endforeach
@@ -69,3 +75,28 @@
 </div>
 
 @include('risk.partials.deposit-exempt-modal', ['depositTypes' => $depositTypes, 'offices' => $offices])
+
+<script>
+window.deleteExempt = function(id) {
+    if (!confirm('Are you sure you want to delete this exemption?')) {
+        return;
+    }
+    $.ajax({
+        url: '{{ route("deposit-month-exemptions.destroy", ":id") }}'.replace(':id', id),
+        type: 'DELETE',
+        data: { _token: '{{ csrf_token() }}' },
+        success: function(response) {
+            if (response.success) {
+                KiloAlert.success('Exemption deleted successfully.');
+                window.location.reload();
+            } else {
+                KiloAlert.error(response.message || 'Failed to delete exemption.');
+            }
+        },
+        error: function(xhr) {
+            var msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'An error occurred.';
+            KiloAlert.error(msg);
+        }
+    });
+};
+</script>

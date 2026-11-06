@@ -333,4 +333,11 @@ class PlatformController extends Controller
         
         return response()->json(['success' => true, 'message' => 'Exemption updated successfully.']);
     }
+
+    public function destroyDepositMonthExemption(Request $request, $id)
+    {
+        $exemption = DepositMonthExemption::findOrFail($id);
+        $exemption->delete();
+        return response()->json(['success' => true, 'message' => 'Exemption deleted successfully.']);
+    }
 }

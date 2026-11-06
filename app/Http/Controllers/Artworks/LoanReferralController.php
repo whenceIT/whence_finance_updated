@@ -17,7 +17,8 @@ class LoanReferralController extends Controller
     {
         $offices = \App\Models\Office::orderBy('name')->get();
         $users = \App\Models\User::orderBy('first_name')->get();
-        return view('artworks.loan-referrals.create', compact('offices','users'));
+        $clients = \App\Models\Client::orderBy('full_name')->get();
+        return view('artworks.loan-referrals.create', compact('offices','users','clients'));
     }
     public function store(Request $request)
     {
