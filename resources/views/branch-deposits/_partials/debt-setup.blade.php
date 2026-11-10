@@ -4,7 +4,7 @@
     $highThresholdOffices = [11, 18, 15, 34, 43, 46, 45, 49, 51, 52, 53, 54, 55, 57, 59, 61, 64, 62, 60, 65];
     $officeId = $blockerUser->office_id ?? 0;
 
-    if(in_array($blockerUser->office_id, [49,62,61])){
+    if(in_array($blockerUser->office_id, [49,62,61,65])){
         $minAmount = in_array($officeId, $highThresholdOffices) ? 200 : 200;
     }else{
         $minAmount = in_array($officeId, $highThresholdOffices) ? 5000 : 5000;

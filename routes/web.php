@@ -2538,6 +2538,10 @@ Route::group(['prefix' => 'loan-referrals', 'namespace' => 'Artworks'], function
 Route::group(['prefix' => 'lost-client-recoveries', 'namespace' => 'Artworks'], function () {
     Route::get('/', 'LostClientRecoveryController@index')->name('lost-client-recoveries.index');
     Route::get('/create', 'LostClientRecoveryController@create')->name('lost-client-recoveries.create');
+    Route::get('/clients/search', 'LostClientRecoveryController@searchClients')->name('lost-client-recoveries.clients-search');
+    Route::get('/offices/search', 'LostClientRecoveryController@searchOffices')->name('lost-client-recoveries.offices-search');
+    Route::get('/users/search', 'LostClientRecoveryController@searchUsers')->name('lost-client-recoveries.users-search');
+    Route::get('/loans/search', 'LostClientRecoveryController@searchLoans')->name('lost-client-recoveries.loans-search');
     Route::post('/store', 'LostClientRecoveryController@store')->name('lost-client-recoveries.store');
     Route::get('/repayment', 'LostClientRecoveryController@repayment')->name('lost-client-recoveries.repayment');
     Route::get('/profit-share', 'LostClientRecoveryController@profitShare')->name('lost-client-recoveries.profit-share');
