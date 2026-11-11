@@ -3441,9 +3441,8 @@ $vehicle->save();
                         Flash::success('API Error: ' . $body);
                     }
                     $result = $response->json();
-                } catch (\Exception $e) {
-                    Flash::success('Could not connect to payment service.');
-                    return redirect()->back();
+                } catch (\Throwable $e) {
+                        Flash::warning('Could not connect to WithinHere payment service. Continuing with loan disbursement.');
                 }
             }
           }
