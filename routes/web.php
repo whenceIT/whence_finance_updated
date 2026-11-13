@@ -56,7 +56,10 @@ use App\Http\Controllers\CashHealthController;
 use App\Http\Controllers\SmsController;
 use Firebase\JWT\Key;
 use App\Http\Controllers\CashParameterController;
-
+use App\Http\Controllers\WageBillController;
+use App\Http\Controllers\PayslipController;
+use App\Http\Controllers\MyPayrollController;
+use App\Http\Controllers\DepartmentalWageBillController;
 
 Route::model('client', 'App\Models\Client');
 Route::model('user', 'App\Models\User');
@@ -285,6 +288,78 @@ Route::get(
     'CashHealthController@nationalOfficeBalance'
 )->name('cash_health.national.office.balance');
 
+
+});
+
+
+// New Payroll Management Module
+Route::group([
+    'prefix' => 'wage-bills',
+    'middleware' => 'sentinel'
+], function () {
+
+    Route::get('/', [WageBillController::class, 'index'])
+        ->name('wage-bills.index');
+
+
+        Route::get('/{id}/adjust', [WageBillController::class, 'edit'])
+    ->name('wage-bills.edit');
+
+Route::put('/{id}/adjust', [WageBillController::class, 'update'])
+    ->name('wage-bills.update');
+
+    Route::post('/{branchId}/{cycleStart}/submit', [WageBillController::class, 'submit'])
+    ->name('wage-bills.submit');
+
+
+    Route::get('/approvals', [WageBillController::class, 'approvals'])
+    ->name('wage-bills.approvals');
+
+Route::get('/approvals/{id}', [WageBillController::class, 'approvalShow'])
+    ->name('wage-bills.approval-show');
+
+Route::post('/approvals/{submissionId}/{approvalType}/approve', [WageBillController::class, 'approveWageBill'])
+    ->name('wage-bills.approve');
+
+Route::post('/approvals/{submissionId}/{approvalType}/return', [WageBillController::class, 'returnWageBill'])
+    ->name('wage-bills.return');
+
+    Route::get('/{branchId}/{cycleStart}/export', [WageBillController::class, 'exportApprovedWageBill'])
+    ->name('wage-bills.export-approved');
+
+    Route::get('/payslip/{id}', [PayslipController::class, 'download'])
+    ->name('wage-bills.payslip');
+
+    Route::get('/my-payroll', [MyPayrollController::class, 'index'])
+    ->name('wage-bills.my-payroll');
+
+    Route::get('/export-all-approved', [WageBillController::class, 'exportAllBranchesApproved'])
+    ->name('wage-bills.export-all-approved');
+
+    Route::get('/export-paye', [WageBillController::class, 'exportPayeReport'])
+    ->name('wage-bills.export-paye');
+
+    Route::get('/export-napsa', [WageBillController::class, 'exportNapsaReport'])
+    ->name('wage-bills.export-napsa');
+
+    Route::get('/export-access-bank', [WageBillController::class, 'exportAccessBankReport'])
+    ->name('wage-bills.export-access-bank');
+
+    Route::get(
+    '/departmental-wage-bills',
+    [DepartmentalWageBillController::class, 'index']
+)->name('departmental-wage-bills.index');
+
+Route::post(
+    '/departmental-wage-bills',
+    [DepartmentalWageBillController::class, 'store']
+)->name('departmental-wage-bills.store');
+
+
+Route::post(
+    '/departmental-wage-bills/submit',
+    [DepartmentalWageBillController::class, 'submit']
+)->name('departmental-wage-bills.submit');
 
 });
 
@@ -1783,31 +1858,36 @@ Route::group(['prefix' => 'expense'], function () {
     Route::get('{id}/delete_file', 'ExpenseController@deleteFile');
     Route::any('check-duplicate', 'ExpenseController@checkDuplicate');
     Route::get('proof_of_payment/{filename}', 'ExpenseController@showProofOfPayment')->name('proof_of_payment.download');
+    // Administration stage of the branch expense approval workflow.
     Route::get(
-    'approvals/expense-approvals',
-    'ApprovalWorkflowController@expenseApprovals'
-);
+        'approvals/expense-approvals',
+        'ApprovalWorkflowController@expenseApprovals'
+    )->name('expense.approvals.admin');
+
+    Route::post(
+        'approvals/expense-approvals/{id}/approve',
+        'ApprovalWorkflowController@approveExpense'
+    )->name('expense.approvals.admin.approve');
+
+    Route::post(
+        'approvals/expense-approvals/{id}/decline',
+        'ApprovalWorkflowController@declineExpense'
+    )->name('expense.approvals.admin.decline');
+
+    Route::get(
+    'approvals/risk-expense-approvals',
+    'ApprovalWorkflowController@riskExpenseApprovals'
+)->name('expense.approvals.risk');
 
 Route::post(
-    'approvals/expense-approvals/{id}/{status}',
-    'ApprovalWorkflowController@approveExpense'
-);
-
-
-Route::post(
-    'approvals/expense-approvals/{id}/{status}',
-    'ApprovalWorkflowController@declineExpense'
-);
+    'approvals/risk-expense-approvals/{id}/approve',
+    'ApprovalWorkflowController@approveRiskExpense'
+)->name('expense.approvals.risk.approve');
 
 Route::post(
-    'approvals/expense-approvals/bulk-approve',
-    'ApprovalWorkflowController@bulkApproveExpenses'
-);
-
-Route::post(
-    'approvals/expense-approvals/approve-all',
-    'ApprovalWorkflowController@approveAllExpenses'
-);
+    'approvals/risk-expense-approvals/{id}/decline',
+    'ApprovalWorkflowController@declineRiskExpense'
+)->name('expense.approvals.risk.decline');
 
 
 

@@ -85,6 +85,8 @@ use App\Models\Ticket;
         <!-- /.search form -->
 
 
+
+
         <!-- sidebar menu: : style can be found in sidebar.less -->
         <ul class="sidebar-menu" data-widget="tree">
 
@@ -93,6 +95,65 @@ use App\Models\Ticket;
                     <i class="fa fa-dashboard"></i> <span>{{trans_choice('general.dashboard',1)}}</span>
                 </a>
 	        </li>
+
+
+{{-- ====================================================== --}}
+{{-- WAGE BILL SECTION - ROLE ID 1 ONLY                    --}}
+{{-- ====================================================== --}}
+
+@if(Sentinel::getUser() && Sentinel::getUser()->roles()->where('roles.id', 1)->exists())
+
+    <li class="treeview @if(Request::is('departmental-wage-bills*') || Request::is('wage-bills*') || Request::is('payroll/mypayslips*')) active menu-open @endif">
+        <a href="#">
+            <i class="fa fa-money"></i>
+            <span>Wage Bill</span>
+            <span class="pull-right-container">
+                <i class="fa fa-angle-left pull-right"></i>
+            </span>
+        </a>
+
+        <ul class="treeview-menu">
+
+            {{-- Departmental Payroll --}}
+            <li class="@if(Request::is('departmental-wage-bills*')) active @endif">
+                <a href="{{ url('wage-bills/departmental-wage-bills') }}">
+                    <i class="fa fa-circle-o"></i>
+                    Departmental Payroll
+                </a>
+            </li>
+
+            {{-- Institution-wide Wage Bill --}}
+            <li class="@if(Request::is('wage-bills') || Request::is('wage-bills/*')) active @endif">
+                <a href="{{ url('/wage-bills') }}">
+                    <i class="fa fa-circle-o"></i>
+                    Institution-wide Wage Bill
+                </a>
+            </li>
+
+            {{-- Payroll Approvals --}}
+            <li class="@if(Request::is('wage-bills/approvals')) active @endif">
+                <a href="{{ url('/wage-bills/approvals') }}">
+                    <i class="fa fa-circle-o"></i>
+                    Payroll Approvals
+                </a>
+            </li>
+
+            {{-- Payslips --}}
+           <li class="@if(Request::is('wage-bills/paylips/*')) active @endif">
+    <a href="{{ url('/wage-bills/payslip/' . Sentinel::getUser()->id) }}">
+        <i class="fa fa-circle-o"></i>
+        Payslips
+    </a>
+</li>
+
+
+
+        </ul>
+    </li>
+
+@endif
+
+            
 
             @if(Sentinel::hasAccess('expenses'))
             <li class="treeview @if(Request::is('executive_dashboard*')) active menu-open @endif">
@@ -127,6 +188,9 @@ use App\Models\Ticket;
                 </ul>
             </li>
             @endif
+
+
+
 
 
             @if(Sentinel::hasAccess('settings'))
@@ -340,6 +404,13 @@ use App\Models\Ticket;
                     <li @if(Request::is('risk/branch-ranking*')) class="active" @endif><a href="{{ url('risk/branch-ranking') }}"><i class="fa fa-circle-o"></i> Branch Risk Ranking</a></li>
                     <li @if(Request::is('risk/fraud-feed*')) class="active" @endif><a href="{{ url('risk/fraud-feed') }}"><i class="fa fa-circle-o"></i> Real-Time Risk</a></li>
                     <li @if(Request::is('risk/cash-audit/results*')) class="active" @endif><a href="{{ route('risk.cash-audit.results') }}"><i class="fa fa-circle-o"></i> Cash Audit Results</a></li>
+                    <li @if(Request::is('expense/approvals/risk-expense-approvals*')) class="active" @endif>
+    <a href="{{ url('expense/approvals/risk-expense-approvals') }}">
+        <i class="fa fa-shield"></i>
+        <span>Risk Expense Approvals</span>
+    </a>
+</li>
+
                     
                     <!-- <li @if(Request::is('risk/recovery-efficiency*')) class="active" @endif><a href="{{ url('risk/recovery-efficiency') }}"><i class="fa fa-circle-o"></i> Recovery Tracker</a></li>
                     <li @if(Request::is('risk/policy-breach*')) class="active" @endif><a href="{{ url('risk/policy-breach') }}"><i class="fa fa-circle-o"></i> Policy Breach Tracker</a></li>
@@ -1169,12 +1240,37 @@ use App\Models\Ticket;
                     @endif
                     @hasRole('role.exec', 'role.dev')
                         <li><a href="{{ url('vehicles/loans_pending_approval') }}"><i class="fa fa-circle-o"></i> MVL Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('loan_product_id',0)->count() }}</span>@else<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('loan_product_id',0)->where('office_id',$office_id)->count() }}</span>@endif</a></li>
+
+                
                     @endif
+
+
+                    @if(Sentinel::getUser() && Sentinel::getUser()->roles()->where('roles.id', 1)->exists())
+
+    <li>
+        <a href="{{ route('wage-bills.approvals') }}">
+            <i class="fa fa-check-circle"></i>
+            <span>Payroll Approvals</span>
+        </a>
+    </li>
+
+@endif
+
                     @hasRole('role.exec', 'role.risk')
                         <li @if(Request::is('approvals/deposit-approvals*')) class="active" @endif><a href="{{ url('approvals/deposit-approvals') }}"><i class="fa fa-circle-o"></i> Monthly Deposits Approvals</a></li>
                     @endif
-                    @hasRole('role.exec', 'role.risk')
-                        <li @if(Request::is('expense/approvals/expense-approvals*')) class="active" @endif><a href="{{ url('expense/approvals/expense-approvals') }}"><i class="fa fa-circle-o"></i> Expense Approvals</a></li>
+                    @if($role == 1)
+                        <li @if(Request::is('expense/approvals/expense-approvals*')) class="active" @endif>
+                            <a href="{{ url('expense/approvals/expense-approvals') }}">
+                                <i class="fa fa-circle-o"></i> Expense Approvals
+                                @php
+                                    $pendingAdminExpenseCount = \App\Models\Expense::where('status', 'pending_admin')->count();
+                                @endphp
+                                @if($pendingAdminExpenseCount > 0)
+                                    <span class="label label-warning pull-right">{{ $pendingAdminExpenseCount }}</span>
+                                @endif
+                            </a>
+                        </li>
                     @endif
                 </ul>
             </li>

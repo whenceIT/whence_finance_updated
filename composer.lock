@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "df66e2d7345a1d790af1f135a7dc27f3",
+    "content-hash": "c0ad323e12ef0835f7422c745cf0d9c2",
     "packages": [
         {
             "name": "almasaeed2010/adminlte",
@@ -318,42 +318,42 @@
         },
         {
             "name": "barryvdh/laravel-dompdf",
-            "version": "v2.0.0",
+            "version": "v2.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/barryvdh/laravel-dompdf.git",
-                "reference": "1d47648c6cef37f715ecb8bcc5f5a656ad372e27"
+                "reference": "9843d2be423670fb434f4c978b3c0f4dd92c87a6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/barryvdh/laravel-dompdf/zipball/1d47648c6cef37f715ecb8bcc5f5a656ad372e27",
-                "reference": "1d47648c6cef37f715ecb8bcc5f5a656ad372e27",
+                "url": "https://api.github.com/repos/barryvdh/laravel-dompdf/zipball/9843d2be423670fb434f4c978b3c0f4dd92c87a6",
+                "reference": "9843d2be423670fb434f4c978b3c0f4dd92c87a6",
                 "shasum": ""
             },
             "require": {
-                "dompdf/dompdf": "^2",
-                "illuminate/support": "^6|^7|^8|^9",
+                "dompdf/dompdf": "^2.0.1",
+                "illuminate/support": "^6|^7|^8|^9|^10",
                 "php": "^7.2 || ^8.0"
             },
             "require-dev": {
                 "nunomaduro/larastan": "^1|^2",
-                "orchestra/testbench": "^4|^5|^6|^7",
+                "orchestra/testbench": "^4|^5|^6|^7|^8",
                 "phpro/grumphp": "^1",
                 "squizlabs/php_codesniffer": "^3.5"
             },
             "type": "library",
             "extra": {
-                "branch-alias": {
-                    "dev-master": "2.0-dev"
-                },
                 "laravel": {
+                    "aliases": {
+                        "PDF": "Barryvdh\\DomPDF\\Facade\\Pdf",
+                        "Pdf": "Barryvdh\\DomPDF\\Facade\\Pdf"
+                    },
                     "providers": [
                         "Barryvdh\\DomPDF\\ServiceProvider"
-                    ],
-                    "aliases": {
-                        "Pdf": "Barryvdh\\DomPDF\\Facade\\Pdf",
-                        "PDF": "Barryvdh\\DomPDF\\Facade\\Pdf"
-                    }
+                    ]
+                },
+                "branch-alias": {
+                    "dev-master": "2.0-dev"
                 }
             },
             "autoload": {
@@ -379,7 +379,7 @@
             ],
             "support": {
                 "issues": "https://github.com/barryvdh/laravel-dompdf/issues",
-                "source": "https://github.com/barryvdh/laravel-dompdf/tree/v2.0.0"
+                "source": "https://github.com/barryvdh/laravel-dompdf/tree/v2.0.1"
             },
             "funding": [
                 {
@@ -391,7 +391,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-07-06T11:12:10+00:00"
+            "time": "2023-01-12T15:12:49+00:00"
         },
         {
             "name": "barryvdh/laravel-ide-helper",
@@ -953,6 +953,83 @@
                 }
             ],
             "time": "2022-11-17T09:50:14+00:00"
+        },
+        {
+            "name": "composer/semver",
+            "version": "3.6.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/composer/semver.git",
+                "reference": "d92543b7ede9c4ec6b59853cefb061e39866d2cf"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/composer/semver/zipball/d92543b7ede9c4ec6b59853cefb061e39866d2cf",
+                "reference": "d92543b7ede9c4ec6b59853cefb061e39866d2cf",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^5.3.2 || ^7.0 || ^8.0"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^1.11",
+                "symfony/phpunit-bridge": "^3 || ^7"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "3.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Composer\\Semver\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nils Adermann",
+                    "email": "naderman@naderman.de",
+                    "homepage": "http://www.naderman.de"
+                },
+                {
+                    "name": "Jordi Boggiano",
+                    "email": "j.boggiano@seld.be",
+                    "homepage": "http://seld.be"
+                },
+                {
+                    "name": "Rob Bast",
+                    "email": "rob.bast@gmail.com",
+                    "homepage": "http://robbast.nl"
+                }
+            ],
+            "description": "Version comparison library that offers utilities, version constraint parsing and validation.",
+            "keywords": [
+                "semantic",
+                "semver",
+                "validation",
+                "versioning"
+            ],
+            "support": {
+                "irc": "ircs://irc.libera.chat:6697/composer",
+                "issues": "https://github.com/composer/semver/issues",
+                "source": "https://github.com/composer/semver/tree/3.6.0"
+            },
+            "funding": [
+                {
+                    "url": "https://packagist.com",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/composer",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-10-29T09:13:34+00:00"
         },
         {
             "name": "dasprid/enum",
@@ -3665,38 +3742,40 @@
         },
         {
             "name": "maatwebsite/excel",
-            "version": "3.1.44",
+            "version": "3.1.56",
             "source": {
                 "type": "git",
                 "url": "https://github.com/SpartnerNL/Laravel-Excel.git",
-                "reference": "289c3320982510dacfe0dd00de68061a2b7f4a43"
+                "reference": "0381d0225b42c3f328d90f0dd05ca071fca3953f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/SpartnerNL/Laravel-Excel/zipball/289c3320982510dacfe0dd00de68061a2b7f4a43",
-                "reference": "289c3320982510dacfe0dd00de68061a2b7f4a43",
+                "url": "https://api.github.com/repos/SpartnerNL/Laravel-Excel/zipball/0381d0225b42c3f328d90f0dd05ca071fca3953f",
+                "reference": "0381d0225b42c3f328d90f0dd05ca071fca3953f",
                 "shasum": ""
             },
             "require": {
+                "composer/semver": "^3.3",
                 "ext-json": "*",
-                "illuminate/support": "5.8.*|^6.0|^7.0|^8.0|^9.0",
-                "php": "^7.0|^8.0",
+                "illuminate/support": "5.8.*||^6.0||^7.0||^8.0||^9.0||^10.0||^11.0",
+                "php": "^7.0||^8.0",
                 "phpoffice/phpspreadsheet": "^1.18",
-                "psr/simple-cache": "^1.0|^2.0"
+                "psr/simple-cache": "^1.0||^2.0||^3.0"
             },
             "require-dev": {
-                "orchestra/testbench": "^6.0|^7.0",
+                "laravel/scout": "^7.0||^8.0||^9.0||^10.0",
+                "orchestra/testbench": "^6.0||^7.0||^8.0||^9.0",
                 "predis/predis": "^1.1"
             },
             "type": "library",
             "extra": {
                 "laravel": {
-                    "providers": [
-                        "Maatwebsite\\Excel\\ExcelServiceProvider"
-                    ],
                     "aliases": {
                         "Excel": "Maatwebsite\\Excel\\Facades\\Excel"
-                    }
+                    },
+                    "providers": [
+                        "Maatwebsite\\Excel\\ExcelServiceProvider"
+                    ]
                 }
             },
             "autoload": {
@@ -3728,7 +3807,7 @@
             ],
             "support": {
                 "issues": "https://github.com/SpartnerNL/Laravel-Excel/issues",
-                "source": "https://github.com/SpartnerNL/Laravel-Excel/tree/3.1.44"
+                "source": "https://github.com/SpartnerNL/Laravel-Excel/tree/3.1.56"
             },
             "funding": [
                 {
@@ -3740,7 +3819,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-10-14T20:01:10+00:00"
+            "time": "2024-08-19T09:40:43+00:00"
         },
         {
             "name": "maennchen/zipstream-php",
@@ -12320,12 +12399,12 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": {},
+    "stability-flags": [],
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": "^8.1"
     },
-    "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "platform-dev": [],
+    "plugin-api-version": "2.3.0"
 }

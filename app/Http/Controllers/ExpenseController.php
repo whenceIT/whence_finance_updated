@@ -289,23 +289,7 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
-// $existingExpense = Expense::where('office_id', $request->office_id)
-//     ->where('expense_type_id', $request->expense_type_id)
-//     ->where('amount', $request->amount)
-//     ->whereDate('date', $request->date)
-//     ->where('created_at', '>=', now()->subHours(24))
-//     ->first();
 
-// if ($existingExpense) {
-
-//     Flash::warning(
-//         'Possible duplicate expense detected. Expense #' .
-//         $existingExpense->id .
-//         ' already exists.'
-//     );
-
-//     return redirect()->back()->withInput();
-// }
 
 
 $currentTime = now()->format('H:i');

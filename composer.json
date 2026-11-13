@@ -12,7 +12,7 @@
     "almasaeed2010/adminlte": "~3.0",
     "anhskohbo/no-captcha": "^3.6",
     "bacon/bacon-qr-code": "^2.0",
-    "barryvdh/laravel-dompdf": "^2.0.0",
+    "barryvdh/laravel-dompdf": "^2.0",
     "barryvdh/laravel-ide-helper": "^2.0",
     "beyondcode/laravel-websockets": "^1.14",
     "cartalyst/sentinel": "^6.0",
