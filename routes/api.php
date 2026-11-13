@@ -85,6 +85,54 @@ Route::get('/offices', function () {
     ]);
 });
 
+Route::get('/search-clients', function () {
+    $q = trim(request('q', ''));
+    $like = "%{$q}%";
+    $clients = \App\Models\Client::whereNull('deleted_at')
+        ->where(function ($query) use ($like) {
+            $query->where('first_name', 'LIKE', $like)
+                ->orWhere('last_name', 'LIKE', $like)
+                ->orWhere('full_name', 'LIKE', $like)
+                ->orWhere('nrc_number', 'LIKE', $like);
+        })
+        ->orderBy('full_name')
+        ->take(30)
+        ->get();
+    return response()->json([
+        'success' => true,
+        'data' => $clients->map(function ($c) {
+            $name = $c->full_name ?: ($c->first_name . ' ' . $c->last_name ?: '');
+            return [
+                'id' => $c->id,
+                'label' => $name . ' (' . $c->nrc_number . ')',
+            ];
+        }),
+    ]);
+});
+
+Route::get('/search-users', function () {
+    $q = trim(request('q', ''));
+    $like = "%{$q}%";
+    $users = \App\Models\User::whereNull('deleted_at')->where('blocked', 0)
+        ->where(function ($query) use ($like) {
+            $query->where('first_name', 'LIKE', $like)
+                ->orWhere('last_name', 'LIKE', $like)
+                ->orWhere('email', 'LIKE', $like);
+        })
+        ->orderBy('first_name')
+        ->take(30)
+        ->get();
+    return response()->json([
+        'success' => true,
+        'data' => $users->map(function ($u) {
+            return [
+                'id' => $u->id,
+                'label' => $u->first_name . ' ' . $u->last_name,
+            ];
+        }),
+    ]);
+});
+
 Route::get('/loans/{loanId}/kyc-compliance-status', 'MotorVehicleLoanLifecycleController@checkKycAndComplianceStatus');
 
 Route::prefix('mvl')->group(function () {

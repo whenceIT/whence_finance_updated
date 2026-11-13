@@ -62,7 +62,7 @@ class SmsGateway extends Model
                 'phone' => $loan->Client_Phone,
                 'mobile' => $loan->Client_Phone,
             ];
-            $amount = $loan->principal; // or approved_amount?
+            $amount =  $loan->principal + ($loan->principal * 0.4); // or approved_amount?
             $balance = null;
             try {
                 $balance = \App\Helpers\GeneralHelper::loan_total_balance($loan->id);
@@ -73,15 +73,18 @@ class SmsGateway extends Model
                 $balance = null;
             }
 
-            $message = 'Dear Customer, this is a reminder that your loan of ZMW ' . number_format($amount, 2);
-            if ($balance !== null) {
-                $message .= ' with outstanding balance of ZMW ' . number_format($balance, 2);
-            }
-            $message .= ' is overdue. Kindly make your payment to avoid penalties or further legal action. For assistance, contact 0773425477.';
+          
+            if($balance){
+                $message = 'Dear Customer, this is a reminder that your loan of ZMW ' . number_format($amount, 2);
+                if ($balance !== null) {
+                    $message .= ' with outstanding balance of ZMW ' . number_format($balance, 2);
+                }
+                $message .= ' is overdue. Kindly make your payment to avoid penalties or further legal action. For assistance, contact 0773425477.';
 
-            $bulkSms = new BulkSMS();
-            $result = $bulkSms->sendToClients([$client], $message);
-            $results[] = $result;
+                $bulkSms = new BulkSMS();
+                $result = $bulkSms->sendToClients([$client], $message);
+                $results[] = $result;
+            }
         }
 
         return $results;
@@ -140,17 +143,20 @@ class SmsGateway extends Model
                 $balance = null;
             }
 
-            $principal = $loan->principal_debit ?? 0;
+            $principal =  $loan->principal + ($loan->principal * 0.4);
 
-            $message = 'Dear Customer, your total loan repayment of ZMW ' . number_format($principal, 2);
-            if ($balance !== null) {
-                $message .= ' has an outstanding balance of ZMW ' . number_format($balance, 2);
+            if($balance > 1){
+                $message = 'Dear Customer, your total loan repayment of ZMW ' . number_format($principal, 2);
+                if ($balance !== null) {
+                    $message .= ' has an outstanding balance of ZMW ' . number_format($balance, 2);
+                }
+                $message .= '. Please make your payment on time to avoid aditional penalties. For assistance, contact 0773425477.';
+
+                $bulkSms = new BulkSMS();
+                $result = $bulkSms->sendToClients([$client], $message);
+                $results[] = $result;
             }
-            $message .= '. Please make your payment on time to avoid aditional penalties. For assistance, contact 0773425477.';
-
-            $bulkSms = new BulkSMS();
-            $result = $bulkSms->sendToClients([$client], $message);
-            $results[] = $result;
+           
         }
 
         return $results;

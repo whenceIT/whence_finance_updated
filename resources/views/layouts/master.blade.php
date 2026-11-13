@@ -1968,28 +1968,35 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
                     $('#user-select').hide();
                     $('#user-select-loader').show();
                     $('#sms-user').empty().append('<option value="">Select User</option>').removeAttr('required');
+                    $('#sms-submit').prop('disabled', true);
 
                     $.ajax({
                         url: '/api/get-office-users/' + officeId,
                         method: 'GET',
                         success: function (users) {
                             var $userSelect = $('#sms-user');
-                            $userSelect.empty().append('<option value="">Select User</option>');
+                            $userSelect.empty()
+                                .append($('<option>', { value: '', text: 'Select User', disabled: true, selected: true }))
+                                .append($('<option>', { value: 'all', text: 'All Clients in Office' }));
                             if (users.length === 0) {
                                 $userSelect.append('<option value="" disabled>No users found</option>');
                             } else {
                                 $.each(users, function (i, user) {
-                                    $userSelect.append('<option value="' + user.id + '">' + user.name + '</option>');
+                                    $userSelect.append($('<option>', { value: user.id, text: user.name }));
                                 });
                             }
                             $userSelect.attr('required', 'required');
                             $('#user-select-loader').hide();
                             $('#user-select').show();
+                            $('#sms-submit').prop('disabled', false);
                         },
                         error: function () {
                             $('#user-select-loader').hide();
-                            $('#sms-user').empty().append('<option value="">Select User</option>');
+                            $('#sms-user').empty()
+                                .append($('<option>', { value: '', text: 'Unable to load users', disabled: true, selected: true }))
+                                .attr('required', 'required');
                             $('#user-select').show();
+                            $('#sms-submit').prop('disabled', false);
                             alert('Failed to load users for this office. Please try again.');
                         }
                     });
@@ -1997,6 +2004,7 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
                     $('#user-select-loader').hide();
                     $('#user-select').hide();
                     $('#sms-user').empty().append('<option value="">Select User</option>').removeAttr('required');
+                    $('#sms-submit').prop('disabled', false);
                 }
             });
 
@@ -2010,11 +2018,11 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
 
                 if (messageType === 'single') {
                     url = '/api/send-sms';
-                } else if (userId) {
+                } else if (userId && userId !== 'all') {
                     // User selected — send to that officer's clients only
                     url = '/api/send-officer-sms';
                 } else {
-                    // Office only — send to whole office
+                    // "All Clients in Office" — send to the selected office
                     url = '/api/send-bulk-sms';
                 }
 

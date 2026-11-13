@@ -296,10 +296,20 @@
 
         $('#pltYear').val(exemption.year || {{ date('Y') }});
 
-        var dtIds = exemption.deposit_type_id ? (typeof exemption.deposit_type_id === 'string' ? exemption.deposit_type_id.split(',') : exemption.deposit_type_id) : [];
+        var dtIds = exemption.deposit_type_id;
+        if (typeof dtIds === 'string') {
+            dtIds = dtIds.split(',').map(String);
+        } else if (!Array.isArray(dtIds)) {
+            dtIds = dtIds ? [String(dtIds)] : [];
+        }
         depositTypeDropdown.setValues(dtIds);
 
-        var offIds = exemption.office_id ? (typeof exemption.office_id === 'string' ? exemption.office_id.split(',') : exemption.office_id) : [];
+        var offIds = exemption.office_id;
+        if (typeof offIds === 'string') {
+            offIds = offIds.split(',').map(String);
+        } else if (!Array.isArray(offIds)) {
+            offIds = offIds ? [String(offIds)] : [];
+        }
         officesDropdown.setValues(offIds);
 
         $('#pltEditId').val(exemption.id || '');

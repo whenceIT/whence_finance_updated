@@ -426,6 +426,7 @@ use App\Models\Ticket;
                  CREATIVE ARTWORKS & MARKETING
             ============================================ -->
             
+            @hasRole('role.exec', 'role.artworks')
             <li class="treeview @if(Request::is('creative*') || Request::is('job-applications*') || Request::is('daily-reports*') || Request::is('customer-care*') || Request::is('conflict-resolution*') || Request::is('loan-referrals*') || Request::is('lost-client-recoveries*')) active menu-open @endif">
                 <a href="#">
                     <i class="fa fa-paint-brush"></i> <span>Creative Artworks</span>
@@ -452,23 +453,6 @@ use App\Models\Ticket;
                             <li><a href="{{ route('job-applications.employed') }}"><i class="fa fa-circle-o"></i> Employed</a></li>
                             <li><a href="{{ route('job-applications.qualifying') }}"><i class="fa fa-circle-o"></i> Qualifying for Reward</a></li>
                             <li><a href="{{ route('job-applications.reports') }}"><i class="fa fa-circle-o"></i> Reports</a></li>
-                        </ul>
-                    </li>
-                    
-                    <!-- Daily Reports Module -->
-                    <li class="treeview @if(Request::is('daily-reports*')) active menu-open @endif">
-                        <a href="#">
-                            <i class="fa fa-circle-o"></i> Daily Reports
-                            <span class="pull-right-container">
-                                <i class="fa fa-angle-left pull-right"></i>
-                            </span>
-                        </a>
-                        <ul class="treeview-menu">
-                            <li><a href="{{ route('daily-reports.index') }}"><i class="fa fa-circle-o"></i> View Reports</a></li>
-                            <li><a href="{{ route('daily-reports.income.create') }}"><i class="fa fa-circle-o"></i> Record Income</a></li>
-                            <li><a href="{{ route('daily-reports.expense.create') }}"><i class="fa fa-circle-o"></i> Record Expense</a></li>
-                            <li><a href="{{ route('daily-reports.branch-report') }}"><i class="fa fa-circle-o"></i> Branch Financial Report</a></li>
-                            <li><a href="{{ route('daily-reports.reports') }}"><i class="fa fa-circle-o"></i> Summary Reports</a></li>
                         </ul>
                     </li>
                     
@@ -521,8 +505,6 @@ use App\Models\Ticket;
                         <ul class="treeview-menu">
                             <li><a href="{{ route('loan-referrals.index') }}"><i class="fa fa-circle-o"></i> All Referrals</a></li>
                             <li><a href="{{ route('loan-referrals.create') }}"><i class="fa fa-circle-o"></i> Register Referral</a></li>
-                            <li><a href="{{ route('loan-referrals.pending') }}"><i class="fa fa-circle-o"></i> Pending Repayment</a></li>
-                            <li><a href="{{ route('loan-referrals.due') }}"><i class="fa fa-circle-o"></i> Profit Share Due</a></li>
                             <li><a href="{{ route('loan-referrals.payments') }}"><i class="fa fa-circle-o"></i> Payments Received</a></li>
                             <li><a href="{{ route('loan-referrals.reports') }}"><i class="fa fa-circle-o"></i> Reports</a></li>
                         </ul>
@@ -546,6 +528,23 @@ use App\Models\Ticket;
                         </ul>
                     </li>
                     
+                    <!-- Daily Reports Module -->
+                    <li class="treeview @if(Request::is('daily-reports*')) active menu-open @endif">
+                        <a href="#">
+                            <i class="fa fa-circle-o"></i> Daily Reports
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="{{ route('daily-reports.index') }}"><i class="fa fa-circle-o"></i> View Reports</a></li>
+                            <li><a href="{{ route('daily-reports.income.create') }}"><i class="fa fa-circle-o"></i> Record Income</a></li>
+                            <li><a href="{{ route('daily-reports.expense.create') }}"><i class="fa fa-circle-o"></i> Record Expense</a></li>
+                            <li><a href="{{ route('daily-reports.branch-report') }}"><i class="fa fa-circle-o"></i> Branch Financial Report</a></li>
+                            <li><a href="{{ route('daily-reports.reports') }}"><i class="fa fa-circle-o"></i> Summary Reports</a></li>
+                        </ul>
+                    </li>
+                    
                     <!-- Setup/Configuration -->
                     <li class="treeview @if(Request::is('creative/setup*')) active menu-open @endif">
                         <a href="#">
@@ -558,14 +557,12 @@ use App\Models\Ticket;
                             <li><a href="{{ route('creative.setup.categories') }}"><i class="fa fa-circle-o"></i> Complaint Categories</a></li>
                             <li><a href="{{ route('creative.setup.expense-categories') }}"><i class="fa fa-circle-o"></i> Expense Categories</a></li>
                             <li><a href="{{ route('creative.setup.income-categories') }}"><i class="fa fa-circle-o"></i> Income Categories</a></li>
-                            <li><a href="{{ route('creative.setup.positions') }}"><i class="fa fa-circle-o"></i> Job Positions</a></li>
                         </ul>
                     </li>
                     
                     <li><a href="{{ route('creative.reports') }}"><i class="fa fa-circle-o"></i> All Reports</a></li>
                 </ul>
             </li>
-            @hasRole('role.exec', 'role.artworks')
             @endif
 
             <li class="@if(Request::is('ticket*')) active @endif">
@@ -2265,3 +2262,4 @@ use App\Models\Ticket;
         </section>
         <!-- /.sidebar -->
     </aside>
+

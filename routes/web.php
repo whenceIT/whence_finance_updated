@@ -375,6 +375,7 @@ Route::group(['prefix' => 'settings', 'middleware' => 'sentinel'], function () {
     Route::post('/platform/block-skip/deactivate-all', [PlatformController::class, 'deactivateBlockSkipAllOffices']);
     Route::post('/platform/block-skip/update-months', [PlatformController::class, 'updateDepositExemptMonths'])->name('settings.platform.block-skip.update-months');
     Route::put('/deposit-month-exemptions/{id}', [PlatformController::class, 'updateDepositMonthExemption'])->name('deposit-month-exemptions.update');
+    Route::delete('/deposit-month-exemptions/{id}', [PlatformController::class, 'destroyDepositMonthExemption'])->name('deposit-month-exemptions.destroy');
 });
 
 // Course Categories Management Routes
@@ -2592,8 +2593,11 @@ Route::group(['prefix' => 'customer-care', 'namespace' => 'Artworks'], function 
 Route::group(['prefix' => 'conflict-resolution', 'namespace' => 'Artworks'], function () {
     Route::get('/', 'ConflictResolutionController@index')->name('conflict-resolution.index');
     Route::get('/create', 'ConflictResolutionController@create')->name('conflict-resolution.create');
+    Route::post('/store', 'ConflictResolutionController@store')->name('conflict-resolution.store');
+    Route::post('/store', 'ConflictResolutionController@store')->name('conflict-resolution.store');
     Route::get('/charges', 'ConflictResolutionController@charges')->name('conflict-resolution.charges');
     Route::get('/payments', 'ConflictResolutionController@payments')->name('conflict-resolution.payments');
+    Route::post('/payments', 'ConflictResolutionController@recordPayment')->name('conflict-resolution.payments.store');
     Route::get('/outstanding', 'ConflictResolutionController@outstanding')->name('conflict-resolution.outstanding');
     Route::get('/reports', 'ConflictResolutionController@reports')->name('conflict-resolution.reports');
 });
@@ -2602,9 +2606,11 @@ Route::group(['prefix' => 'conflict-resolution', 'namespace' => 'Artworks'], fun
 Route::group(['prefix' => 'loan-referrals', 'namespace' => 'Artworks'], function () {
     Route::get('/', 'LoanReferralController@index')->name('loan-referrals.index');
     Route::get('/create', 'LoanReferralController@create')->name('loan-referrals.create');
+    Route::post('/store', 'LoanReferralController@store')->name('loan-referrals.store');
     Route::get('/pending', 'LoanReferralController@pending')->name('loan-referrals.pending');
     Route::get('/due', 'LoanReferralController@due')->name('loan-referrals.due');
     Route::get('/payments', 'LoanReferralController@payments')->name('loan-referrals.payments');
+    Route::post('/payments', 'LoanReferralController@recordPayment')->name('loan-referrals.payments.store');
     Route::get('/reports', 'LoanReferralController@reports')->name('loan-referrals.reports');
 });
 
@@ -2612,8 +2618,54 @@ Route::group(['prefix' => 'loan-referrals', 'namespace' => 'Artworks'], function
 Route::group(['prefix' => 'lost-client-recoveries', 'namespace' => 'Artworks'], function () {
     Route::get('/', 'LostClientRecoveryController@index')->name('lost-client-recoveries.index');
     Route::get('/create', 'LostClientRecoveryController@create')->name('lost-client-recoveries.create');
+    Route::get('/clients/search', 'LostClientRecoveryController@searchClients')->name('lost-client-recoveries.clients-search');
+    Route::get('/offices/search', 'LostClientRecoveryController@searchOffices')->name('lost-client-recoveries.offices-search');
+    Route::get('/users/search', 'LostClientRecoveryController@searchUsers')->name('lost-client-recoveries.users-search');
+    Route::get('/loans/search', 'LostClientRecoveryController@searchLoans')->name('lost-client-recoveries.loans-search');
+    Route::post('/store', 'LostClientRecoveryController@store')->name('lost-client-recoveries.store');
     Route::get('/repayment', 'LostClientRecoveryController@repayment')->name('lost-client-recoveries.repayment');
     Route::get('/profit-share', 'LostClientRecoveryController@profitShare')->name('lost-client-recoveries.profit-share');
     Route::get('/payments', 'LostClientRecoveryController@payments')->name('lost-client-recoveries.payments');
     Route::get('/reports', 'LostClientRecoveryController@reports')->name('lost-client-recoveries.reports');
 });
+
+// Job Applications - extended routes
+Route::group(['prefix' => 'job-applications', 'namespace' => 'Artworks'], function () {
+    Route::get('/', 'JobApplicationController@index')->name('job-applications.index');
+    Route::get('/create', 'JobApplicationController@create')->name('job-applications.create');
+    Route::post('/store', 'JobApplicationController@store')->name('job-applications.store');
+    Route::get('/show/{id}', 'JobApplicationController@show')->name('job-applications.show');
+    Route::get('/edit/{id}', 'JobApplicationController@edit')->name('job-applications.edit');
+    Route::post('/update/{id}', 'JobApplicationController@update')->name('job-applications.update');
+    Route::get('/pending', 'JobApplicationController@pending')->name('job-applications.pending');
+    Route::get('/approved', 'JobApplicationController@approved')->name('job-applications.approved');
+    Route::get('/employed', 'JobApplicationController@employed')->name('job-applications.employed');
+    Route::get('/qualifying', 'JobApplicationController@qualifying')->name('job-applications.qualifying');
+    Route::post('/update-status/{id}', 'JobApplicationController@updateStatus')->name('job-applications.update-status');
+    Route::get('/mark-qualifying/{id}', 'JobApplicationController@markQualifying')->name('job-applications.mark-qualifying');
+    Route::get('/reports', 'JobApplicationController@reports')->name('job-applications.reports');
+});
+
+// Customer Care - extended routes
+Route::group(['prefix' => 'customer-care', 'namespace' => 'Artworks'], function () {
+    Route::get('/', 'CustomerCareController@index')->name('customer-care.index');
+    Route::get('/create', 'CustomerCareController@create')->name('customer-care.create');
+    Route::post('/store', 'CustomerCareController@store')->name('customer-care.store');
+    Route::get('/show/{id}', 'CustomerCareController@show')->name('customer-care.show');
+    Route::get('/open', 'CustomerCareController@open')->name('customer-care.open');
+    Route::get('/in-progress', 'CustomerCareController@inProgress')->name('customer-care.in-progress');
+    Route::get('/resolved', 'CustomerCareController@resolved')->name('customer-care.resolved');
+    Route::get('/escalated', 'CustomerCareController@escalated')->name('customer-care.escalated');
+    Route::post('/update-case/{id}', 'CustomerCareController@updateCase')->name('customer-care.update-case');
+    Route::get('/calendar', 'CustomerCareController@calendar')->name('customer-care.calendar');
+    Route::post('/calendar/store', 'CustomerCareController@storeActivity')->name('customer-care.calendar.store');
+    Route::get('/reports', 'CustomerCareController@reports')->name('customer-care.reports');
+});
+
+
+
+
+
+
+
+

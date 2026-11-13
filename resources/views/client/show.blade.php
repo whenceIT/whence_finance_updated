@@ -1433,14 +1433,29 @@
 			<div class="form-group">
     <label for="staff_id" class="control-label col-md-3">{{trans_choice('general.staff',1)}}</label>
     <div class="col-md-9">
-        <select name="staff_id" class="form-control select2" id="staff_id" required>
-            <option></option>
-            @foreach(\App\Models\User::all() as $staff)
-                <option value="{{$staff->id}}" {{$client->staff_id == $staff->id ? 'selected' : ''}}>
-                    {{$staff->first_name}} {{$staff->last_name}}
-                </option>
-            @endforeach
-        </select>
+        {{-- Hidden input that submits the selected staff value --}}
+        <input type="hidden" name="staff_id" id="staff_id_input" value="{{$client->staff_id}}">
+
+        <div class="searchable-select" id="staff-dropdown">
+            <div class="searchable-select__trigger" id="staff-trigger" tabindex="0">
+                <span class="searchable-select__label" id="staff-label">
+                    @php
+                        $selectedStaff = \App\Models\User::find($client->staff_id);
+                    @endphp
+                    {{ $selectedStaff ? $selectedStaff->first_name . ' ' . $selectedStaff->last_name : 'Select staff...' }}
+                </span>
+                <span class="searchable-select__arrow">&#9660;</span>
+            </div>
+            <div class="searchable-select__panel" id="staff-panel">
+                <input type="text" class="searchable-select__search" id="staff-search"
+                       placeholder="Type to search staff..." autocomplete="off">
+                <ul class="searchable-select__list" id="staff-list">
+                </ul>
+                <div class="searchable-select__empty" id="staff-empty" style="display:none;">
+                    No results found.
+                </div>
+            </div>
+        </div>
     </div>
 </div>
                     </div>
@@ -1701,6 +1716,110 @@
                 }
             });
         }());
+
+        // ── Generic AJAX searchable-select factory ──────────────────────────
+        function createAjaxSearchableSelect(config) {
+            var trigger   = document.getElementById(config.triggerId);
+            var panel     = document.getElementById(config.panelId);
+            var search    = document.getElementById(config.searchId);
+            var empty     = document.getElementById(config.emptyId);
+            var labelEl   = document.getElementById(config.labelId);
+            var hidden    = document.getElementById(config.hiddenId);
+            var listEl    = document.getElementById(config.listId);
+            var apiUrl    = config.apiUrl;
+            var timer     = null;
+
+            if (!trigger) return;
+
+            function openPanel() {
+                panel.classList.add('is-open');
+                search.value = '';
+                listEl.innerHTML = '';
+                empty.style.display = 'none';
+                search.focus();
+            }
+
+            function closePanel() {
+                panel.classList.remove('is-open');
+            }
+
+            function renderItems(items) {
+                listEl.innerHTML = '';
+                if (!items || items.length === 0) {
+                    empty.style.display = 'block';
+                    return;
+                }
+                empty.style.display = 'none';
+                items.forEach(function (item) {
+                    var li = document.createElement('li');
+                    li.className = 'searchable-select__item';
+                    li.dataset.value = item.id;
+                    li.dataset.label = item.label;
+                    li.textContent = item.label;
+                    li.addEventListener('click', function () {
+                        hidden.value = item.id;
+                        labelEl.textContent = item.label;
+                        trigger.classList.add('is-selected');
+                        closePanel();
+                        trigger.focus();
+                    });
+                    listEl.appendChild(li);
+                });
+            }
+
+            function doSearch() {
+                var q = search.value.trim();
+                if (q.length < 1) {
+                    listEl.innerHTML = '';
+                    empty.style.display = 'none';
+                    return;
+                }
+                clearTimeout(timer);
+                timer = setTimeout(function () {
+                    fetch(apiUrl + '?q=' + encodeURIComponent(q))
+                        .then(function (resp) { return resp.json(); })
+                        .then(function (data) {
+                            if (data.success) {
+                                renderItems(data.data);
+                            }
+                        })
+                        .catch(function (err) {
+                            console.error('Search error:', err);
+                        });
+                }, 250);
+            }
+
+            trigger.addEventListener('click', function () {
+                panel.classList.contains('is-open') ? closePanel() : openPanel();
+            });
+
+            trigger.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPanel(); }
+                if (e.key === 'Escape') { closePanel(); }
+            });
+
+            search.addEventListener('input', doSearch);
+
+            document.addEventListener('click', function (e) {
+                var dropdown = document.getElementById(config.dropdownId);
+                if (dropdown && !dropdown.contains(e.target)) {
+                    closePanel();
+                }
+            });
+        }
+
+        // ── Staff searchable dropdown ───────────────────────────────────────
+        createAjaxSearchableSelect({
+            dropdownId: 'staff-dropdown',
+            triggerId: 'staff-trigger',
+            panelId: 'staff-panel',
+            searchId: 'staff-search',
+            emptyId: 'staff-empty',
+            labelId: 'staff-label',
+            hiddenId: 'staff_id_input',
+            listId: 'staff-list',
+            apiUrl: '{!! url('api/search-users') !!}',
+        });
         // ─────────────────────────────────────────────────────────────────
     </script>
     <script>
