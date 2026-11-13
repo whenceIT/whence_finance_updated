@@ -140,7 +140,7 @@ use App\Models\Ticket;
 
             {{-- Payslips --}}
            <li class="@if(Request::is('wage-bills/paylips/*')) active @endif">
-    <a href="{{ url('/wage-bills/payslip/' . Sentinel::getUser()->id) }}">
+    <a href="{{ url('/wage-bills/my-payroll/' . Sentinel::getUser()->id) }}">
         <i class="fa fa-circle-o"></i>
         Payslips
     </a>
