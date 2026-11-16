@@ -3,7 +3,6 @@ namespace App\Http\Controllers\Artworks;
 use App\Http\Controllers\Controller;
 use App\Models\Artworks\LostClientRecovery;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class LostClientRecoveryController extends Controller
@@ -128,51 +127,6 @@ class LostClientRecoveryController extends Controller
         ]);
         return redirect()->route('lost-client-recoveries.index')->with('success','Recovery registered.');
     }
-    public function repayment(Request $request)
-    {
-        $search = trim($request->query('search', ''));
-        $status = $request->query('status', '');
-
-        $query = DB::table('creative_lost_client_recoveries as r')
-            ->leftJoin('loans as l', 'r.loan_id', '=', 'l.id')
-            ->leftJoin('offices as o', 'r.branch_id', '=', 'o.id')
-            ->select(
-                'r.id',
-                'r.recovery_reference',
-                'r.client_name',
-                'r.nrc_number',
-                'r.contact_number',
-                'r.recovery_date',
-                'r.repayment_status',
-                'r.amount_paid',
-                'r.notes',
-                'r.created_at',
-                'l.account_number as loan_account',
-                'l.principal as loan_principal',
-                'o.name as branch_name'
-            );
-
-        if ($search !== '') {
-            $like = "%{$search}%";
-            $query->where(function ($q) use ($like) {
-                $q->where('r.client_name', 'LIKE', $like)
-                    ->orWhere('r.nrc_number', 'LIKE', $like)
-                    ->orWhere('r.recovery_reference', 'LIKE', $like)
-                    ->orWhere('l.account_number', 'LIKE', $like);
-            });
-        }
-
-        if ($status !== '') {
-            $query->where('r.repayment_status', $status);
-        }
-
-        $recoveries = $query->orderBy('r.created_at', 'desc')->paginate(20);
-        $recoveries->appends($request->only('search', 'status'));
-
-        $statuses = ['Unpaid', 'Partial', 'Paid'];
-
-        return view('artworks.lost-client-recoveries.repayment', compact('recoveries', 'search', 'status', 'statuses'));
-    }
 
     public function profitShare(Request $request)
     {
@@ -191,12 +145,14 @@ class LostClientRecoveryController extends Controller
                 'r.profit_share',
                 'r.amount_paid',
                 'r.created_at',
+                'l.id as loan_id',
                 'l.account_number as loan_account',
                 'l.principal as loan_principal',
                 'o.name as branch_name',
-                DB::raw('(SELECT COALESCE(SUM(s.interest_paid), 0) FROM loan_repayment_schedules s WHERE s.loan_id = l.id) as total_interest_paid')
+                DB::raw("(SELECT lt.debit FROM loan_transactions lt WHERE lt.loan_id = l.id AND lt.transaction_type = 'interest_initial' LIMIT 1) as total_interest_paid")
             )
-            ->whereNotNull('r.loan_id');
+            ->whereNotNull('r.loan_id')
+            ->where('r.amount_paid', 0);
 
         if ($search !== '') {
             $like = "%{$search}%";
@@ -213,12 +169,224 @@ class LostClientRecoveryController extends Controller
 
         foreach ($recoveries as $r) {
             $r->profit_share_due = round((float) $r->total_interest_paid * 0.10, 2);
-            $r->profit_outstanding = round(max(0, $r->profit_share_due - (float) $r->amount_paid), 2);
-            $r->profit_payable = $r->profit_outstanding > 0 && $r->repayment_status === 'Paid';
         }
 
         return view('artworks.lost-client-recoveries.profit-share', compact('recoveries', 'search'));
     }
-    public function payments(){ return view('artworks.lost-client-recoveries.payments'); }
+
+    public function received(Request $request, $id)
+    {
+        $recovery = DB::table('creative_lost_client_recoveries')->where('id', $id)->first();
+        if (!$recovery || !$recovery->loan_id) {
+            return redirect()->back()->with('error', 'Recovery not found.');
+        }
+
+        $totalInterest = DB::table('loan_transactions')
+            ->where('loan_id', $recovery->loan_id)
+            ->where('transaction_type', 'interest_initial')
+            ->value('debit');
+
+        $profitShareDue = round((float) ($totalInterest ?? 0) * 0.10, 2);
+
+        DB::table('creative_lost_client_recoveries')
+            ->where('id', $id)
+            ->update(['amount_paid' => $profitShareDue]);
+
+        return redirect()->back()->with('success', 'Amount paid updated to profit share due.');
+    }
+    public function payments(Request $request)
+    {
+        $search = trim($request->query('search', ''));
+
+        $query = DB::table('creative_lost_client_recoveries as r')
+            ->leftJoin('loans as l', 'r.loan_id', '=', 'l.id')
+            ->leftJoin('offices as o', 'r.branch_id', '=', 'o.id')
+            ->select(
+                'r.id',
+                'r.recovery_reference',
+                'r.client_name',
+                'r.nrc_number',
+                'r.recovery_date',
+                'r.amount_paid',
+                'r.created_at',
+                'r.loan_id',
+                'o.name as branch_name'
+            )
+            ->whereNotNull('r.amount_paid')
+            ->where('r.amount_paid', '!=', 0);
+
+        if ($search !== '') {
+            $like = "%{$search}%";
+            $query->where(function ($q) use ($like) {
+                $q->where('r.client_name', 'LIKE', $like)
+                    ->orWhere('r.nrc_number', 'LIKE', $like)
+                    ->orWhere('r.recovery_reference', 'LIKE', $like)
+                    ->orWhere('l.account_number', 'LIKE', $like);
+            });
+        }
+
+        $recoveries = $query->orderBy('r.created_at', 'desc')->paginate(20);
+        $recoveries->appends($request->only('search'));
+
+        $totalPaid = $recoveries->getCollection()->sum(function ($r) {
+            return (float) ($r->amount_paid ?? 0);
+        });
+
+        return view('artworks.lost-client-recoveries.payments', compact('recoveries', 'search', 'totalPaid'));
+    }
     public function reports(){ return view('artworks.lost-client-recoveries.reports'); }
+
+    public function lostClients(Request $request)
+    {
+        $search = trim($request->query('search', ''));
+
+        $query = DB::table('clients as c')
+            ->whereNull('c.deleted_at')
+            ->leftJoin('offices as o', 'c.office_id', '=', 'o.id')
+            ->select(
+                'c.id',
+                'c.full_name',
+                'c.first_name',
+                'c.last_name',
+                'c.nrc_number',
+                'c.phone_primary',
+                'c.email_primary',
+                'c.address_line1',
+                'c.employer',
+                'c.phone',
+                'c.email',
+                'c.address',
+                'o.name as office_name',
+                'c.lost_recovery',
+                'c.lost_recovery_notes',
+                'c.created_at as client_created_at',
+                DB::raw('MAX(l.created_at) as last_loan_date'),
+                DB::raw('COUNT(l.id) as total_loans')
+            )
+            ->leftJoin('loans as l', 'l.client_id', '=', 'c.id')
+            ->whereNull('l.deleted_at')
+            ->whereNotExists(function ($q) {
+                $q->select(DB::raw(1))
+                  ->from('loans as l2')
+                  ->whereColumn('l2.client_id', 'c.id')
+                  ->whereNull('l2.deleted_at')
+                  ->where('l2.status', '!=', 'closed');
+            })
+            ->whereNotExists(function ($q) {
+                $q->select(DB::raw(1))
+                  ->from('loans as l')
+                  ->whereColumn('l.client_id', 'c.id')
+                  ->whereNull('l.deleted_at')
+                  ->where('l.created_at', '>', DB::raw('DATE_SUB(NOW(), INTERVAL 3 MONTH)'));
+            });
+
+        if ($search !== '') {
+            $like = "%{$search}%";
+            $query->where(function ($q) use ($like) {
+                $q->where('c.first_name', 'LIKE', $like)
+                    ->orWhere('c.last_name', 'LIKE', $like)
+                    ->orWhere('c.full_name', 'LIKE', $like)
+                    ->orWhere('c.nrc_number', 'LIKE', $like)
+                    ->orWhere('c.phone_primary', 'LIKE', $like)
+                    ->orWhere('c.phone', 'LIKE', $like)
+                    ->orWhere('o.name', 'LIKE', $like);
+            });
+        }
+
+        $clients = $query->groupBy(
+            'c.id', 'c.full_name', 'c.first_name', 'c.last_name', 'c.nrc_number', 'c.phone_primary',
+            'c.email_primary', 'c.address_line1', 'c.employer', 'c.phone', 'c.email', 'c.address',
+            'o.name', 'c.lost_recovery', 'c.lost_recovery_notes', 'c.created_at'
+        )
+        ->orderBy('last_loan_date', 'desc')
+        ->paginate(20);
+        $clients->appends($request->only('search'));
+
+        return view('artworks.lost-client-recoveries.lost-clients', compact('clients', 'search'));
+    }
+
+    public function recoverClient(Request $request, $id)
+    {
+        $request->validate([
+            'lost_recovery_notes' => 'nullable|string',
+        ]);
+
+        $client = \App\Models\Client::whereNull('deleted_at')->find($id);
+        if (!$client) {
+            return redirect()->back()->with('error', 'Client not found.');
+        }
+
+        $client->update([
+            'lost_recovery' => true,
+            'lost_recovery_approval' => 'pending',
+            'lost_recovery_notes' => $request->input('lost_recovery_notes'),
+        ]);
+
+        // Also set pending on the recovery record(s) for this client
+        DB::table('creative_lost_client_recoveries')
+            ->where('client_id', $id)
+            ->update(['lost_recovery_approval' => 'pending']);
+
+        return redirect()->back()->with('success', 'Client marked as recovered.');
+    }
+
+    public function lostClientsApprovals(Request $request)
+    {
+        $query = DB::table('creative_lost_client_recoveries as r')
+            ->leftJoin('offices as o', 'r.branch_id', '=', 'o.id')
+            ->leftJoin('clients as c', 'r.client_id', '=', 'c.id')
+            ->select(
+                'r.id',
+                'r.recovery_reference',
+                'r.client_name',
+                'r.nrc_number',
+                'r.amount_paid',
+                'r.lost_recovery_approval',
+                'r.created_at',
+                'o.name as office_name',
+                'c.first_name',
+                'c.last_name'
+            )
+            ->where('r.lost_recovery_approval', 'pending');
+
+        if ($search = trim($request->query('search', ''))) {
+            $like = "%{$search}%";
+            $query->where(function ($q) use ($like) {
+                $q->where('r.client_name', 'LIKE', $like)
+                    ->orWhere('r.recovery_reference', 'LIKE', $like)
+                    ->orWhere('c.first_name', 'LIKE', $like)
+                    ->orWhere('c.last_name', 'LIKE', $like);
+            });
+        }
+
+        $approvals = $query->orderBy('r.created_at', 'desc')->paginate(20);
+        $approvals->appends($request->only('search'));
+
+        return view('artworks.lost-client-recoveries.lost-clients-approvals', compact('approvals', 'search'));
+    }
+
+    public function approveLostRecovery(Request $request, $id)
+    {
+        $request->validate([
+            'action' => 'required|in:approved,lost',
+        ]);
+
+        $recovery = DB::table('creative_lost_client_recoveries')->where('id', $id)->first();
+        if (!$recovery) {
+            return redirect()->back()->with('error', 'Recovery record not found.');
+        }
+
+        DB::table('creative_lost_client_recoveries')
+            ->where('id', $id)
+            ->update(['lost_recovery_approval' => $request->input('action')]);
+
+        // Also update the corresponding client record
+        if ($recovery->client_id) {
+            \App\Models\Client::where('id', $recovery->client_id)
+                ->update(['lost_recovery_approval' => $request->input('action')]);
+        }
+
+        $label = $request->input('action') === 'approved' ? 'Approved' : 'Declined';
+        return redirect()->back()->with('success', 'Recovery approval ' . strtolower($label) . '.');
+    }
 }

@@ -15,10 +15,7 @@ class LoanReferralController extends Controller
     }
     public function create()
     {
-        $offices = \App\Models\Office::orderBy('name')->get();
-        $users = \App\Models\User::orderBy('first_name')->get();
-        $clients = \App\Models\Client::orderBy('full_name')->get();
-        return view('artworks.loan-referrals.create', compact('offices','users','clients'));
+        return view('artworks.loan-referrals.create');
     }
     public function store(Request $request)
     {
@@ -38,6 +35,85 @@ class LoanReferralController extends Controller
             'notes'=>$request->notes,
         ]);
         return redirect()->route('loan-referrals.index')->with('success','Referral registered.');
+    }
+
+    public function searchClients(Request $request)
+    {
+        $q = trim($request->query('q', ''));
+        $like = "%{$q}%";
+        $clients = DB::select("
+            SELECT id, first_name, middle_name, last_name, full_name, nrc_number, phone, mobile
+            FROM clients
+            WHERE deleted_at IS NULL
+              AND (first_name LIKE ? OR last_name LIKE ? OR full_name LIKE ? OR nrc_number LIKE ?)
+            ORDER BY nrc_number
+            LIMIT 20
+        ", [$like, $like, $like, $like]);
+
+        return response()->json(array_map(function ($c) {
+            $fullName = $c->full_name ?: ($c->first_name . ' ' . $c->last_name ?: $c->nrc_number);
+            return [
+                'id' => $c->id,
+                'text' => $fullName . ' (' . $c->nrc_number . ')',
+                'first_name' => $c->first_name,
+                'last_name' => $c->last_name,
+                'full_name' => $fullName,
+                'nrc_number' => $c->nrc_number,
+                'phone' => $c->phone ?: $c->mobile,
+            ];
+        }, $clients));
+    }
+
+    public function searchOffices(Request $request)
+    {
+        $q = trim($request->query('q', ''));
+        $offices = \App\Models\Office::whereNull('deleted_at')
+            ->where('name', 'LIKE', "%{$q}%")
+            ->orderBy('name')
+            ->take(50)
+            ->get();
+        return response()->json($offices->map(function ($o) {
+            return [
+                'id' => $o->id,
+                'text' => $o->name,
+            ];
+        }));
+    }
+
+    public function searchUsers(Request $request)
+    {
+        $q = trim($request->query('q', ''));
+        $users = \App\Models\User::whereNull('deleted_at')->where('blocked', 0)
+            ->where(function ($query) use ($q) {
+                $query->where('first_name', 'LIKE', "%{$q}%")
+                    ->orWhere('last_name', 'LIKE', "%{$q}%")
+                    ->orWhere('email', 'LIKE', "%{$q}%");
+            })
+            ->orderBy('first_name')
+            ->take(50)
+            ->get();
+        return response()->json($users->map(function ($u) {
+            return [
+                'id' => $u->id,
+                'text' => $u->first_name . ' ' . $u->last_name,
+            ];
+        }));
+    }
+
+    public function searchUsersByOffice(Request $request)
+    {
+        $officeId = $request->query('office_id', '');
+        $users = \App\Models\User::whereNull('deleted_at')->where('blocked', 0)
+            ->where('office_id', $officeId)
+            ->orderBy('first_name')
+            ->take(50)
+            ->get();
+        return response()->json($users->map(function ($u) {
+            return [
+                'id' => $u->id,
+                'text' => $u->first_name . ' ' . $u->last_name,
+            ];
+        }));
     }
     public function pending(){ $items = LoanReferral::where('repayment_status','Unpaid')->orderBy('created_at','desc')->paginate(20); return view('artworks.loan-referrals.pending', compact('items')); }
     public function due(){ $items = LoanReferral::where('profit_share','>',0)->where('repayment_status','Unpaid')->orderBy('created_at','desc')->paginate(20); return view('artworks.loan-referrals.due', compact('items')); }

@@ -355,8 +355,7 @@ use App\Models\Ticket;
                  CREATIVE ARTWORKS & MARKETING
             ============================================ -->
             
-            @hasRole('role.exec', 'role.artworks')
-            <li class="treeview @if(Request::is('creative*') || Request::is('job-applications*') || Request::is('daily-reports*') || Request::is('customer-care*') || Request::is('conflict-resolution*') || Request::is('loan-referrals*') || Request::is('lost-client-recoveries*')) active menu-open @endif">
+            <li class="treeview @if(Request::is('creative*') || Request::is('job-applications*') || Request::is('daily-reports*') || Request::is('customer-care*') || Request::is('loan-referrals*') || Request::is('lost-client-recoveries*')) active menu-open @endif">
                 <a href="#">
                     <i class="fa fa-paint-brush"></i> <span>Creative Artworks</span>
                     <span class="pull-right-container">
@@ -369,7 +368,7 @@ use App\Models\Ticket;
                     <!-- Job Application Recommendation Platform -->
                     <li class="treeview @if(Request::is('job-applications*')) active menu-open @endif">
                         <a href="#">
-                            <i class="fa fa-circle-o"></i> Job Applications
+                            <i class="fa fa-circle-o"></i> Job Recommendations
                             <span class="pull-right-container">
                                 <i class="fa fa-angle-left pull-right"></i>
                             </span>
@@ -405,24 +404,6 @@ use App\Models\Ticket;
                         </ul>
                     </li>
                     
-                    <!-- Conflict Resolution Charges Module -->
-                    <li class="treeview @if(Request::is('conflict-resolution*')) active menu-open @endif">
-                        <a href="#">
-                            <i class="fa fa-circle-o"></i> Conflict Resolution
-                            <span class="pull-right-container">
-                                <i class="fa fa-angle-left pull-right"></i>
-                            </span>
-                        </a>
-                        <ul class="treeview-menu">
-                            <li><a href="{{ route('conflict-resolution.index') }}"><i class="fa fa-circle-o"></i> All Cases</a></li>
-                            <li><a href="{{ route('conflict-resolution.create') }}"><i class="fa fa-circle-o"></i> Register Conflict</a></li>
-                            <li><a href="{{ route('conflict-resolution.charges') }}"><i class="fa fa-circle-o"></i> Charges Payable</a></li>
-                            <li><a href="{{ route('conflict-resolution.payments') }}"><i class="fa fa-circle-o"></i> Payments</a></li>
-                            <li><a href="{{ route('conflict-resolution.outstanding') }}"><i class="fa fa-circle-o"></i> Outstanding</a></li>
-                            <li><a href="{{ route('conflict-resolution.reports') }}"><i class="fa fa-circle-o"></i> Reports</a></li>
-                        </ul>
-                    </li>
-                    
                     <!-- Branch Loan Recommendation Charge Module -->
                     <li class="treeview @if(Request::is('loan-referrals*')) active menu-open @endif">
                         <a href="#">
@@ -450,9 +431,9 @@ use App\Models\Ticket;
                         <ul class="treeview-menu">
                             <li><a href="{{ route('lost-client-recoveries.index') }}"><i class="fa fa-circle-o"></i> All Recoveries</a></li>
                             <li><a href="{{ route('lost-client-recoveries.create') }}"><i class="fa fa-circle-o"></i> Register Recovery</a></li>
-                            <li><a href="{{ route('lost-client-recoveries.repayment') }}"><i class="fa fa-circle-o"></i> Repayment Tracking</a></li>
                             <li><a href="{{ route('lost-client-recoveries.profit-share') }}"><i class="fa fa-circle-o"></i> Profit Share Due</a></li>
                             <li><a href="{{ route('lost-client-recoveries.payments') }}"><i class="fa fa-circle-o"></i> Payments Received</a></li>
+                            <li><a href="{{ route('lost-client-recoveries.lost-clients') }}"><i class="fa fa-circle-o"></i> Lost Clients</a></li>
                             <li><a href="{{ route('lost-client-recoveries.reports') }}"><i class="fa fa-circle-o"></i> Reports</a></li>
                         </ul>
                     </li>
@@ -492,6 +473,7 @@ use App\Models\Ticket;
                     <li><a href="{{ route('creative.reports') }}"><i class="fa fa-circle-o"></i> All Reports</a></li>
                 </ul>
             </li>
+            @hasRole('role.exec', 'role.artworks')
             @endif
 
             <li class="@if(Request::is('ticket*')) active @endif">
@@ -1173,6 +1155,7 @@ use App\Models\Ticket;
                     @hasRole('role.exec', 'role.risk')
                         <li @if(Request::is('expense/approvals/expense-approvals*')) class="active" @endif><a href="{{ url('expense/approvals/expense-approvals') }}"><i class="fa fa-circle-o"></i> Expense Approvals</a></li>
                     @endif
+                    <li @if(Request::is('lost-client-recoveries/lost-clients-approvals*')) class="active" @endif><a href="{{ route('lost-client-recoveries.lost-clients-approvals') }}"><i class="fa fa-circle-o"></i> Lost Client Recovery Approvals</a></li>
                 </ul>
             </li>
             @endif
@@ -2126,6 +2109,12 @@ use App\Models\Ticket;
                             <li class="@if(Request::is('clients-in-dormant/*')) active @endif">
                                 <a href="{{ url('recovery/clients-in-dormant') }}"><i class="fa fa-bell"></i> Client Recovery Hub </a>
                             </li>
+
+                            <!-- Defaulters List -->
+                            <li class="@if(Request::is('recovery/defaulters*')) active @endif">
+                                <a href="{{ route('recovery.defaulters') }}"><i class="fa fa-exclamation-circle"></i> Defaulters List</a>
+                            </li>
+
                             <li class="@if(Request::is('dept-shares/*')) active @endif">
                                 <a href="{{ url('recovery/dept-shares') }}"><i class="fa fa-share"></i> Department Shares </a>
                             </li>

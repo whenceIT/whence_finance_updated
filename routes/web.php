@@ -2335,6 +2335,13 @@ Route::group(['prefix' => 'recovery'], function () {
     Route::post('{id}/mark-recovered', 'Recoveries\RecoveryClientController@mark_recovered')->name('client.mark_recovered');
     Route::post('mark-esc-recovered/{clientId}/{loanId}', 'Recoveries\RecoveryClientController@markEscRecovered')->name('client.mark_esc_recovered');
 
+    // Defaulters List routes
+    Route::get('defaulters', 'Recoveries\DefaultersController@index')->name('recovery.defaulters');
+    Route::get('defaulters/provinces', 'Recoveries\DefaultersController@provinceStats')->name('recovery.defaulters.provinces');
+    Route::get('defaulters/districts/{provinceId}', 'Recoveries\DefaultersController@districtStats')->name('recovery.defaulters.districts');
+    Route::get('defaulters/offices/{districtId}', 'Recoveries\DefaultersController@officeStats')->name('recovery.defaulters.offices');
+    Route::get('defaulters/offices/{officeId}/loans', 'Recoveries\DefaultersController@officeLoans')->name('recovery.defaulters.loans');
+
     // Nudge routes
     Route::get('nudge/compose',   'Recoveries\RecoveryNudgeController@compose');
     Route::post('nudge/send-bulk','Recoveries\RecoveryNudgeController@sendBulk');
@@ -2509,24 +2516,17 @@ Route::group(['prefix' => 'customer-care', 'namespace' => 'Artworks'], function 
     Route::get('/reports', 'CustomerCareController@reports')->name('customer-care.reports');
 });
 
-// Conflict Resolution
-Route::group(['prefix' => 'conflict-resolution', 'namespace' => 'Artworks'], function () {
-    Route::get('/', 'ConflictResolutionController@index')->name('conflict-resolution.index');
-    Route::get('/create', 'ConflictResolutionController@create')->name('conflict-resolution.create');
-    Route::post('/store', 'ConflictResolutionController@store')->name('conflict-resolution.store');
-    Route::post('/store', 'ConflictResolutionController@store')->name('conflict-resolution.store');
-    Route::get('/charges', 'ConflictResolutionController@charges')->name('conflict-resolution.charges');
-    Route::get('/payments', 'ConflictResolutionController@payments')->name('conflict-resolution.payments');
-    Route::post('/payments', 'ConflictResolutionController@recordPayment')->name('conflict-resolution.payments.store');
-    Route::get('/outstanding', 'ConflictResolutionController@outstanding')->name('conflict-resolution.outstanding');
-    Route::get('/reports', 'ConflictResolutionController@reports')->name('conflict-resolution.reports');
-});
+// Job Applications - extended routes
 
 // Loan Referrals
 Route::group(['prefix' => 'loan-referrals', 'namespace' => 'Artworks'], function () {
     Route::get('/', 'LoanReferralController@index')->name('loan-referrals.index');
     Route::get('/create', 'LoanReferralController@create')->name('loan-referrals.create');
     Route::post('/store', 'LoanReferralController@store')->name('loan-referrals.store');
+    Route::get('/clients/search', 'LoanReferralController@searchClients')->name('loan-referrals.clients-search');
+    Route::get('/offices/search', 'LoanReferralController@searchOffices')->name('loan-referrals.offices-search');
+    Route::get('/users/search', 'LoanReferralController@searchUsers')->name('loan-referrals.users-search');
+    Route::get('/users-by-office', 'LoanReferralController@searchUsersByOffice')->name('loan-referrals.users-by-office');
     Route::get('/pending', 'LoanReferralController@pending')->name('loan-referrals.pending');
     Route::get('/due', 'LoanReferralController@due')->name('loan-referrals.due');
     Route::get('/payments', 'LoanReferralController@payments')->name('loan-referrals.payments');
@@ -2543,10 +2543,14 @@ Route::group(['prefix' => 'lost-client-recoveries', 'namespace' => 'Artworks'], 
     Route::get('/users/search', 'LostClientRecoveryController@searchUsers')->name('lost-client-recoveries.users-search');
     Route::get('/loans/search', 'LostClientRecoveryController@searchLoans')->name('lost-client-recoveries.loans-search');
     Route::post('/store', 'LostClientRecoveryController@store')->name('lost-client-recoveries.store');
-    Route::get('/repayment', 'LostClientRecoveryController@repayment')->name('lost-client-recoveries.repayment');
     Route::get('/profit-share', 'LostClientRecoveryController@profitShare')->name('lost-client-recoveries.profit-share');
+    Route::post('/{id}/received', 'LostClientRecoveryController@received')->name('lost-client-recoveries.received');
     Route::get('/payments', 'LostClientRecoveryController@payments')->name('lost-client-recoveries.payments');
     Route::get('/reports', 'LostClientRecoveryController@reports')->name('lost-client-recoveries.reports');
+    Route::get('/lost-clients', 'LostClientRecoveryController@lostClients')->name('lost-client-recoveries.lost-clients');
+    Route::post('/lost-clients/{id}/recover', 'LostClientRecoveryController@recoverClient')->name('lost-client-recoveries.recover');
+    Route::get('/lost-clients-approvals', 'LostClientRecoveryController@lostClientsApprovals')->name('lost-client-recoveries.lost-clients-approvals');
+    Route::post('/lost-clients-approvals/{id}/approve', 'LostClientRecoveryController@approveLostRecovery')->name('lost-client-recoveries.approve-lost-recovery');
 });
 
 // Job Applications - extended routes
