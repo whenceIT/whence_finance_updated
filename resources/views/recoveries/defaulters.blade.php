@@ -1,7 +1,6 @@
 @extends('layouts.master')
 @section('title') Defaulters List @endsection
 @section('content')
-<section class="content-header"><h1>Defaulters List</h1></section>
 <section class="content"><div class="box"><div class="box-body">
 
 <div class="callout callout-info" style="margin-bottom:20px;">
@@ -303,10 +302,6 @@ $(document).ready(function() {
                         '</div>' +
                         '</div>'
                     );
-                    item.find('.accordion-header .print-office-btn').on('click', function(e) {
-                        e.stopPropagation();
-                        printOfficeLoans(o.id, o.name, o.loan_count);
-                    });
                     item.find('.accordion-header').on('click', function(e) {
                         e.stopPropagation();
                         var $header = $(this);
@@ -385,72 +380,6 @@ $(document).ready(function() {
         });
     }
 
-    // ---------- Print Office Loans ----------
-    function printOfficeLoans(officeId, officeName, loanCount) {
-        var win = window.open('', '_blank', 'width=800,height=600');
-        win.document.write('<!DOCTYPE html>');
-        win.document.write('<html>');
-        win.document.write('<head>');
-        win.document.write('<title>Overdue Loans - ' + officeName + '</title>');
-        win.document.write('<link rel="stylesheet" href="{{ asset("vendor/adminlte/dist/css/AdminLTE.min.css") }}">');
-        win.document.write('<style>');
-        win.document.write('body { font-family: Arial, sans-serif; padding: 20px; }');
-        win.document.write('h1 { font-size: 18px; margin-bottom: 10px; }');
-        win.document.write('table { width: 100%; border-collapse: collapse; margin-top: 15px; }');
-        win.document.write('th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }');
-        win.document.write('th { background: #f4f4f4; }');
-        win.document.write('.header-info { margin-bottom: 20px; }');
-        win.document.write('.print-btn { display: none; }');
-        win.document.write('@media print { .no-print { display: none; } }');
-        win.document.write('</style>');
-        win.document.write('</head>');
-        win.document.write('<body>');
-        win.document.write('<div class="header-info">');
-        win.document.write('<h1>Overdue Loans Report</h1>');
-        win.document.write('<p><strong>Office:</strong> ' + officeName + '</p>');
-        win.document.write('<p><strong>Total Overdue Loans:</strong> ' + loanCount + '</p>');
-        win.document.write('<p><strong>Generated:</strong> ' + new Date().toLocaleString() + '</p>');
-        win.document.write('</div>');
-        win.document.write('<table>');
-        win.document.write('<thead><tr><th>Account Number</th><th>Client Name</th><th>NRC</th><th>Phone</th><th>Principal</th><th>First Repayment Date</th><th>Status</th></tr></thead>');
-        win.document.write('<tbody id="print-tbody"></tbody>');
-        win.document.write('</table>');
-        win.document.write('<button class="btn btn-primary no-print" onclick="window.print();"><i class="fa fa-print"></i> Print</button>');
-        win.document.write('<script>');
-        win.document.write('$(document).ready(function() {');
-        win.document.write('  $.ajax({');
-        win.document.write('    url: "' + "{{ route('recovery.defaulters.loans', ':id') }}".replace(':id', officeId) + '",');
-        win.document.write('    method: "GET",');
-        win.document.write('    dataType: "json",');
-        win.document.write('    success: function(data) {');
-        win.document.write('      var $tbody = $("#print-tbody");');
-        win.document.write('      if (!data || data.length === 0) {');
-        win.document.write('        $tbody.html("<tr><td colspan=\"7\" class=\"text-center\">No overdue loans found.</td></tr>");');
-        win.document.write('        return;');
-        win.document.write('      }');
-        win.document.write('      $.each(data, function(i, l) {');
-        win.document.write('        $tbody.append("<tr>" +');
-        win.document.write('          "<td>" + (l.account_number || "-") + "</td>" +');
-        win.document.write('          "<td>" + (l.first_name || "") + " " + (l.last_name || "") + "</td>" +');
-        win.document.write('          "<td>" + (l.nrc_number || "-") + "</td>" +');
-        win.document.write('          "<td>" + (l.phone_primary || "-") + "</td>" +');
-        win.document.write('          "<td>" + (l.principal ? parseFloat(l.principal).toFixed(2) : "0.00") + "</td>" +');
-        win.document.write('          "<td>" + (l.first_repayment_date || "-") + "</td>" +');
-        win.document.write('          "<td>" + (l.status || "Unknown") + "</td>" +');
-        win.document.write('        "</tr>");');
-        win.document.write('      });');
-        win.document.write('      window.print();');
-        win.document.write('    },');
-        win.document.write('    error: function() {');
-        win.document.write('      $("#print-tbody").html("<tr><td colspan=\"7\" class=\"text-center\">Failed to load loans.</td></tr>");');
-        win.document.write('    }');
-        win.document.write('  });');
-        win.document.write('});');
-        win.document.write('</script>');
-        win.document.write('</body>');
-        win.document.write('</html>');
-        win.document.close();
-    }
 
     // ---------- Initial load ----------
     loadProvinces();
