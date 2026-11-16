@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Recoveries;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Models\Province;
 use App\Models\District;
 use App\Models\Office;
@@ -35,12 +36,12 @@ class DefaultersController extends Controller
     {
         $today = Carbon::now()->toDateString();
 
-        $provinces = Province::select('province.id', 'province.name')
-            ->leftJoin('offices', 'offices.province_id', '=', 'province.id')
-            ->leftJoin('loans', function ($join) use ($today) {
-                $join->on('loans.office_id', '=', 'offices.id')
-                    ->where('loans.first_repayment_date', '<', $today);
-            })
+        $provinces = Loan::select('province.id', 'province.name', DB::raw('COUNT(DISTINCT loans.id) as loan_count'))
+            ->join('offices', 'offices.id', '=', 'loans.office_id')
+            ->join('province', 'province.id', '=', 'offices.province_id')
+            ->whereNotNull('loans.first_repayment_date')
+            ->where('loans.first_repayment_date', '<', $today)
+            ->where('loans.status', '=', 'disbursed')
             ->groupBy('province.id', 'province.name')
             ->orderBy('province.name')
             ->get()
@@ -65,12 +66,12 @@ class DefaultersController extends Controller
     {
         $today = Carbon::now()->toDateString();
 
-        $districts = District::select('districts.id', 'districts.name', 'districts.province_id')
-            ->leftJoin('offices', 'offices.district_id', '=', 'districts.id')
-            ->leftJoin('loans', function ($join) use ($today) {
-                $join->on('loans.office_id', '=', 'offices.id')
-                    ->where('loans.first_repayment_date', '<', $today);
-            })
+        $districts = Loan::select('districts.id', 'districts.name', 'districts.province_id', DB::raw('COUNT(DISTINCT loans.id) as loan_count'))
+            ->join('offices', 'offices.id', '=', 'loans.office_id')
+            ->join('districts', 'districts.id', '=', 'offices.district_id')
+            ->whereNotNull('loans.first_repayment_date')
+            ->where('loans.first_repayment_date', '<', $today)
+            ->where('loans.status', '=', 'disbursed')
             ->where('districts.province_id', $provinceId)
             ->groupBy('districts.id', 'districts.name', 'districts.province_id')
             ->orderBy('districts.name')
@@ -97,11 +98,11 @@ class DefaultersController extends Controller
     {
         $today = Carbon::now()->toDateString();
 
-        $offices = Office::select('offices.id', 'offices.name', 'offices.district_id', 'offices.province_id')
-            ->leftJoin('loans', function ($join) use ($today) {
-                $join->on('loans.office_id', '=', 'offices.id')
-                    ->where('loans.first_repayment_date', '<', $today);
-            })
+        $offices = Loan::select('offices.id', 'offices.name', 'offices.district_id', 'offices.province_id', DB::raw('COUNT(DISTINCT loans.id) as loan_count'))
+            ->join('offices', 'offices.id', '=', 'loans.office_id')
+            ->whereNotNull('loans.first_repayment_date')
+            ->where('loans.first_repayment_date', '<', $today)
+            ->where('loans.status', '=', 'disbursed')
             ->where('offices.district_id', $districtId)
             ->groupBy('offices.id', 'offices.name', 'offices.district_id', 'offices.province_id')
             ->orderBy('offices.name')
@@ -144,6 +145,7 @@ class DefaultersController extends Controller
             ->where('loans.office_id', $officeId)
             ->whereNotNull('loans.first_repayment_date')
             ->where('loans.first_repayment_date', '<', $today)
+            ->where('loans.status', '!=', 'closed')
             ->orderBy('loans.first_repayment_date', 'asc')
             ->get();
 

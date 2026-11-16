@@ -20,7 +20,7 @@
             <table class="table table-bordered table-striped" id="loan-results-table" style="display:none;">
                 <thead>
                 <tr>
-                    <th>Account Number</th>
+                    <th>Loan ID</th>
                     <th>Client Name</th>
                     <th>NRC</th>
                     <th>Phone</th>
@@ -292,7 +292,6 @@ $(document).ready(function() {
                         '<div class="accordion-header" style="padding-left:50px; background:#fafafa;">' +
                         '<span>' + o.name + '</span>' +
                         '<span class="count-badge">' + o.loan_count + ' overdue</span>' +
-                        '<button type="button" class="btn btn-xs btn-default print-office-btn" style="margin-left:10px;" title="Print overdue loans"><i class="fa fa-print"></i> Print</button>' +
                         '<span class="toggle-icon">+</span>' +
                         '</div>' +
                         '<div class="accordion-body" style="display:none;">' +
@@ -361,7 +360,7 @@ $(document).ready(function() {
                 $.each(data, function(i, l) {
                     var row = $(
                         '<tr>' +
-                        '<td>' + (l.account_number || '-') + '</td>' +
+                        '<td>' + (l.id || '-') + '</td>' +
                         '<td>' + (l.first_name || '') + ' ' + (l.last_name || '') + '</td>' +
                         '<td>' + (l.nrc_number || '-') + '</td>' +
                         '<td>' + (l.phone_primary || '-') + '</td>' +
