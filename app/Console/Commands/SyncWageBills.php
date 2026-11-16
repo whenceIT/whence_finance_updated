@@ -112,7 +112,7 @@ class SyncWageBills extends Command
                             $wageBill->cycle_start = $cycleStart->format('Y-m-d');
 
                             $wageBill->allowances = 0;
-                            $wageBill->advance_deductions = 0;
+                           // $wageBill->advance_deductions = 0;
                             $wageBill->manual_overrides = [];
                             $wageBill->status = 'draft';
                         }
@@ -127,6 +127,10 @@ class SyncWageBills extends Command
                         // Always update the system-generated values.
                         $wageBill->predicted_salary = $this->amount(
                             $consultant['predicted_salary'] ?? 0
+                        );
+
+                        $wageBill->advance_deductions = $this->amount(
+                            $consultant['advance_deductions'] ?? 0
                         );
 
                         $wageBill->system_gross_pay = $this->amount(
