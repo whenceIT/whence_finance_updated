@@ -4,6 +4,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Artworks\LostClientRecovery;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 
 class LostClientRecoveryController extends Controller
 {
@@ -332,34 +333,35 @@ class LostClientRecoveryController extends Controller
 
     public function lostClientsApprovals(Request $request)
     {
-        $query = DB::table('creative_lost_client_recoveries as r')
-            ->leftJoin('offices as o', 'r.branch_id', '=', 'o.id')
-            ->leftJoin('clients as c', 'r.client_id', '=', 'c.id')
+        $query = DB::table('clients as c')
+            ->leftJoin('offices as o', 'c.office_id', '=', 'o.id')
             ->select(
-                'r.id',
-                'r.recovery_reference',
-                'r.client_name',
-                'r.nrc_number',
-                'r.amount_paid',
-                'r.lost_recovery_approval',
-                'r.created_at',
-                'o.name as office_name',
+                'c.id',
                 'c.first_name',
-                'c.last_name'
+                'c.last_name',
+                'c.full_name',
+                'c.nrc_number',
+                'c.phone_primary',
+                'c.lost_recovery',
+                'c.lost_recovery_approval',
+                'c.lost_recovery_notes',
+                'c.created_at',
+                'o.name as office_name'
             )
-            ->where('r.lost_recovery_approval', 'pending');
+            ->where('c.lost_recovery', true)
+            ->where('c.lost_recovery_approval', 'pending');
 
         if ($search = trim($request->query('search', ''))) {
             $like = "%{$search}%";
             $query->where(function ($q) use ($like) {
-                $q->where('r.client_name', 'LIKE', $like)
-                    ->orWhere('r.recovery_reference', 'LIKE', $like)
-                    ->orWhere('c.first_name', 'LIKE', $like)
-                    ->orWhere('c.last_name', 'LIKE', $like);
+                $q->where('c.first_name', 'LIKE', $like)
+                    ->orWhere('c.last_name', 'LIKE', $like)
+                    ->orWhere('c.full_name', 'LIKE', $like)
+                    ->orWhere('c.nrc_number', 'LIKE', $like);
             });
         }
 
-        $approvals = $query->orderBy('r.created_at', 'desc')->paginate(20);
+        $approvals = $query->orderBy('c.created_at', 'desc')->paginate(20);
         $approvals->appends($request->only('search'));
 
         return view('artworks.lost-client-recoveries.lost-clients-approvals', compact('approvals', 'search'));
@@ -371,22 +373,31 @@ class LostClientRecoveryController extends Controller
             'action' => 'required|in:approved,lost',
         ]);
 
-        $recovery = DB::table('creative_lost_client_recoveries')->where('id', $id)->first();
-        if (!$recovery) {
-            return redirect()->back()->with('error', 'Recovery record not found.');
+        $client = \App\Models\Client::whereNull('deleted_at')->find($id);
+        if (!$client) {
+            return redirect()->back()->with('error', 'Client not found.');
         }
 
-        DB::table('creative_lost_client_recoveries')
-            ->where('id', $id)
-            ->update(['lost_recovery_approval' => $request->input('action')]);
+        $client->update([
+            'lost_recovery_approval' => $request->input('action'),
+        ]);
 
-        // Also update the corresponding client record
-        if ($recovery->client_id) {
-            \App\Models\Client::where('id', $recovery->client_id)
-                ->update(['lost_recovery_approval' => $request->input('action')]);
+        if ($request->input('action') === 'approved') {
+            $user = Sentinel::getUser();
+            LostClientRecovery::store([
+                'branch_id' => $client->office_id,
+                'client_id' => $client->id,
+                'client_name' => $client->full_name ?: ($client->first_name . ' ' . $client->last_name),
+                'nrc_number' => $client->nrc_number,
+                'contact_number' => $client->phone_primary,
+                'recovery_date' => \Carbon\Carbon::now(),
+                'responsible_staff_id' => $user ? $user->id : null,
+                'loan_id' => null,
+                'notes' => $client->lost_recovery_notes,
+            ]);
         }
 
         $label = $request->input('action') === 'approved' ? 'Approved' : 'Declined';
-        return redirect()->back()->with('success', 'Recovery approval ' . strtolower($label) . '.');
+        return redirect()->back()->with('success', 'Client recovery approval ' . strtolower($label) . '.');
     }
 }

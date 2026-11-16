@@ -22,11 +22,11 @@
 <table class="table table-bordered table-striped">
     <thead>
     <tr>
-        <th>Reference</th>
+        <th>Client ID</th>
         <th>Client Name</th>
         <th>NRC Number</th>
         <th>Office</th>
-        <th>Amount Paid</th>
+        <th>Recovery Notes</th>
         <th>Date</th>
         <th>Action</th>
     </tr>
@@ -35,11 +35,11 @@
     @if($approvals->isNotEmpty())
         @foreach($approvals as $a)
         <tr>
-            <td>{{ $a->recovery_reference }}</td>
+            <td>{{ $a->id }}</td>
             <td>{{ $a->first_name }} {{ $a->last_name }}</td>
             <td>{{ $a->nrc_number ?? '-' }}</td>
             <td>{{ $a->office_name ?? '-' }}</td>
-            <td>{{ number_format((float) ($a->amount_paid ?? 0), 2) }}</td>
+            <td>{{ $a->lost_recovery_notes ?? '-' }}</td>
             <td>{{ \Carbon\Carbon::parse($a->created_at)->format('Y-m-d') }}</td>
             <td>
                 <form method="POST" action="{{ route('lost-client-recoveries.approve-lost-recovery', $a->id) }}" style="display:inline;">

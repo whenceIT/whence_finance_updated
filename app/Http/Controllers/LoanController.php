@@ -15,6 +15,7 @@ use App\Mail\RepaymentCreatedEmail;
 use App\Mail\LoanStatementEmail;
 use App\Models\Charge;
 use App\Models\Client;
+use App\Models\Artworks\LostClientRecovery;
 use App\Models\Collateral;
 use App\Models\CustomField;
 use App\Models\CustomFieldMeta;
@@ -3407,7 +3408,7 @@ $vehicle->save();
 
           //  1. Withinhere Payment Processing
 
-          if ($userId != 1899){
+          if ($userId != 1899 ||$userId != 2706){
                if($loan->loan_product->id == 1 || $loan->loan_product->id == 2) {
                  $paymentType = $request->payment_type;
                 if ($paymentType == 'mobile_money') {
@@ -3977,6 +3978,9 @@ $vehicle->save();
                     }
                 }
             }
+
+            //if recovered by recoveries mark loan for profit share
+            LostClientRecovery::store($loan);
 
             $client = $loan->client; // Get the client for notification
             $payment_type = 3;//PaymentType::find($request->payment_type_id);
