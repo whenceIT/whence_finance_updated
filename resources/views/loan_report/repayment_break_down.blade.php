@@ -13,7 +13,7 @@
     $user = Sentinel::getUser();
     if ($user) {
         $role = $user->role->role_id;
-        $office = $user->office->id;
+       $office = $user->office->id ?? null;
     } else {
         $role = null;
         $office = null;

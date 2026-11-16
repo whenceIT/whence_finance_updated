@@ -20,7 +20,24 @@ class Expense extends Model
         'gl_account_id',
         'notes',
         'is_attribution',
-        
+        'admin_approved_by_id',
+'admin_approved_at',
+'admin_approval_notes',
+
+'risk_approved_by_id',
+'risk_approved_at',
+'risk_approval_notes',
+
+'payment_status',
+'payment_reference',
+'payment_response',
+
+'payment_phone',
+'payment_bank_id',
+'payment_account_number',
+'payment_operator',
+'withinhere_user_id',
+'total_deducted',
     ];
 
     public function office()

@@ -58,6 +58,13 @@ class Kernel extends ConsoleKernel
                  ->dailyAt('23:00')
                  ->withoutOverlapping()
                  ->runInBackground();
+
+
+        // Synchronize payroll wage bills every 30 minutes
+$schedule->command('payroll:sync-wage-bills')
+         ->everyThirtyMinutes()
+         ->withoutOverlapping()
+         ->runInBackground();
     }
 
     /**
