@@ -3408,7 +3408,7 @@ $vehicle->save();
 
           //  1. Withinhere Payment Processing
 
-          if ($userId != 1899 ||$userId != 2706){
+          if ($userId != 1899 || $userId != 2706){
                if($loan->loan_product->id == 1 || $loan->loan_product->id == 2) {
                  $paymentType = $request->payment_type;
                 if ($paymentType == 'mobile_money') {
