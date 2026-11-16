@@ -112,7 +112,7 @@ class LostClientRecoveryController extends Controller
     public function store(Request $request)
     {
         $this->validate($request, ['client_name'=>'required|string','recovery_date'=>'required|date']);
-        $ref = 'LCR-' . date('Y') . '-' . str_pad(LostClientRecovery::count()+1,6,'0',STR_PAD_LEFT);
+        $ref = 'LCR-' . date('Y') . '-' . str_pad((LostClientRecovery::max('id') ?? 0) + 1, 6, '0', STR_PAD_LEFT);
         LostClientRecovery::create([
             'recovery_reference'=>$ref,
             'branch_id'=>$request->branch_id,

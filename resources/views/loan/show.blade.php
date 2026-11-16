@@ -29,6 +29,11 @@
     <div class="row">
         <div class="col-md-12">
             <div class="panel">
+                @if(optional($loan->client)->lost_recovery_approval == 'approved')
+                <div style="position: relative; margin: 0; padding: 0;">
+                    <div style="position: absolute; top: 15px; right: 15px; z-index: 10; transform: rotate(-15deg); border: 4px solid #28a745; color: #28a745; font-weight: bold; font-size: 16px; padding: 6px 14px; border-radius: 6px; text-transform: uppercase; opacity: 0.85; background: rgba(255,255,255,0.7);">Recovered by Creative Artworks</div>
+                </div>
+                @endif
                 <div class="panel-heading">
  		            <h6 class="panel-title">{{ optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->name ?? 'N/A' }}(#{{$loan->id}})
                         @if($loan->defaulted == 'yes')
