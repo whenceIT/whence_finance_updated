@@ -12,6 +12,7 @@
     }
 @endphp
 
+@if($user->id != 4)
 @if($status && request()->path() != 'user/branch_deposits')
     @php
         $blockageId = $blockage->id ?? null;
@@ -325,4 +326,5 @@
             });
         })();
     </script>
+@endif
 @endif
