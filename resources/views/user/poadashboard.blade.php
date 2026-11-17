@@ -1102,6 +1102,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                                 <th>Target Met</th>
                                                 <th>Target History</th>
                                                 <th>Cycle Ends On</th>
+                                                <th>Status</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -1287,6 +1288,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td>${targetMetBadge}</td>
                     <td>${historyCircles}</td>
                     <td>${cycle_end}</td>
+                    <td>${c.employment_status}</td>
                     <td>
                         <a href="/user/${id}/staff_info"
                            class="text-primary">

@@ -50,6 +50,71 @@ $compareDate = date('Y-m-d',strtotime($targetDate. ' - 1 months'));
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); 
     font-family: 'Arial', sans-serif;
 ">{{ $user->first_name}} {{ $user->last_name}}</h2>
+
+
+        {{-- EMPLOYEE INFORMATION MINI TABS --}}
+<div class="text-center" style="margin-bottom: 25px;">
+
+    <div style="
+        display: inline-flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+        background: #f8fafc;
+        padding: 12px 18px;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+    ">
+
+        {{-- Employment Status --}}
+        <div style="
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            background: #ffffff;
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        ">
+            <i class="fa fa-id-badge" style="color: #3c8dbc; font-size: 17px;"></i>
+
+            <div style="text-align: left;">
+                <small style="display: block; color: #888; font-size: 10px; text-transform: uppercase; letter-spacing: .5px;">
+                    Employment Status
+                </small>
+
+                <strong style="font-size: 13px; color: #333;">
+                    {{ $data['employment_status'] ?? 'Not Available' }}
+                </strong>
+            </div>
+        </div>
+
+        {{-- Date Joined --}}
+        <div style="
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            background: #ffffff;
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        ">
+            <i class="fa fa-calendar-check-o" style="color: #00a65a; font-size: 17px;"></i>
+
+            <div style="text-align: left;">
+                <small style="display: block; color: #888; font-size: 10px; text-transform: uppercase; letter-spacing: .5px;">
+                    Date Joined
+                </small>
+
+                <strong style="font-size: 13px; color: #333;">
+                    {{ !empty($data['joined_date']) ? date('d M, Y', strtotime($data['joined_date'])) : 'Not Available' }}
+                </strong>
+            </div>
+        </div>
+
+    </div>
+</div>
+
      
                             
                         <?php 
@@ -385,6 +450,7 @@ if($target_count >= 7){
                 <i class="fa fa-book"></i> Ledger
             </button>
         </div>
+
 
         {{-- SUMMARY --}}
         <div id="summaryView">
