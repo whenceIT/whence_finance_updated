@@ -1454,6 +1454,10 @@ use App\Models\Ticket;
                             @if(Sentinel::hasAccess('users.create'))
                                 <li><a href="{{ url('user/create') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.add',2)}} {{trans_choice('general.user',1)}}</a></li>
                             @endif
+
+                             @if(Sentinel::hasAccess('settings'))
+                                <li><a href="{{ url('user/admin-users') }}"><i class="fa fa-circle-o"></i>Administration users</a></li>
+                            @endif
                         </ul>
                     </li>
                     @endif
