@@ -15,19 +15,20 @@ class LostClientRecovery extends Model
         // If a Loan model is passed, extract relevant fields
         if ($data instanceof \App\Models\Loan) {
             $client = $data->client;
-            if ($client && $client->lost_recovery_approval == 'approved') {
-                $data = [
-                    'branch_id' => $data->office_id,
-                    'client_id' => $data->client_id,
-                    'client_name' => $client ? ($client->full_name ?: ($client->first_name . ' ' . $client->last_name)) : null,
-                    'nrc_number' => $client ? $client->nrc_number : null,
-                    'contact_number' => $client ? $client->phone : null,
-                    'recovery_date' => Carbon::now(),
-                    'responsible_staff_id' => Sentinel::getUser() ? Sentinel::getUser()->id : null,
-                    'loan_id' => $data->id,
-                    'notes' => null,
-                ];             
+            if (!$client || $client->lost_recovery_approval !== 'approved') {
+                return null;
             }
+            $data = [
+                'branch_id' => $data->office_id,
+                'client_id' => $data->client_id,
+                'client_name' => $client ? ($client->full_name ?: ($client->first_name . ' ' . $client->last_name)) : null,
+                'nrc_number' => $client ? $client->nrc_number : null,
+                'contact_number' => $client ? $client->phone : null,
+                'recovery_date' => Carbon::now(),
+                'responsible_staff_id' => Sentinel::getUser() ? Sentinel::getUser()->id : null,
+                'loan_id' => $data->id,
+                'notes' => null,
+            ];
         }
 
         $ref = 'LCR-' . Carbon::now()->format('Y') . '-' . str_pad((static::max('id') ?? 0) + 1, 6, '0', STR_PAD_LEFT);
