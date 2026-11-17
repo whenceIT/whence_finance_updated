@@ -60,6 +60,7 @@ use App\Http\Controllers\WageBillController;
 use App\Http\Controllers\PayslipController;
 use App\Http\Controllers\MyPayrollController;
 use App\Http\Controllers\DepartmentalWageBillController;
+use App\Http\Controllers\AdminUserController;
 
 Route::model('client', 'App\Models\Client');
 Route::model('user', 'App\Models\User');
@@ -710,6 +711,18 @@ Route::group(['prefix' => 'user'], function () {
     Route::get('role/{id}/edit', 'UserController@editRole');
     Route::post('role/{id}/update', 'UserController@updateRole');
     Route::get('role/{id}/delete', 'UserController@deleteRole');
+
+
+
+    // Admin User Management
+Route::get('/admin-users', 'AdminUserController@index')
+    ->name('admin-users.index');
+
+Route::post('/admin-users/add/{id}', 'AdminUserController@add')
+    ->name('admin-users.add');
+
+Route::post('/admin-users/remove/{id}', 'AdminUserController@remove')
+    ->name('admin-users.remove');
 
 
     //appraisals

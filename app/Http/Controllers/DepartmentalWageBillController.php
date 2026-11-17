@@ -190,7 +190,7 @@ class DepartmentalWageBillController extends Controller
         $cycleStart = $cycleStart->toDateString();
 
         // Departmental employees are identified by office_id = 67.
-        $employees = User::where('office_id', 67)
+        $employees = User::where('is_admin', 'yes')
             ->orderBy('first_name')
             ->get();
 
