@@ -10,27 +10,34 @@
 
 <div id="defaulters-accordion" style="margin-bottom:20px;"></div>
 
-<div id="loan-results" style="display:none; margin-top:20px;">
-    <div class="box box-primary">
-        <div class="box-header with-border">
-            <h3 class="box-title" id="loan-results-title">Overdue Loans</h3>
-        </div>
-        <div class="box-body">
-            <div class="alert alert-info" id="loan-results-loading">Loading loans...</div>
-            <table class="table table-bordered table-striped" id="loan-results-table" style="display:none;">
-                <thead>
-                <tr>
-                    <th>Loan ID</th>
-                    <th>Client Name</th>
-                    <th>NRC</th>
-                    <th>Phone</th>
-                    <th>Principal</th>
-                    <th>First Repayment Date</th>
-                    <th>Status</th>
-                </tr>
-                </thead>
-                <tbody id="loan-results-body"></tbody>
-            </table>
+<div class="modal fade" id="loan-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                <h4 class="modal-title" id="loan-results-title">Overdue Loans</h4>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info" id="loan-results-loading">Loading loans...</div>
+                <table class="table table-bordered table-striped" id="loan-results-table" style="display:none;">
+                    <thead>
+                    <tr>
+                        <th>Loan ID</th>
+                        <th>Client Name</th>
+                        <th>NRC</th>
+                        <th>Phone</th>
+                        <th>Principal</th>
+                        <th>First Repayment Date</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody id="loan-results-body"></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="print-loan-results"><i class="fa fa-print"></i> Print</button>
+            </div>
         </div>
     </div>
 </div>
@@ -131,12 +138,28 @@
 <script>
 $(document).ready(function() {
     var $accordion = $('#defaulters-accordion');
-    var $loanResults = $('#loan-results');
+    var $loanResults = $('#loan-modal');
     var $loanTable = $('#loan-results-table');
     var $loanBody = $('#loan-results-body');
     var $loanLoading = $('#loan-results-loading');
     var currentOfficeId = null;
     var currentOfficeName = null;
+
+    $('#print-loan-results').on('click', function() {
+        var printContents = document.getElementById('loan-results-table').outerHTML;
+        var title = document.getElementById('loan-results-title').innerText;
+        var w = window.open('', '', 'height=600,width=900');
+        w.document.write('<html><head><title>' + title + '</title>');
+        w.document.write('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">');
+        w.document.write('</head><body>');
+        w.document.write('<h3>' + title + '</h3>');
+        w.document.write(printContents);
+        w.document.write('</body></html>');
+        w.document.close();
+        w.focus();
+        w.print();
+        w.close();
+    });
 
     // ---------- Province Level ----------
     function loadProvinces() {
@@ -179,7 +202,7 @@ $(document).ready(function() {
 
                         // Collapse loan results when opening a new province
                         if (!isExpanded) {
-                            $loanResults.hide();
+                            $loanResults.modal('hide');
                             $loanTable.hide();
                             $loanLoading.show();
                             currentOfficeId = null;
@@ -246,7 +269,7 @@ $(document).ready(function() {
                         });
 
                         if (!isExpanded) {
-                            $loanResults.hide();
+                            $loanResults.modal('hide');
                             $loanTable.hide();
                             $loanLoading.show();
                             currentOfficeId = null;
@@ -317,7 +340,7 @@ $(document).ready(function() {
                         if (isExpanded) {
                             $header.removeClass('expanded').find('.toggle-icon').text('+');
                             $body.slideUp(200);
-                            $loanResults.hide();
+                            $loanResults.modal('hide');
                             $loanTable.hide();
                             $loanLoading.show();
                             currentOfficeId = null;
@@ -340,7 +363,7 @@ $(document).ready(function() {
 
     // ---------- Loan Results ----------
     function loadOfficeLoans(officeId) {
-        $loanResults.show();
+        $loanResults.modal('show');
         $loanTable.hide();
         $loanLoading.show();
         $('#loan-results-title').text('Overdue Loans — ' + currentOfficeName);

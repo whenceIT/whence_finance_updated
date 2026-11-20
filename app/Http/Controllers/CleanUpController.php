@@ -10,8 +10,8 @@ class CleanUpController extends Controller
     public function run(Request $request)
     {
         $service = new CleanUpService();
-        $service->closeLoansWithZeroBalance();
+        $result = $service->closeLoansWithZeroBalance();
 
-        return response()->json(['success' => true]);
+        return response()->json($result, $result['success'] ? 200 : 401);
     }
 }

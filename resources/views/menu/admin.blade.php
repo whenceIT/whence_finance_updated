@@ -1155,7 +1155,7 @@ use App\Models\Ticket;
            
             <!-- Approvals -->
             @if(Sentinel::hasAccess('expenses'))
-            <li class="treeview @if(Request::is('user/carry_over_approvals') || Request::is('loan/managers_pending_approval') || Request::is('advance/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval') || Request::is('vehicles/loans_pending_approval')) active menu-open @endif">
+            <li class="treeview @if(Request::is('user/carry_over_approvals') || Request::is('loan/managers_pending_approval') || Request::is('advance/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval') || Request::is('vehicles/loans_pending_approval') || Request::is('loan-referrals/approvals*')) active menu-open @endif">
                 <a href="#">
                     <i class="fa fa-thumbs-up"></i> <span>Approvals</span>
                     @if(Sentinel::hasAccess('settings'))
@@ -1252,6 +1252,11 @@ use App\Models\Ticket;
                         </li>
                     @endif
                     <li @if(Request::is('lost-client-recoveries/lost-clients-approvals*')) class="active" @endif><a href="{{ route('lost-client-recoveries.lost-clients-approvals') }}"><i class="fa fa-circle-o"></i> Lost Client Recovery Approvals</a></li>
+                    <li>
+                        <a href="{{ route('loan-referrals.approvals') }}">
+                            <i class="fa fa-circle-o"></i> Loan Referral Approvals
+                        </a>
+                    </li>
                 </ul>
             </li>
             @endif

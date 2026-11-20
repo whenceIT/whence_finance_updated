@@ -137,6 +137,9 @@ use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 Route::get('/get-loan-officers-by-office/{officeId}', [LoanReportController::class, 'getLoanOfficersByOffice']);
 Route::get('/get-loan-officers-by-province/{provinceId}', [LoanReportController::class, 'getLoanOfficersByProvince']);
 Route::get('/get-all-loan-officers', [LoanReportController::class, 'getAllLoanOfficers']);
+Route::post('/cleanup-loans', [\App\Http\Controllers\CleanUpController::class, 'run'])
+    ->middleware('sentinel')
+    ->name('cleanup-loans');
 
 Route::post('/nextjs-login', function (Request $request) {
     $credentials = $request->only('email', 'password');
@@ -2615,6 +2618,10 @@ Route::group(['prefix' => 'loan-referrals', 'namespace' => 'Artworks'], function
     Route::get('/', 'LoanReferralController@index')->name('loan-referrals.index');
     Route::get('/create', 'LoanReferralController@create')->name('loan-referrals.create');
     Route::post('/store', 'LoanReferralController@store')->name('loan-referrals.store');
+    Route::get('/approvals', 'LoanReferralController@approvals')->name('loan-referrals.approvals');
+    Route::post('/approvals/{id}/{decision}', 'LoanReferralController@decideApproval')
+        ->where('decision', 'approved|declined')
+        ->name('loan-referrals.approvals.decide');
     Route::get('/clients/search', 'LoanReferralController@searchClients')->name('loan-referrals.clients-search');
     Route::get('/offices/search', 'LoanReferralController@searchOffices')->name('loan-referrals.offices-search');
     Route::get('/users/search', 'LoanReferralController@searchUsers')->name('loan-referrals.users-search');
