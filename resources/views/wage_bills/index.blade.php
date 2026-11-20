@@ -506,7 +506,7 @@
                                         </td>
 
                                         <td class="net-pay-cell">
-                                            K{{ number_format($wageBill->net_pay, 2) }}
+                                            K{{ number_format($wageBill->system_net_pay, 2) }}
                                         </td>
 
                                         <td>
