@@ -3980,7 +3980,7 @@ $vehicle->save();
             }
 
             //if recovered by recoveries mark loan for profit share
-            // LostClientRecovery::store($loan);
+            LostClientRecovery::store($loan);
 
             $client = $loan->client; // Get the client for notification
             $payment_type = 3;//PaymentType::find($request->payment_type_id);

@@ -28,6 +28,7 @@ class Client extends Model
         'lost_recovery',
         'lost_recovery_notes',
         'lost_recovery_approval',
+        'profit_share_count',
         'next_of_kin_name',
         'next_of_kin_relationship',
         'next_of_kin_phone',

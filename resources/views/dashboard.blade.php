@@ -2882,16 +2882,4 @@ function fetchGivenOutTable() {
         });
     </script>
 
-    {{-- Clean up disbursed loans with zero balance --}}
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            fetch('/api/cleanup-loans', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json'
-                }
-            }).catch(function() {});
-        });
-    </script>
 @endsection

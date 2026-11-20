@@ -25,7 +25,6 @@ Route::prefix('district-regionals')->group(function () {
     Route::get('/stats', [DistrictRegionalController::class, 'getDistrictRegionalsWithStats']);
 });
 
-Route::post('/cleanup-loans', [\App\Http\Controllers\CleanUpController::class, 'run']);
 Route::post('/send-sms', [SmsController::class, 'sendSms']);
 Route::post('/send-bulk-sms', [SmsController::class, 'sendBulkSms']);
 Route::get('/get-office-users/{officeId}', [SmsController::class, 'getOfficeUsers']);

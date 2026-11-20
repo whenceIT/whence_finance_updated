@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\Artworks;
 use App\Http\Controllers\Controller;
 use App\Models\Artworks\LostClientRecovery;
+use App\Models\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
@@ -177,21 +178,65 @@ class LostClientRecoveryController extends Controller
 
     public function received(Request $request, $id)
     {
-        $recovery = DB::table('creative_lost_client_recoveries')->where('id', $id)->first();
-        if (!$recovery || !$recovery->loan_id) {
+        $result = DB::transaction(function () use ($id) {
+            $recovery = DB::table('creative_lost_client_recoveries')
+                ->where('id', $id)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$recovery || !$recovery->loan_id) {
+                return 'not_found';
+            }
+
+            if ((float) $recovery->amount_paid > 0) {
+                return 'already_received';
+            }
+
+            $clientId = DB::table('loans')
+                ->where('id', $recovery->loan_id)
+                ->value('client_id');
+            $client = Client::withTrashed()->lockForUpdate()->find($clientId);
+
+            if (!$client) {
+                return 'client_not_found';
+            }
+
+            $totalInterest = DB::table('loan_transactions')
+                ->where('loan_id', $recovery->loan_id)
+                ->where('transaction_type', 'interest_initial')
+                ->value('debit');
+
+            $profitShareDue = round((float) ($totalInterest ?? 0) * 0.10, 2);
+
+            DB::table('creative_lost_client_recoveries')
+                ->where('id', $id)
+                ->update(['amount_paid' => $profitShareDue]);
+
+            $client->profit_share_count = (int) $client->profit_share_count + 1;
+            if ($client->profit_share_count >= 3) {
+                $client->update([
+                    'profit_share_count' => $client->profit_share_count,
+                    'lost_recovery' => false,
+                    'lost_recovery_approval' => null,
+                ]);
+            } else {
+                $client->save();
+            }
+
+            return 'received';
+        });
+
+        if ($result === 'not_found') {
             return redirect()->back()->with('error', 'Recovery not found.');
         }
 
-        $totalInterest = DB::table('loan_transactions')
-            ->where('loan_id', $recovery->loan_id)
-            ->where('transaction_type', 'interest_initial')
-            ->value('debit');
+        if ($result === 'already_received') {
+            return redirect()->back()->with('error', 'Profit share has already been received.');
+        }
 
-        $profitShareDue = round((float) ($totalInterest ?? 0) * 0.10, 2);
-
-        DB::table('creative_lost_client_recoveries')
-            ->where('id', $id)
-            ->update(['amount_paid' => $profitShareDue]);
+        if ($result === 'client_not_found') {
+            return redirect()->back()->with('error', 'Client not found.');
+        }
 
         return redirect()->back()->with('success', 'Amount paid updated to profit share due.');
     }

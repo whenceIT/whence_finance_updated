@@ -634,7 +634,7 @@ class GOAController extends Controller
                 return response()->json(['success' => false, 'message' => 'User not found.'], 404);
             }
 
-            $member->position_id = $request->position_id;
+            $member->job_position = $request->position_id;
             $member->save();
 
             $positionName = $member->position ? $member->position->name : null;
