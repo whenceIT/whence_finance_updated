@@ -32,29 +32,11 @@ Client Transfers
                     {{-- Hidden input that actually submits the value --}}
                     <input type="hidden" name="loan_consultant_id" id="loan_consultant_id_input" required>
 
-                    <div class="searchable-select" id="consultant-dropdown">
-                        <div class="searchable-select__trigger" id="consultant-trigger" tabindex="0">
-                            <span class="searchable-select__label" id="consultant-label">Select loan consultant...</span>
-                            <span class="searchable-select__arrow">&#9660;</span>
-                        </div>
-                        <div class="searchable-select__panel" id="consultant-panel">
-                            <input type="text" class="searchable-select__search" id="consultant-search"
-                                   placeholder="Type to search..." autocomplete="off">
-                            <ul class="searchable-select__list" id="consultant-list">
-                                @foreach(\App\Models\User::where('office_id',$userBranch)->get() as $key)
-                                    @if(!Sentinel::findUserById($key->id)->inRole('client'))
-                                        <li class="searchable-select__item"
-                                            data-value="{{$key->id}}"
-                                            data-label="{{$key->first_name}} {{$key->last_name}}">
-                                            {{$key->first_name}} {{$key->last_name}}
-                                        </li>
-                                    @endif
-                                @endforeach
-                            </ul>
-                            <div class="searchable-select__empty" id="consultant-empty" style="display:none;">
-                                No results found.
-                            </div>
-                        </div>
+                    <div class="form-group has-feedback" style="margin: 0;">
+                        <input type="text" id="consultant-search-input" class="form-control" placeholder="Search loan consultant..." autocomplete="off" value="{{ old('consultant_search') }}">
+                        <input type="hidden" id="loan_consultant_id" name="loan_consultant_id" value="{{ old('loan_consultant_id') }}">
+                        <div id="consultant_results" class="client-results" style="width: 100%;"></div>
+                        <small class="form-hint">Search and select a loan consultant from your branch.</small>
                     </div>
 
                     <small class="text-muted">
@@ -133,6 +115,37 @@ Client Transfers
 
 @section('footer-scripts')
     <style>
+        .client-results {
+            position: absolute;
+            z-index: 1050;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            background: #fff;
+            max-height: 300px;
+            overflow-y: auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: none;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .client-result-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+        }
+        .client-result-item:hover { background: #f5f5f5; }
+        .client-result-item.selected { background: #e8f5e9; }
+        .client-result-name { font-weight: 600; }
+        .client-result-meta { font-size: 12px; color: #666; margin-top: 2px; }
+        .has-error { border-color:#a94442; }
+        .form-hint {
+            display: block;
+            margin-top: 4px;
+            font-size: 12px;
+            color: #666;
+        }
         .searchable-select {
             position: relative;
             user-select: none;
@@ -298,88 +311,117 @@ Client Transfers
 
     <script>
         $(document).ready(function () {
-            // ── Searchable dropdown (no Select2) ──────────────────────────
-            (function () {
-                const trigger   = document.getElementById('consultant-trigger');
-                const panel     = document.getElementById('consultant-panel');
-                const search    = document.getElementById('consultant-search');
-                const list      = document.getElementById('consultant-list');
-                const empty     = document.getElementById('consultant-empty');
-                const label     = document.getElementById('consultant-label');
-                const hidden    = document.getElementById('loan_consultant_id_input');
-                const items     = list.querySelectorAll('.searchable-select__item');
+            // ── Live Search for Loan Consultant (AJAX) ──────────────────────
+            function positionResults($input, $results) {
+                var offset = $input.offset();
+                $results.css({
+                    top: offset.top + $input.outerHeight(),
+                    left: offset.left,
+                    width: $input.outerWidth()
+                });
+            }
 
-                function openPanel() {
-                    panel.classList.add('is-open');
-                    search.value = '';
-                    filterItems('');
-                    search.focus();
+            function renderItems($results, items, config) {
+                $results.empty();
+                if (!items || items.length === 0) {
+                    $results.hide();
+                    return;
                 }
-
-                function closePanel() {
-                    panel.classList.remove('is-open');
-                }
-
-                function filterItems(query) {
-                    let visible = 0;
-                    items.forEach(function (item) {
-                        const text = item.dataset.label.toLowerCase();
-                        if (text.includes(query.toLowerCase())) {
-                            item.classList.remove('is-hidden');
-                            visible++;
-                        } else {
-                            item.classList.add('is-hidden');
-                        }
+                $.each(items, function(i, it) {
+                    var item = $(
+                        '<div class="client-result-item" data-id="' + (it.id || '') + '">' +
+                        '<div class="client-result-name">' + (it.text || '') + '</div>' +
+                        '</div>'
+                    );
+                    item.on('click', function() {
+                        config.input.val(it.text || '');
+                        config.hidden.val(it.id || '');
+                        if (config.triggerChange) config.hidden.trigger('change');
+                        if (config.onSelect) config.onSelect(it);
+                        config.input.closest('.form-group').removeClass('has-error');
+                        $results.hide();
                     });
-                    empty.style.display = visible === 0 ? 'block' : 'none';
+                    $results.append(item);
+                });
+                $results.show();
+            }
+
+            function doSearch($input, $results, url, config) {
+                var q = $input.val();
+                if (q.length === 0) {
+                    $results.hide();
+                    config.hidden.val('');
+                    return;
                 }
+                positionResults($input, $results);
+                $.ajax({
+                    url: url,
+                    method: 'GET',
+                    dataType: 'json',
+                    data: { q: q, office_id: config.officeId },
+                    success: function(data) {
+                        var results = data.results || data;
+                        renderItems($results, results, config);
+                    },
+                    error: function(xhr) { console.log('search error', config.label, xhr.status, xhr.responseText); }
+                });
+            }
 
-                trigger.addEventListener('click', function () {
-                    panel.classList.contains('is-open') ? closePanel() : openPanel();
+            function liveSearch(config) {
+                var $input = $(config.input);
+                var $results = $(config.results);
+                var $hidden = $(config.hidden);
+                var url = config.url;
+                var timer = null;
+
+                $input.on('input', function() {
+                    clearTimeout(timer);
+                    if (config.onInput) config.onInput();
+                    timer = setTimeout(function() { doSearch($input, $results, url, config); }, 250);
                 });
 
-                trigger.addEventListener('keydown', function (e) {
-                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPanel(); }
-                    if (e.key === 'Escape') { closePanel(); }
+                $input.on('focus', function() {
+                    if ($input.val().length > 0) { positionResults($input, $results); doSearch($input, $results, url, config); }
                 });
 
-                search.addEventListener('input', function () {
-                    filterItems(this.value);
-                });
-
-                items.forEach(function (item) {
-                    item.addEventListener('click', function () {
-                        hidden.value  = this.dataset.value;
-                        label.textContent = this.dataset.label;
-                        trigger.classList.add('is-selected');
-                        items.forEach(function (i) { i.classList.remove('is-active'); });
-                        this.classList.add('is-active');
-                        closePanel();
-                        trigger.focus();
-                    });
-                });
-
-                // Close when clicking outside
-                document.addEventListener('click', function (e) {
-                    if (!document.getElementById('consultant-dropdown').contains(e.target)) {
-                        closePanel();
+                $(document).on('click', function(e) {
+                    if (!$(e.target).closest($input.add($results)).length) {
+                        $results.hide();
                     }
                 });
 
-                // Validate before submit — ensure a consultant was picked
-                trigger.closest('form').addEventListener('submit', function (e) {
-                    if (!hidden.value) {
-                        e.preventDefault();
-                        trigger.focus();
-                        trigger.style.borderColor = '#a94442';
-                        trigger.title = 'Please select a Loan Consultant.';
-                        setTimeout(function () { trigger.style.borderColor = ''; }, 3000);
-                    }
-                });
-            }());
+                $(window).on('resize', function() { positionResults($input, $results); });
+            }
+
+            // Get office ID from the page (using the user's branch)
+            var userOfficeId = '{{ $userBranch }}';
+
+            liveSearch({
+                input: $('#consultant-search-input'),
+                results: $('#consultant_results'),
+                hidden: $('#loan_consultant_id'),
+                url: "{{ route('user.search.loan-consultants') }}",
+                label: 'loan consultant',
+                officeId: userOfficeId,
+                onInput: function() {
+                    $('#loan_consultant_id').val('');
+                },
+                onSelect: function(consultant) {
+                    $('#consultant-search-input').val(consultant.text || '');
+                }
+            });
+
+            // Validate before submit — ensure a consultant was picked
+            $('#consultant-search-input').closest('form').on('submit', function(e) {
+                if (!$('#loan_consultant_id').val()) {
+                    e.preventDefault();
+                    $('#consultant-search-input').focus().css('border-color', '#a94442');
+                    setTimeout(function() { $('#consultant-search-input').css('border-color', ''); }, 3000);
+                }
+            });
             // ─────────────────────────────────────────────────────────────
 
-            // ── Multi-select clients dropdown ─────────────────────────
+            // ── Multi-select clients dropdown (existing static with client-side filter) ─────────────────────────
             (function () {
                 const trigger      = document.getElementById('clients-trigger');
                 const panel        = document.getElementById('clients-panel');
@@ -480,10 +522,10 @@ Client Transfers
                 /* ── HTML escape helper ── */
                 function escHtml(str) {
                     return String(str)
-                        .replace(/&/g, '&amp;')
-                        .replace(/</g, '&lt;')
-                        .replace(/>/g, '&gt;')
-                        .replace(/"/g, '&quot;');
+                        .replace(/&/g, '&')
+                        .replace(/</g, '<')
+                        .replace(/>/g, '>')
+                        .replace(/"/g, '"');
                 }
 
                 /* ── Events ── */
@@ -555,4 +597,3 @@ Client Transfers
         });
     </script>
 @endsection
-

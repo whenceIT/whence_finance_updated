@@ -578,7 +578,7 @@
                         <span class="file-type-badge">EPUB, MOBI</span>
                         <span class="file-type-badge">JPG, PNG, GIF</span>
                     </div>
-                    <input type="file" id="fileInput" class="file-input" accept="video/*,audio/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*,.epub,.mobi,.azw" onchange="handleFileSelect(this, 'file')">
+                    <input type="file" id="fileInput" class="file-input" multiple accept="video/*,audio/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*,.epub,.mobi,.azw" onchange="handleFileSelect(this, 'file')">
                 </div>
                 
                 <!-- File Progress Container -->
@@ -817,9 +817,8 @@ document.addEventListener('DOMContentLoaded', function() {
         uploadArea.classList.remove('dragover');
         
         if (e.dataTransfer.files.length > 0) {
-            // Create a mock input element to pass to handleFileSelect
             var mockInput = {
-                files: [e.dataTransfer.files[0]]
+                files: Array.from(e.dataTransfer.files)
             };
             handleFileSelect(mockInput, 'file');
         }
@@ -991,41 +990,66 @@ function showSummary() {
 }
 
 async function handleFileSelect(input, type) {
-    const file = input.files[0];
-    if (!file) return;
-    
-    const progressContainer = document.getElementById(`${type}-progress-container`);
-    const fileNameElement = document.getElementById(`${type}-file-name`);
-    const progressText = document.getElementById(`${type}-progress-text`);
-    const progressBar = document.getElementById(`${type}-progress-bar`);
-    
-    fileNameElement.textContent = file.name;
-    progressContainer.style.display = 'block';
-    progressText.textContent = '0%';
-    progressBar.style.width = '0%';
-    
-    // For poster preview
-    if (type === 'poster') {
-        selectedPoster = file;
-        var reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('posterPreview').src = e.target.result;
-            document.getElementById('selectedPoster').style.display = 'block';
-        };
-        reader.readAsDataURL(selectedPoster);
-    } else {
-        selectedFile = file;
-        // Auto-detect file type
-        var fileType = detectFileType(file);
-        document.getElementById('typeSelect').value = fileType;
-        // Enable next button
-        document.getElementById('nextBtn').disabled = false;
+    if (type !== 'file') {
+        const file = input.files[0];
+        if (!file) return;
+        const progressContainer = document.getElementById(`${type}-progress-container`);
+        const fileNameElement = document.getElementById(`${type}-file-name`);
+        const progressText = document.getElementById(`${type}-progress-text`);
+        const progressBar = document.getElementById(`${type}-progress-bar`);
+        fileNameElement.textContent = file.name;
+        progressContainer.style.display = 'block';
+        progressText.textContent = '0%';
+        progressBar.style.width = '0%';
+        if (type === 'poster') {
+            selectedPoster = file;
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('posterPreview').src = e.target.result;
+                document.getElementById('selectedPoster').style.display = 'block';
+            };
+            reader.readAsDataURL(selectedPoster);
+        }
+        uploadPromises[type] = uploadFile(file, type, (progress) => {
+            progressText.textContent = `${Math.round(progress)}%`;
+            progressBar.style.width = `${progress}%`;
+        });
+        return;
     }
-    
-    // Create and store upload promise
-    uploadPromises[type] = uploadFile(file, type, (progress) => {
-        progressText.textContent = `${Math.round(progress)}%`;
-        progressBar.style.width = `${progress}%`;
+
+    const files = Array.from(input.files || []);
+    if (!files.length) return;
+    selectedFile = files[0];
+    // Auto-detect file type
+    var fileType = detectFileType(files[0]);
+    document.getElementById('typeSelect').value = fileType;
+    document.getElementById('nextBtn').disabled = false;
+
+    files.forEach(function(file, idx) {
+        const key = `file_${idx}`;
+        // create progress container
+        const container = document.createElement('div');
+        container.className = 'progress-container';
+        container.id = `${key}-progress-container`;
+        container.style.display = 'block';
+        container.innerHTML = `
+            <div class="progress-header">
+                <span id="${key}-file-name" class="file-name"></span>
+                <span id="${key}-progress-text" class="progress-text">0%</span>
+            </div>
+            <div class="progress-bar-container">
+                <div id="${key}-progress-bar" class="progress-bar-fill"></div>
+            </div>
+        `;
+        document.getElementById('file-progress-container').parentNode.insertBefore(container, document.getElementById('file-progress-container').nextSibling);
+        const fileNameElement = document.getElementById(`${key}-file-name`);
+        const progressText = document.getElementById(`${key}-progress-text`);
+        const progressBar = document.getElementById(`${key}-progress-bar`);
+        fileNameElement.textContent = file.name;
+        uploadPromises[key] = uploadFile(file, 'file', (progress) => {
+            progressText.textContent = `${Math.round(progress)}%`;
+            progressBar.style.width = `${progress}%`;
+        });
     });
 }
 
@@ -1088,7 +1112,11 @@ async function uploadFile(file, type, onProgress) {
     }
     
     const data = await mergeResponse.json();
-    document.getElementById(`${type}_file_path`).value = data.filePath;
+    const hidden = document.createElement('input');
+    hidden.type = 'hidden';
+    hidden.name = type === 'file' ? 'file_path[]' : `${type}_path`;
+    hidden.value = data.filePath;
+    document.getElementById('uploadForm').appendChild(hidden);
     
     // Set filename for form submission
     if (type === 'file') {

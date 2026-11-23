@@ -1,8 +1,19 @@
 @extends('layouts.master')
 @section('title') Payments Received @endsection
 @section('content')
-<section class="content"><div class="box"><div class="box-body">
-<button class="btn btn-success" data-toggle="modal" data-target="#paymentModal" style="margin-bottom:10px;">Record Payment</button>
+<section class="content">
+<div class="row">
+    <div class="col-md-4">
+        <div class="small-box bg-green">
+            <div class="inner">
+                <h3>K{{ number_format((float) $totalAmountPaid, 2) }}</h3>
+                <p>Total Amount Paid</p>
+            </div>
+            <div class="icon"><i class="fa fa-money"></i></div>
+        </div>
+    </div>
+</div>
+<div class="box"><div class="box-body">
 <table class="table table-bordered">
 <thead><tr>
 <th>Ref</th><th>Client</th><th>NRC</th><th>Contact</th><th>Branch</th><th>Referral Date</th>

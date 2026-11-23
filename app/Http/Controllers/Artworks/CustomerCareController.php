@@ -171,5 +171,32 @@ class CustomerCareController extends Controller
         
         return view('artworks.customer-care.reports', compact('total', 'open', 'inProgress', 'resolved', 'escalated', 'complaintTypes'));
     }
+
+    public function searchClients(Request $request)
+    {
+        $q = trim($request->query('q', ''));
+        $like = "%{$q}%";
+        $clients = DB::select("
+            SELECT id, first_name, middle_name, last_name, full_name, nrc_number, phone, mobile
+            FROM clients
+            WHERE deleted_at IS NULL
+              AND (first_name LIKE ? OR last_name LIKE ? OR full_name LIKE ? OR nrc_number LIKE ?)
+            ORDER BY nrc_number
+            LIMIT 20
+        ", [$like, $like, $like, $like]);
+
+        return response()->json(array_map(function ($c) {
+            $fullName = $c->full_name ?: ($c->first_name . ' ' . $c->last_name ?: $c->nrc_number);
+            return [
+                'id' => $c->id,
+                'text' => $fullName . ' (' . $c->nrc_number . ')',
+                'first_name' => $c->first_name,
+                'last_name' => $c->last_name,
+                'full_name' => $fullName,
+                'nrc_number' => $c->nrc_number,
+                'phone' => $c->phone ?: $c->mobile,
+            ];
+        }, $clients));
+    }
 }
 

@@ -28,6 +28,8 @@ class Client extends Model
         'lost_recovery',
         'lost_recovery_notes',
         'lost_recovery_approval',
+        'loan_referral',
+        'loan_referral_count',
         'profit_share_count',
         'next_of_kin_name',
         'next_of_kin_relationship',
@@ -39,6 +41,11 @@ class Client extends Model
         'guarantor_address',
         'guarantor_employer',
         'guarantor_relationship',
+    ];
+
+    protected $casts = [
+        'loan_referral' => 'boolean',
+        'loan_referral_count' => 'integer',
     ];
 
     public function identifications()

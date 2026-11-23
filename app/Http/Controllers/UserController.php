@@ -3345,6 +3345,41 @@ $cycle_date = $cycleDate->format('Y-m-d');
         return response()->json($users);
     }
 
+    public function searchLoanConsultants(Request $request)
+    {
+        $query = $request->get('q', '');
+        $officeId = $request->get('office_id');
+        
+        $users = User::whereNull('deleted_at')
+            ->where('blocked', 0)
+            ->where(function ($q) use ($query) {
+                if ($query) {
+                    $q->where('first_name', 'like', '%' . $query . '%')
+                      ->orWhere('last_name', 'like', '%' . $query . '%');
+                }
+            });
+        
+        if ($officeId) {
+            $users->where('office_id', $officeId);
+        }
+        
+        $users = $users->orderBy('first_name')
+            ->take(50)
+            ->get();
+
+        $results = [];
+        foreach ($users as $user) {
+            if (!Sentinel::findUserById($user->id)->inRole('client')) {
+                $results[] = [
+                    'id' => $user->id,
+                    'text' => $user->first_name . ' ' . $user->last_name,
+                ];
+            }
+        }
+
+        return response()->json($results);
+    }
+
     public function get_offices_by_province($id)
     {
         $data = Office::where('province_id', $id)->get();
