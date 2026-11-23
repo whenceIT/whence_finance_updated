@@ -478,11 +478,11 @@ class HomeController extends Controller
 
 
 
-    public function signup()
-    {
+    // public function signup()
+    // {
 
-        return view('signup');
-    }
+    //     return view('signup');
+    // }
 
 
     public function register(Request $request)
