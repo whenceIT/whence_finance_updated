@@ -475,7 +475,7 @@ function playMedia(type, path, name, size, poster = '', uploadId) {
         // Video player with poster if available
         var posterAttr = poster ? `poster="${poster}"` : '';
         wrapper.innerHTML = `
-            <video id="dashboard-video-player" class="video-js vjs-big-play-centered vjs-theme-city" controls preload="auto" style="width: 100%; height: 100%;" ${posterAttr}>
+            <video id="dashboard-video-player" class="video-js vjs-big-play-centered vjs-theme-city" controls preload="auto" controlsList="nodownload nofullscreen noremoteplayback" disablePictureInPicture oncontextmenu="return false;" style="width: 100%; height: 100%;" ${posterAttr}>
                 <source src="${path}" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
@@ -600,6 +600,7 @@ function showDocumentPreview(type, path, name, size, uploadId) {
                         <i class="fa fa-expand"></i> Fullscreen
                     </button>
                 </div>
+                <div style="position: absolute; top: 0; left: 0; right: 0; height: 44px; z-index: 5; background: transparent;"></div>
                 <iframe 
                     src="${viewerUrl}"
                     style="width:100%;height:800px;border:none;"
@@ -708,5 +709,13 @@ window.playMedia = playMedia;
         );
     });
 @endif
+</script>
+<style>
+body { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
+@media print { body { display: none !important; } }
+</style>
+<script>
+document.addEventListener('visibilitychange', function(){ if (document.hidden) { var v=document.querySelector('video'); if(v) v.pause(); } });
+document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
 </script>
 @endsection
