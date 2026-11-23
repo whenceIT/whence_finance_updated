@@ -112,6 +112,7 @@
 }
 </style>
 
+@section('footer-scripts')
 <script>
 $(document).ready(function() {
     function positionResults($input, $results) {
@@ -209,3 +210,4 @@ $(document).ready(function() {
     });
 });
 </script>
+@endsection

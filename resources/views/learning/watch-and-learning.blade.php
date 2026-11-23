@@ -535,13 +535,7 @@ function playMedia(type, path, name, size, poster = '', uploadId) {
                 handleUploadCompletion(uploadId);
             });
         }
-        videojs('dashboard-audio-player', {
-            controls: true,
-            autoplay: false,
-            preload: 'auto',
-            fluid: true,
-            playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2]
-        });
+        // native audio controls only (no videojs distortion)
     } else if (type === 'image') {
         // Image preview
         wrapper.style.background = '#000';

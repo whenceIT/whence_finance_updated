@@ -2382,15 +2382,15 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
 
     {{-- Clean up disbursed loans with zero balance --}}
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            fetch('{{ route('cleanup-loans') }}', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json'
-                }
-            }).catch(function() {});
-        });
+        // document.addEventListener('DOMContentLoaded', function() {
+        //     fetch('{{ route('cleanup-loans') }}', {
+        //         method: 'POST',
+        //         headers: {
+        //             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        //             'Accept': 'application/json'
+        //         }
+        //     }).catch(function() {});
+        // });
     </script>
 
 </body>
