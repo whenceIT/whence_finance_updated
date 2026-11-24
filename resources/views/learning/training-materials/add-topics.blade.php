@@ -226,7 +226,7 @@ $breadcrumb = [
                     <i class="fa fa-file-powerpoint-o" style="font-size: 16px; color: #f7b733;"></i>
                     <input type="file" id="ppt-file-input" 
                         style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
-                        accept="application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation" onchange="handleFileSelect(this, 'ppt')" multiple
+                        accept="application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation" onchange="handleFileSelect(this, 'ppt')" multiple>
                 </div>
                 <div id="ppt-progress-container" style="margin-top: 8px; display: none;">
                     <div style="display: block; margin-bottom: 4px;">
