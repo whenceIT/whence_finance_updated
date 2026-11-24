@@ -151,7 +151,7 @@ $breadcrumb = [
                     <i class="fa fa-video-camera" style="font-size: 16px; color: #ff6b6b;"></i>
                     <input type="file" id="video-file-input" 
                         style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
-                        accept="video/*" onchange="handleFileSelect(this, 'video')" multiple
+                        accept="video/*" onchange="handleFileSelect(this, 'video')" multiple>
                 </div>
                 <div id="video-progress-container" style="margin-top: 8px; display: none;">
                     <div style="display: block; margin-bottom: 4px;">
@@ -176,7 +176,7 @@ $breadcrumb = [
                     <i class="fa fa-headphones" style="font-size: 16px; color: #50c878;"></i>
                     <input type="file" id="audio-file-input" 
                         style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
-                        accept="audio/*" onchange="handleFileSelect(this, 'audio')" multiple
+                        accept="audio/*" onchange="handleFileSelect(this, 'audio')" multiple>
                 </div>
                 <div id="audio-progress-container" style="margin-top: 8px; display: none;">
                     <div style="display: block; margin-bottom: 4px;">
@@ -201,7 +201,7 @@ $breadcrumb = [
                     <i class="fa fa-file-pdf-o" style="font-size: 16px; color: #4a90e2;"></i>
                     <input type="file" id="pdf-file-input" 
                         style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
-                        accept="application/pdf" onchange="handleFileSelect(this, 'pdf')" multiple
+                        accept="application/pdf" onchange="handleFileSelect(this, 'pdf')" multiple>
                 </div>
                 <div id="pdf-progress-container" style="margin-top: 8px; display: none;">
                     <div style="display: block; margin-bottom: 4px;">
