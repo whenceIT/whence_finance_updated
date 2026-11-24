@@ -1172,11 +1172,11 @@ class TrainingMaterialController extends Controller
         $role = $user->roles->first();
         
         // Check if user is a trainer
-        if (!$user || $user->istrainer != 1) {
-            return redirect()->route('learning.training-materials.index')
-                ->with('toastr_type', 'error')
-                ->with('toastr_message', 'You do not have permission to manage topics and quizzes.');
-        }
+        // if (!$user || $user->istrainer != 1) {
+        //     return redirect()->route('learning.training-materials.index')
+        //         ->with('toastr_type', 'error')
+        //         ->with('toastr_message', 'You do not have permission to manage topics and quizzes.');
+        // }
 
         $material = TrainingMaterial::with(['topics' => function($query) {
             $query->ordered();

@@ -147,14 +147,14 @@ $breadcrumb = [
                 <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">
                     Video File
                 </label>
-                <div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px; background: white;">
+                <div style="display: block; padding: 8px 12px;">
                     <i class="fa fa-video-camera" style="font-size: 16px; color: #ff6b6b;"></i>
                     <input type="file" id="video-file-input" 
                         style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
-                        accept="video/*" onchange="handleFileSelect(this, 'video')">
+                        accept="video/*" onchange="handleFileSelect(this, 'video')" multiple
                 </div>
                 <div id="video-progress-container" style="margin-top: 8px; display: none;">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                    <div style="display: block; margin-bottom: 4px;">
                         <span id="video-file-name" style="font-size: 12px; color: var(--text-secondary);"></span>
                         <span id="video-progress-text" style="font-size: 12px; color: var(--text-secondary);">0%</span>
                     </div>
@@ -172,14 +172,14 @@ $breadcrumb = [
                 <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">
                     Audio File
                 </label>
-                <div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px; background: white;">
+                <div style="display: block; padding: 8px 12px;">
                     <i class="fa fa-headphones" style="font-size: 16px; color: #50c878;"></i>
                     <input type="file" id="audio-file-input" 
                         style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
-                        accept="audio/*" onchange="handleFileSelect(this, 'audio')">
+                        accept="audio/*" onchange="handleFileSelect(this, 'audio')" multiple
                 </div>
                 <div id="audio-progress-container" style="margin-top: 8px; display: none;">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                    <div style="display: block; margin-bottom: 4px;">
                         <span id="audio-file-name" style="font-size: 12px; color: var(--text-secondary);"></span>
                         <span id="audio-progress-text" style="font-size: 12px; color: var(--text-secondary);">0%</span>
                     </div>
@@ -197,14 +197,14 @@ $breadcrumb = [
                 <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">
                     PDF File
                 </label>
-                <div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px; background: white;">
+                <div style="display: block; padding: 8px 12px;">
                     <i class="fa fa-file-pdf-o" style="font-size: 16px; color: #4a90e2;"></i>
                     <input type="file" id="pdf-file-input" 
                         style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
-                        accept="application/pdf" onchange="handleFileSelect(this, 'pdf')">
+                        accept="application/pdf" onchange="handleFileSelect(this, 'pdf')" multiple
                 </div>
                 <div id="pdf-progress-container" style="margin-top: 8px; display: none;">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                    <div style="display: block; margin-bottom: 4px;">
                         <span id="pdf-file-name" style="font-size: 12px; color: var(--text-secondary);"></span>
                         <span id="pdf-progress-text" style="font-size: 12px; color: var(--text-secondary);">0%</span>
                     </div>
@@ -222,14 +222,14 @@ $breadcrumb = [
                 <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">
                     PPT File
                 </label>
-                <div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px; background: white;">
+                <div style="display: block; padding: 8px 12px;">
                     <i class="fa fa-file-powerpoint-o" style="font-size: 16px; color: #f7b733;"></i>
                     <input type="file" id="ppt-file-input" 
                         style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
-                        accept="application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation" onchange="handleFileSelect(this, 'ppt')">
+                        accept="application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation" onchange="handleFileSelect(this, 'ppt')" multiple
                 </div>
                 <div id="ppt-progress-container" style="margin-top: 8px; display: none;">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                    <div style="display: block; margin-bottom: 4px;">
                         <span id="ppt-file-name" style="font-size: 12px; color: var(--text-secondary);"></span>
                         <span id="ppt-progress-text" style="font-size: 12px; color: var(--text-secondary);">0%</span>
                     </div>
@@ -247,14 +247,13 @@ $breadcrumb = [
                 <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">
                     Document File
                 </label>
-                <div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px; background: white;">
+                <div style="display: block; padding: 8px 12px;">
                     <i class="fa fa-file-text-o" style="font-size: 16px; color: #95a5a6;"></i>
                     <input type="file" id="document-file-input" 
                         style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
-                        accept="application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" onchange="handleFileSelect(this, 'document')">
-                </div>
+                        accept="application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" onchange="handleFileSelect(this, 'document')" multiple </div>
                 <div id="document-progress-container" style="margin-top: 8px; display: none;">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                    <div style="display: block; margin-bottom: 4px;">
                         <span id="document-file-name" style="font-size: 12px; color: var(--text-secondary);"></span>
                         <span id="document-progress-text" style="font-size: 12px; color: var(--text-secondary);">0%</span>
                     </div>
@@ -430,23 +429,52 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function handleFileSelect(input, type) {
-    const file = input.files[0];
-    if (!file) return;
-    
+    const files = Array.from(input.files || []);
+    if (!files.length) return;
+
     const progressContainer = document.getElementById(`${type}-progress-container`);
     const fileNameElement = document.getElementById(`${type}-file-name`);
     const progressText = document.getElementById(`${type}-progress-text`);
     const progressBar = document.getElementById(`${type}-progress-bar`);
-    
-    fileNameElement.textContent = file.name;
-    progressContainer.style.display = 'block';
-    progressText.textContent = '0%';
-    progressBar.style.width = '0%';
-    
-    // Create and store upload promise
-    uploadPromises[type] = uploadFile(file, type, (progress) => {
-        progressText.textContent = `${Math.round(progress)}%`;
-        progressBar.style.width = `${progress}%`;
+
+    // single file keeps original container
+    if (files.length === 1) {
+        const file = files[0];
+        fileNameElement.textContent = file.name;
+        progressContainer.style.display = 'block';
+        progressText.textContent = '0%';
+        progressBar.style.width = '0%';
+        uploadPromises[type] = uploadFile(file, type, (progress) => {
+            progressText.textContent = `${Math.round(progress)}%`;
+            progressBar.style.width = `${progress}%`;
+        }, progressContainer);
+        return;
+    }
+
+    // multiple: create a progress container per file
+    files.forEach(function(file, idx) {
+        const key = `${type}_${idx}`;
+        const container = document.createElement('div');
+        container.className = 'progress-container';
+        container.style.display = 'block';
+        container.innerHTML = `
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                <span id="${key}-file-name" style="font-size:12px;color:var(--text-secondary);"></span>
+                <span id="${key}-progress-text" style="font-size:12px;color:var(--text-secondary);">0%</span>
+            </div>
+            <div style="width:100%;height:4px;background:var(--border-color);border-radius:2px;overflow:hidden;">
+                <div id="${key}-progress-bar" style="height:100%;background:var(--secondary-color);width:0%;transition:width .3s ease;"></div>
+            </div>
+        `;
+        progressContainer.parentNode.insertBefore(container, progressContainer.nextSibling);
+        const fn = document.getElementById(`${key}-file-name`);
+        const pt = document.getElementById(`${key}-progress-text`);
+        const pb = document.getElementById(`${key}-progress-bar`);
+        fn.textContent = file.name;
+        uploadPromises[key] = uploadFile(file, type, (progress) => {
+            pt.textContent = `${Math.round(progress)}%`;
+            pb.style.width = `${progress}%`;
+        });
     });
 }
 
@@ -504,7 +532,11 @@ async function uploadFile(file, type, onProgress) {
     }
     
     const data = await mergeResponse.json();
-    document.getElementById(`${type}_file_path`).value = data.filePath;
+    const hidden = document.createElement('input');
+    hidden.type = 'hidden';
+    hidden.name = `${type}_file_path[]`;
+    hidden.value = data.filePath;
+    document.querySelector('form').appendChild(hidden);
 }
 
 function generateFileId(file) {
