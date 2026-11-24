@@ -35,6 +35,15 @@
 		}
 
 		$repayment_date = date('Y-m-d', strtotime($loan->first_repayment_date. ' + 1 months'));
+
+        // Check whether reloan is allowed based on the first repayment date
+$reloanDueDate = $loan->first_repayment_date ?: $loan->expected_first_repayment_date;
+
+$canReloan = true;
+
+if (!empty($reloanDueDate)) {
+    $canReloan = date('Y-m-d') >= date('Y-m-d', strtotime($reloanDueDate));
+}
                 
                 
                 
@@ -535,12 +544,40 @@ $('#paymentForm').click(function(event){
 
 
 $("#payment_apply_to").on("change", function() {
-   var sOptionVal = $(this).val();
-   if (/modal/i.test(sOptionVal)) {
-     var $selectedOption = $(sOptionVal);
-     $selectedOption.modal('show');
-   }
- });
+
+    var sOptionVal = $(this).val();
+
+    // // Check whether this is a reloan request
+    // if (sOptionVal === "#reschedule_loan_modal") {
+
+    //     var canReloan = @json($canReloan);
+
+    //     if (!canReloan) {
+
+    //         // Reset dropdown
+    //         $(this).val('');
+
+    //         // Prevent reloan and display warning
+    //         swal({
+    //             title: "Reloan Not Allowed",
+    //             text: "You cannot reloan before the due date of your first repayment.",
+    //             icon: "warning",
+    //             type: "warning",
+    //             confirmButtonText: "OK"
+    //         });
+
+    //         return;
+    //     }
+    // }
+
+    if (/modal/i.test(sOptionVal)) {
+        var $selectedOption = $(sOptionVal);
+        $selectedOption.modal('show');
+    }
+
+});
+
+
 
 // Recovery Case Auto-fill Logic
 $('#recovery_case_id').on('change', function() {
