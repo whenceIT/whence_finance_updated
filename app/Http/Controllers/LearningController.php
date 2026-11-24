@@ -500,7 +500,7 @@ class LearningController extends Controller
      */
     public function classroom($id)
     {
-         $material = TrainingMaterial::with('topics.quiz.attempts')->findOrFail($id);
+        $material = TrainingMaterial::with('topics.quiz.attempts')->findOrFail($id);
         $enrollment = null;
         $progress = 0;
         $completedTopics = [];

@@ -1287,7 +1287,7 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
     const resourcePreview = document.getElementById('resource-preview');
     
     // Check if any file path exists
-    const hasFile = videoFilePath || audioFilePath || pdfFilePath || pptFilePath || documentFilePath;
+    const hasFile = (videoFilePath && videoFilePath.length) || (audioFilePath && audioFilePath.length) || (pdfFilePath && pdfFilePath.length) || (pptFilePath && pptFilePath.length) || (documentFilePath && documentFilePath.length);
     
     if (hasFile) {
         resourceContainer.style.display = 'block';
@@ -1299,95 +1299,56 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
                 <span>Learning Resources</span>
             </div>`;
         
-        if (videoFilePath) {
-            previewHTML += `<div class="resource-list-item" data-type="video" onclick="previewResource('video', '${videoFilePath}')">
-                <div class="resource-list-icon">
-                    <i class="fa fa-video-camera"></i>
-                </div>
+        (Array.isArray(videoFilePath)?videoFilePath:[videoFilePath]).filter(Boolean).forEach(function(p, i){
+            previewHTML += `<div class="resource-list-item" data-type="video" onclick="previewResource('video', '${p}')">
+                <div class="resource-list-icon"><i class="fa fa-video-camera"></i></div>
                 <div class="resource-list-info">
-                    <div class="resource-list-name">
-                        <i class="fa fa-play-circle"></i>
-                        <span>Video Lecture</span>
-                    </div>
+                    <div class="resource-list-name"><i class="fa fa-play-circle"></i><span>Video ${i+1}</span></div>
                     <div class="resource-list-description">Click to watch the video lesson</div>
                 </div>
-                <div class="resource-list-action">
-                    <i class="fa fa-arrow-right"></i>
-                </div>
+                <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
             </div>`;
-        }
-        
-        if (audioFilePath) {
-            previewHTML += `<div class="resource-list-item" data-type="audio" onclick="previewResource('audio', '${audioFilePath}')">
-                <div class="resource-list-icon">
-                    <i class="fa fa-music"></i>
-                </div>
+        });
+        (Array.isArray(audioFilePath)?audioFilePath:[audioFilePath]).filter(Boolean).forEach(function(p, i){
+            previewHTML += `<div class="resource-list-item" data-type="audio" onclick="previewResource('audio', '${p}')">
+                <div class="resource-list-icon"><i class="fa fa-music"></i></div>
                 <div class="resource-list-info">
-                    <div class="resource-list-name">
-                        <i class="fa fa-volume-up"></i>
-                        <span>Audio Recording</span>
-                    </div>
+                    <div class="resource-list-name"><i class="fa fa-volume-up"></i><span>Audio ${i+1}</span></div>
                     <div class="resource-list-description">Click to listen to the audio lesson</div>
                 </div>
-                <div class="resource-list-action">
-                    <i class="fa fa-arrow-right"></i>
-                </div>
+                <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
             </div>`;
-        }
-        
-        if (pdfFilePath) {
-            previewHTML += `<div class="resource-list-item" data-type="pdf" onclick="previewResource('pdf', '${pdfFilePath}')">
-                <div class="resource-list-icon">
-                    <i class="fa fa-file-pdf-o"></i>
-                </div>
+        });
+        (Array.isArray(pdfFilePath)?pdfFilePath:[pdfFilePath]).filter(Boolean).forEach(function(p, i){
+            previewHTML += `<div class="resource-list-item" data-type="pdf" onclick="previewResource('pdf', '${p}')">
+                <div class="resource-list-icon"><i class="fa fa-file-pdf-o"></i></div>
                 <div class="resource-list-info">
-                    <div class="resource-list-name">
-                        <i class="fa fa-file-text-o"></i>
-                        <span>PDF Document</span>
-                    </div>
+                    <div class="resource-list-name"><i class="fa fa-file-text-o"></i><span>PDF ${i+1}</span></div>
                     <div class="resource-list-description">Click to view the PDF document</div>
                 </div>
-                <div class="resource-list-action">
-                    <i class="fa fa-arrow-right"></i>
-                </div>
+                <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
             </div>`;
-        }
-        
-        if (pptFilePath) {
-            previewHTML += `<div class="resource-list-item" data-type="ppt" onclick="previewResource('ppt', '${pptFilePath}')">
-                <div class="resource-list-icon">
-                    <i class="fa fa-file-powerpoint-o"></i>
-                </div>
+        });
+        (Array.isArray(pptFilePath)?pptFilePath:[pptFilePath]).filter(Boolean).forEach(function(p, i){
+            previewHTML += `<div class="resource-list-item" data-type="ppt" onclick="previewResource('ppt', '${p}')">
+                <div class="resource-list-icon"><i class="fa fa-file-powerpoint-o"></i></div>
                 <div class="resource-list-info">
-                    <div class="resource-list-name">
-                        <i class="fa fa-slideshare"></i>
-                        <span>PowerPoint Presentation</span>
-                    </div>
+                    <div class="resource-list-name"><i class="fa fa-slideshare"></i><span>Presentation ${i+1}</span></div>
                     <div class="resource-list-description">Click to view the slideshow</div>
                 </div>
-                <div class="resource-list-action">
-                    <i class="fa fa-arrow-right"></i>
-                </div>
+                <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
             </div>`;
-        }
-        
-        if (documentFilePath) {
-            previewHTML += `<div class="resource-list-item" data-type="document" onclick="previewResource('document', '${documentFilePath}')">
-                <div class="resource-list-icon">
-                    <i class="fa fa-file-word-o"></i>
-                </div>
+        });
+        (Array.isArray(documentFilePath)?documentFilePath:[documentFilePath]).filter(Boolean).forEach(function(p, i){
+            previewHTML += `<div class="resource-list-item" data-type="document" onclick="previewResource('document', '${p}')">
+                <div class="resource-list-icon"><i class="fa fa-file-word-o"></i></div>
                 <div class="resource-list-info">
-                    <div class="resource-list-name">
-                        <i class="fa fa-file-text-o"></i>
-                        <span>Word Document</span>
-                    </div>
+                    <div class="resource-list-name"><i class="fa fa-file-text-o"></i><span>Document ${i+1}</span></div>
                     <div class="resource-list-description">Click to view the document</div>
                 </div>
-                <div class="resource-list-action">
-                    <i class="fa fa-arrow-right"></i>
-                </div>
+                <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
             </div>`;
-        }
+        });
         
         previewHTML += `</div>`;
         resourcePreview.innerHTML = previewHTML;
