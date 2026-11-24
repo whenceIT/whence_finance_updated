@@ -16,18 +16,21 @@ class BranchDepositController extends Controller
         $this->middleware('sentinel');
     }
 
-    public function branchDeposits(Request $request){
-        $selectedMonth = $request->get('month', date('Y-m'));
+public function branchDeposits(Request $request){
 
-        $parts = explode('-', $selectedMonth);
-        $selectedMonth = sprintf('%02d-%s', $parts[1], $parts[0]);
-        $selectedMonthForInput = $parts[0] . '-' . $parts[1];
+    $selectedMonth = $request->get('month', date('Y-m'));
 
-        $status = Deposit::depositStatusByMonth(Sentinel::getUser()->office_id, $selectedMonth);
-        $deadline = Deadline::first();
+    $parts = explode('-', $selectedMonth);
+    $selectedMonth = sprintf('%02d-%s', $parts[1], $parts[0]);
+    $selectedMonthForInput = $parts[0] . '-' . $parts[1];
 
-        return view('branch-deposits.index', compact('selectedMonth','selectedMonthForInput','status','deadline'));
-    }
+    $status = Deposit::depositStatusByMonth(Sentinel::getUser()->office_id, $selectedMonth);
+    $deadline = Deadline::first();
+
+    $depositsClosed = now()->format('H:i') >= '19:00' || now()->format('H:i') < '07:00';
+
+    return view('branch-deposits.index', compact('selectedMonth','selectedMonthForInput','status','deadline', 'depositsClosed'));
+}
 
     public function blockages(Request $request)
     {
