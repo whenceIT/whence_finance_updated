@@ -295,6 +295,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    text-align: left;
 }
 
 .resource-list-action {
@@ -734,7 +735,12 @@
     }
     
     .resource-preview {
-        height: 300px;
+        height: 100vh;
+    }
+}
+@media (min-width: 577px) {
+    .resource-preview {
+        height: 700px;
     }
 }
 
@@ -1300,8 +1306,8 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
             previewHTML += `<div class="resource-list-item" data-type="video" onclick="previewResource('video', '${p}')">
                 <div class="resource-list-icon"><i class="fa fa-video-camera"></i></div>
                 <div class="resource-list-info">
-                    <div class="resource-list-name"><i class="fa fa-play-circle"></i><span>${p.split('/').pop()}</span></div>
-                    <div class="resource-list-description">Click to watch the video lesson</div>
+                    <div class="resource-list-name"><i class="fa fa-play-circle"></i><span>Video ${i+1}</span></div>
+                    <div class="resource-list-description">${p.split('/').pop()}</div>
                 </div>
                 <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
             </div>`;
@@ -1310,8 +1316,8 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
             previewHTML += `<div class="resource-list-item" data-type="audio" onclick="previewResource('audio', '${p}')">
                 <div class="resource-list-icon"><i class="fa fa-music"></i></div>
                 <div class="resource-list-info">
-                    <div class="resource-list-name"><i class="fa fa-volume-up"></i><span>${p.split('/').pop()}</span></div>
-                    <div class="resource-list-description">Click to listen to the audio lesson</div>
+                    <div class="resource-list-name"><i class="fa fa-volume-up"></i><span>Audio ${i+1}</span></div>
+                    <div class="resource-list-description">${p.split('/').pop()}</div>
                 </div>
                 <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
             </div>`;
@@ -1320,8 +1326,8 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
             previewHTML += `<div class="resource-list-item" data-type="pdf" onclick="previewResource('pdf', '${p}')">
                 <div class="resource-list-icon"><i class="fa fa-file-pdf-o"></i></div>
                 <div class="resource-list-info">
-                    <div class="resource-list-name"><i class="fa fa-file-text-o"></i><span>${p.split('/').pop()}</span></div>
-                    <div class="resource-list-description">Click to view the PDF document</div>
+                    <div class="resource-list-name"><i class="fa fa-file-text-o"></i><span>PDF ${i+1}</span>o ${i+1}</span></div>
+                    <div class="resource-list-description">${p.split('/').pop()}</div>
                 </div>
                 <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
             </div>`;
@@ -1330,8 +1336,8 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
             previewHTML += `<div class="resource-list-item" data-type="ppt" onclick="previewResource('ppt', '${p}')">
                 <div class="resource-list-icon"><i class="fa fa-file-powerpoint-o"></i></div>
                 <div class="resource-list-info">
-                    <div class="resource-list-name"><i class="fa fa-slideshare"></i><span>${p.split('/').pop()}</span></div>
-                    <div class="resource-list-description">Click to view the slideshow</div>
+                    <div class="resource-list-name"><i class="fa fa-slideshare"></i><span>Presentation ${i+1}</span></div>
+                    <div class="resource-list-description">${p.split('/').pop()}</div>
                 </div>
                 <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
             </div>`;
@@ -1340,8 +1346,8 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
             previewHTML += `<div class="resource-list-item" data-type="document" onclick="previewResource('document', '${p}')">
                 <div class="resource-list-icon"><i class="fa fa-file-word-o"></i></div>
                 <div class="resource-list-info">
-                    <div class="resource-list-name"><i class="fa fa-file-text-o"></i><span>${p.split('/').pop()}</span></div>
-                    <div class="resource-list-description">Click to view the document</div>
+                    <div class="resource-list-name"><i class="fa fa-file-text-o"></i><span>Document ${i+1}</span></div>
+                    <div class="resource-list-description">${p.split('/').pop()}</div>
                 </div>
                 <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
             </div>`;
@@ -1617,3 +1623,4 @@ window.addEventListener('beforeunload', function() {
 });
 </script>
 @endsection
+
