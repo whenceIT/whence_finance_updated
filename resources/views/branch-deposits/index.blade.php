@@ -43,7 +43,65 @@
                     </div>
                 </div>
             </section>
-            <div class="box-body" id="depositsContainer">
+            <div class="box-body" id="depositsContainer"
+     style="position: relative;">
+
+    @if($depositsClosed)
+  
+<div id="depositLockOverlay"
+     style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100vw;
+        height: 100vh;
+        min-height: 100vh;
+        box-sizing: border-box;
+        z-index: 99999;
+        background: rgba(255, 255, 255, 0.60);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 20px;
+        overflow-y: auto;
+     ">
+
+
+            <div style="
+                background: white;
+                border: 1px solid #f5c6cb;
+                border-radius: 10px;
+                padding: 20px 30px;
+                text-align: center;
+                max-width: 500px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+            ">
+                <i class="fa fa-lock"
+                   style="font-size: 55px; color: #dc3545; margin-bottom: 15px;">
+                </i>
+
+                <h3 style="font-weight: 700; color: #333;">
+                    Deposits Are Closed
+                </h3>
+
+                <p style="font-size: 16px; color: #666;">
+                    Deposit submissions are currently unavailable.
+                </p>
+
+                <h4 style="color: #dc3545; font-weight: bold;">
+                    Opening Time: 07:00
+                </h4>
+
+                <p style="font-size: 14px; color: #666;">
+                    Kindly contact Risk for more information.
+                </p>
+            </div>
+        </div>
+    @endif
                 
                 <!-- Payment A -->
                 @if(!in_array(Sentinel::getUser()->office_id, [6,1]))
@@ -413,4 +471,25 @@ $(document).ready(function() {
     }
 });
 </script>
+
+@if($depositsClosed)
+<script>
+$(document).ready(function() {
+
+    // Disable all deposit form controls
+    $('#depositsContainer')
+        .find('input, select, textarea, button')
+        .prop('disabled', true);
+
+    // Prevent all deposit forms from being submitted
+    $('#depositsContainer').on('submit', 'form', function(e) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return false;
+    });
+
+});
+</script>
+@endif
+
 @endsection
