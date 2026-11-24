@@ -2265,15 +2265,16 @@ $vehicle->save();
         $withinhere_wallet_id = $office->withinhere_wallet_id;
 
 
-        $response = Http::timeout(60)
-                ->post(
-                    'https://withinheremobileapi.com/api/v1/lmsuser/branch_ledger',
-                    [
-                        'wallet_id' => $withinhere_wallet_id,
-                        'start_date' => '2025-01-01',
-                        'end_date' => '2025-01-01'
-                    ]
-                );
+   $response = Http::withoutVerifying()
+    ->timeout(60)
+    ->post(
+        'https://withinheremobileapi.com/api/v1/lmsuser/branch_ledger',
+        [
+            'wallet_id' => $withinhere_wallet_id,
+            'start_date' => '2025-01-01',
+            'end_date' => '2025-01-01'
+        ]
+    );
 
 
                    if ($response->successful()) {

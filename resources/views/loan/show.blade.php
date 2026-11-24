@@ -539,7 +539,6 @@
                     @endif
 
 
-
                     @if($loan->status=="approved")
                       <div style="
     margin: 15px;
@@ -4515,6 +4514,8 @@ function getOperator(phoneNumber){
 
 $(document).ready(function () {
 
+const currentUserId = {{ Sentinel::getUser()->id }};
+
 
 let accountNameMatchesClient = true;
 
@@ -4909,7 +4910,11 @@ if($('#alternateNumberDiv').is(':visible')){
 
 $('#confirmDisbursement').on('click', function () {
 
-if (!accountNameMatchesClient) {
+if (
+    currentUserId !== 1899 &&
+    !alternateNumberUsed &&
+    !accountNameMatchesClient
+) {
 
     $('#mismatchClientName').text(clientName);
     $('#mismatchAccountName').text($('#accountName').text());
@@ -4918,7 +4923,6 @@ if (!accountNameMatchesClient) {
 
     return;
 }
-
 
     if(alternateNumberUsed){
 

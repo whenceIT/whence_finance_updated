@@ -290,7 +290,7 @@ public function bmdashboard(Request $request)
     $url3 = "https://lms2backend.whencefinancesystem.com/branch-performance-new?office_id=$office_id";
 
             // ✅ FETCH CONSULTANT TARGET EARLY WARNINGS
-        $earlyWarningResponse = Http::timeout(60)->get(
+        $earlyWarningResponse = Http::withoutVerifying()->timeout(60)->get(
             'https://lms2backend.whencefinancesystem.com/consultants-target-early-warning-branch',
             [
                 'start_date' => $start_date,
