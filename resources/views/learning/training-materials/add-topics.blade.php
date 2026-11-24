@@ -270,10 +270,10 @@ $breadcrumb = [
             <!-- Form Navigation -->
             <div style="display: flex; gap: 15px; justify-content: space-between; margin-top: 24px;">
                 <a href="{{ route('learning.training-materials.index') }}" style="padding: 12px 24px; background: white; color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; text-decoration: none; font-weight: 600;">
-                    <i class="fa fa-arrow-left" style="margin-right: 8px;"></i> Finish
+                    <i class="fa fa-arrow-left" style="margin-right: 8px;"></i> 
                 </a>
                 <button type="submit" style="padding: 12px 30px; background: var(--secondary-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
-                    <i class="fa fa-plus"></i> Add Topic
+                    <i class="fa fa-plus"></i> Save Topic
                 </button>
             </div>
         </form>

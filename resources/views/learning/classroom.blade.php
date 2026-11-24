@@ -1108,7 +1108,7 @@ function previewResource(type, filePath) {
                 </video-skin>
             </video-player>`;
         } else {
-            previewHTML += `<a href="${filePath}" class="btn btn-primary"><i class="fa fa-file-video-o"></i> Download Video</a>`;
+            previewHTML += `<span class="btn btn-primary"><i class="fa fa-file-video-o"></i> Video</span>`;
         }
     } else if (type === 'audio') {
         if (filePath.match(/\.(mp3|wav|ogg)$/i)) {
@@ -1118,7 +1118,7 @@ function previewResource(type, filePath) {
                 </video-skin>
             </video-player>`;
         } else {
-            previewHTML += `<a href="${filePath}" class="btn btn-primary"><i class="fa fa-file-audio-o"></i> Download Audio</a>`;
+            previewHTML += `<span class="btn btn-primary"><i class="fa fa-file-audio-o"></i> Audio</span>`;
         }
     } else if (type === 'pdf') {
         previewHTML += `
@@ -1236,11 +1236,11 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
             if (topic.id == topicId) {
                 topicTitle = topic.title;
                 topicDuration = topic.duration;
-                videoFilePath = topic.video_file_path || '';
-                audioFilePath = topic.audio_file_path || '';
-                pdfFilePath = topic.pdf_file_path || '';
-                pptFilePath = topic.ppt_file_path || '';
-                documentFilePath = topic.document_file_path || '';
+                videoFilePath = (topic.video_file_path || '').split(',').filter(Boolean);
+                audioFilePath = (topic.audio_file_path || '').split(',').filter(Boolean);
+                pdfFilePath = (topic.pdf_file_path || '').split(',').filter(Boolean);
+                pptFilePath = (topic.ppt_file_path || '').split(',').filter(Boolean);
+                documentFilePath = (topic.document_file_path || '').split(',').filter(Boolean);
                 quizId = topic.quiz_id;
                 break;
             }
