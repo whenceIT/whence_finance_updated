@@ -1102,21 +1102,17 @@ function previewResource(type, filePath) {
     
     if (type === 'video') {
         if (filePath.match(/\.(mp4|webm|ogg)$/i)) {
-            previewHTML += `<video-player>
-                <video-skin>
-                    <video slot="media" src="${filePath}" controls></video>
-                </video-skin>
-            </video-player>`;
+            previewHTML += `<video controls autoplay style="width:100%;height:100%;background:#000;">
+                <source src="${filePath}" type="video/mp4">
+            </video>`;
         } else {
             previewHTML += `<span class="btn btn-primary"><i class="fa fa-file-video-o"></i> Video</span>`;
         }
     } else if (type === 'audio') {
         if (filePath.match(/\.(mp3|wav|ogg)$/i)) {
-            previewHTML += `<video-player>
-                <video-skin>
-                    <audio slot="media" src="${filePath}" controls></audio>
-                </video-skin>
-            </video-player>`;
+            previewHTML += `<audio controls autoplay style="width:100%;">
+                <source src="${filePath}" type="audio/mpeg">
+            </audio>`;
         } else {
             previewHTML += `<span class="btn btn-primary"><i class="fa fa-file-audio-o"></i> Audio</span>`;
         }
@@ -1303,7 +1299,7 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
             previewHTML += `<div class="resource-list-item" data-type="video" onclick="previewResource('video', '${p}')">
                 <div class="resource-list-icon"><i class="fa fa-video-camera"></i></div>
                 <div class="resource-list-info">
-                    <div class="resource-list-name"><i class="fa fa-play-circle"></i><span>Video ${i+1}</span></div>
+                    <div class="resource-list-name"><i class="fa fa-play-circle"></i><span>${p.split('/').pop()}</span></div>
                     <div class="resource-list-description">Click to watch the video lesson</div>
                 </div>
                 <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
@@ -1313,7 +1309,7 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
             previewHTML += `<div class="resource-list-item" data-type="audio" onclick="previewResource('audio', '${p}')">
                 <div class="resource-list-icon"><i class="fa fa-music"></i></div>
                 <div class="resource-list-info">
-                    <div class="resource-list-name"><i class="fa fa-volume-up"></i><span>Audio ${i+1}</span></div>
+                    <div class="resource-list-name"><i class="fa fa-volume-up"></i><span>${p.split('/').pop()}</span></div>
                     <div class="resource-list-description">Click to listen to the audio lesson</div>
                 </div>
                 <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
@@ -1323,7 +1319,7 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
             previewHTML += `<div class="resource-list-item" data-type="pdf" onclick="previewResource('pdf', '${p}')">
                 <div class="resource-list-icon"><i class="fa fa-file-pdf-o"></i></div>
                 <div class="resource-list-info">
-                    <div class="resource-list-name"><i class="fa fa-file-text-o"></i><span>PDF ${i+1}</span></div>
+                    <div class="resource-list-name"><i class="fa fa-file-text-o"></i><span>${p.split('/').pop()}</span></div>
                     <div class="resource-list-description">Click to view the PDF document</div>
                 </div>
                 <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
@@ -1333,7 +1329,7 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
             previewHTML += `<div class="resource-list-item" data-type="ppt" onclick="previewResource('ppt', '${p}')">
                 <div class="resource-list-icon"><i class="fa fa-file-powerpoint-o"></i></div>
                 <div class="resource-list-info">
-                    <div class="resource-list-name"><i class="fa fa-slideshare"></i><span>Presentation ${i+1}</span></div>
+                    <div class="resource-list-name"><i class="fa fa-slideshare"></i><span>${p.split('/').pop()}</span></div>
                     <div class="resource-list-description">Click to view the slideshow</div>
                 </div>
                 <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
@@ -1343,7 +1339,7 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
             previewHTML += `<div class="resource-list-item" data-type="document" onclick="previewResource('document', '${p}')">
                 <div class="resource-list-icon"><i class="fa fa-file-word-o"></i></div>
                 <div class="resource-list-info">
-                    <div class="resource-list-name"><i class="fa fa-file-text-o"></i><span>Document ${i+1}</span></div>
+                    <div class="resource-list-name"><i class="fa fa-file-text-o"></i><span>${p.split('/').pop()}</span></div>
                     <div class="resource-list-description">Click to view the document</div>
                 </div>
                 <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
