@@ -326,6 +326,7 @@
     overflow: hidden;
     background: #ffffff;
     position: relative;
+    overflow: auto;
 }
 
 .resource-preview iframe,
