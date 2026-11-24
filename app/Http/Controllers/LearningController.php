@@ -579,7 +579,6 @@ class LearningController extends Controller
              ];
         }
 
-        dd($phases);
         return view('learning.classroom', compact('material', 'enrollment', 'progress', 'phases'));
     }
 
