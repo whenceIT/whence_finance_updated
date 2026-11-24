@@ -543,39 +543,39 @@ $('#paymentForm').click(function(event){
 
 
 
-$("#payment_apply_to").on("change", function() {
+// $("#payment_apply_to").on("change", function() {
 
-    var sOptionVal = $(this).val();
+//     var sOptionVal = $(this).val();
 
-    // Check whether this is a reloan request
-    if (sOptionVal === "#reschedule_loan_modal") {
+//     // Check whether this is a reloan request
+//     if (sOptionVal === "#reschedule_loan_modal") {
 
-        var canReloan = @json($canReloan);
+//         var canReloan = @json($canReloan);
 
-        if (!canReloan) {
+//         if (!canReloan) {
 
-            // Reset dropdown
-            $(this).val('');
+//             // Reset dropdown
+//             $(this).val('');
 
-            // Prevent reloan and display warning
-            swal({
-                title: "Reloan Not Allowed",
-                text: "You cannot reloan before the due date of your first repayment.",
-                icon: "warning",
-                type: "warning",
-                confirmButtonText: "OK"
-            });
+//             // Prevent reloan and display warning
+//             swal({
+//                 title: "Reloan Not Allowed",
+//                 text: "You cannot reloan before the due date of your first repayment.",
+//                 icon: "warning",
+//                 type: "warning",
+//                 confirmButtonText: "OK"
+//             });
 
-            return;
-        }
-    }
+//             return;
+//         }
+//     }
 
-    if (/modal/i.test(sOptionVal)) {
-        var $selectedOption = $(sOptionVal);
-        $selectedOption.modal('show');
-    }
+//     if (/modal/i.test(sOptionVal)) {
+//         var $selectedOption = $(sOptionVal);
+//         $selectedOption.modal('show');
+//     }
 
-});
+// });
 
 
 
