@@ -235,10 +235,10 @@
                     </li>
                 </ul>
             </div>
-            
+
             <!-- Categories Section -->
             <div class="sidebar-section">
-                <div class="sidebar-title">Categories</div>
+                <div class="sidebar-title">Course Categories</div>
                 <ul class="sidebar-menu" id="categories-menu">
                     @php
                         $sidebarCategories = isset($categories) && count($categories) > 0 ? $categories : \App\Models\CourseCategory::active()->ordered()->get();
@@ -250,7 +250,7 @@
                         @foreach($visibleCategories as $category)
                         <li class="category-item">
                             <a href="{{ url('/learning?category=' . urlencode($category->name)) }}">
-                                <i class="fa fa-book"></i> {{ $category->name }}
+                                <i class="fa fa-book"></i> <span style="text-transform: capitalize;">{{ ucwords(strtolower($category->name)) }}</span>
                                 @php $courseCount = isset($category->courses) ? $category->courses->count() : 0; @endphp
                                 @if($courseCount > 0)
                                     <span class="badge badge-primary">{{ $courseCount }}</span>
@@ -262,7 +262,7 @@
                         <li class="category-item hidden-categories" style="display: none;">
                             @foreach($hiddenCategories as $category)
                             <a href="{{ url('/learning?category=' . urlencode($category->name)) }}">
-                                <i class="fa fa-book"></i> {{ $category->name }}
+                                <i class="fa fa-book"></i> <span style="text-transform: capitalize;">{{ ucwords(strtolower($category->name)) }}</span>
                                 @php $courseCount = isset($category->courses) ? $category->courses->count() : 0; @endphp
                                 @if($courseCount > 0)
                                     <span class="badge badge-primary">{{ $courseCount }}</span>
@@ -282,6 +282,19 @@
                     @else
                         <li><a href="#"><i class="fa fa-folder"></i> No categories available</a></li>
                     @endif
+                </ul>
+            </div>
+            <!-- Topics Section -->
+            <div class="sidebar-section">
+                <div class="sidebar-title">Topics</div>
+                <ul class="sidebar-menu">
+                    @foreach(\App\Models\GeneralTopic::orderBy('name')->get() as $topic)
+                    <li class="category-item">
+                        <a href="{{ url('/learning/general-uploads/watch-and-learning?topic=' . $topic->id) }}">
+                            <i class="fa fa-list"></i> <span style="text-transform: capitalize;">{{ ucwords(strtolower($topic->name)) }}</span>
+                        </a>
+                    </li>
+                    @endforeach
                 </ul>
             </div>
             

@@ -486,6 +486,7 @@ use App\Models\Ticket;
                         <ul class="treeview-menu">
                             <li><a href="{{ route('loan-referrals.index') }}"><i class="fa fa-circle-o"></i> All Referrals</a></li>
                             <li><a href="{{ route('loan-referrals.create') }}"><i class="fa fa-circle-o"></i> Register Referral</a></li>
+                            <li><a href="{{ route('loan-referrals.profit-share') }}"><i class="fa fa-circle-o"></i> Referrals Profit Share Due</a></li>
                             <li><a href="{{ route('loan-referrals.payments') }}"><i class="fa fa-circle-o"></i> Payments Received</a></li>
                             <li><a href="{{ route('loan-referrals.reports') }}"><i class="fa fa-circle-o"></i> Reports</a></li>
                         </ul>
@@ -501,7 +502,6 @@ use App\Models\Ticket;
                         </a>
                         <ul class="treeview-menu">
                             <li><a href="{{ route('lost-client-recoveries.index') }}"><i class="fa fa-circle-o"></i> All Recoveries</a></li>
-                            <li><a href="{{ route('lost-client-recoveries.create') }}"><i class="fa fa-circle-o"></i> Register Recovery</a></li>
                             <li><a href="{{ route('lost-client-recoveries.profit-share') }}"><i class="fa fa-circle-o"></i> Profit Share Due</a></li>
                             <li><a href="{{ route('lost-client-recoveries.payments') }}"><i class="fa fa-circle-o"></i> Payments Received</a></li>
                             <li><a href="{{ route('lost-client-recoveries.lost-clients') }}"><i class="fa fa-circle-o"></i> Lost Clients</a></li>

@@ -692,6 +692,7 @@ Route::group(['prefix' => 'user'], function () {
     Route::post('prompt-user-profile', 'UserController@promptUserProfile');
     Route::get('{user}/staff_info', 'UserController@user_info');
     Route::get('search', 'UserController@search');
+    Route::get('search-loan-consultants', 'UserController@searchLoanConsultants')->name('user.search.loan-consultants');
     Route::any('{user}/{collection_type}/collections_stats', 'UserController@collections_stats');
     Route::any('{user}/{given_out_type}/given_out_stats', 'UserController@given_out_stats');
     Route::any('{user}/{uncollected_type}/uncollected_stats', 'UserController@uncollected_stats');
@@ -2593,8 +2594,22 @@ Route::group(['prefix' => 'job-applications', 'namespace' => 'Artworks'], functi
 // Daily Reports
 Route::group(['prefix' => 'daily-reports', 'namespace' => 'Artworks'], function () {
     Route::get('/', 'DailyReportController@index')->name('daily-reports.index');
+    
+    // Income routes
     Route::get('/income/create', 'DailyReportController@incomeCreate')->name('daily-reports.income.create');
+    Route::post('/income/store', 'DailyReportController@incomeStore')->name('daily-reports.income.store');
+    Route::get('/income/{id}/edit', 'DailyReportController@incomeEdit')->name('daily-reports.income.edit');
+    Route::put('/income/{id}', 'DailyReportController@incomeUpdate')->name('daily-reports.income.update');
+    Route::delete('/income/{id}', 'DailyReportController@incomeDelete')->name('daily-reports.income.delete');
+    
+    // Expense routes
     Route::get('/expense/create', 'DailyReportController@expenseCreate')->name('daily-reports.expense.create');
+    Route::post('/expense/store', 'DailyReportController@expenseStore')->name('daily-reports.expense.store');
+    Route::get('/expense/{id}/edit', 'DailyReportController@expenseEdit')->name('daily-reports.expense.edit');
+    Route::put('/expense/{id}', 'DailyReportController@expenseUpdate')->name('daily-reports.expense.update');
+    Route::delete('/expense/{id}', 'DailyReportController@expenseDelete')->name('daily-reports.expense.delete');
+    
+    // Reports
     Route::get('/branch-report', 'DailyReportController@branchReport')->name('daily-reports.branch-report');
     Route::get('/reports', 'DailyReportController@reports')->name('daily-reports.reports');
 });
@@ -2626,8 +2641,9 @@ Route::group(['prefix' => 'loan-referrals', 'namespace' => 'Artworks'], function
     Route::get('/offices/search', 'LoanReferralController@searchOffices')->name('loan-referrals.offices-search');
     Route::get('/users/search', 'LoanReferralController@searchUsers')->name('loan-referrals.users-search');
     Route::get('/users-by-office', 'LoanReferralController@searchUsersByOffice')->name('loan-referrals.users-by-office');
-    Route::get('/pending', 'LoanReferralController@pending')->name('loan-referrals.pending');
     Route::get('/due', 'LoanReferralController@due')->name('loan-referrals.due');
+    Route::get('/profit-share', 'LoanReferralController@profitShareDue')->name('loan-referrals.profit-share');
+    Route::post('/{id}/received/{loanId}', 'LoanReferralController@received')->name('loan-referrals.received');
     Route::get('/payments', 'LoanReferralController@payments')->name('loan-referrals.payments');
     Route::post('/payments', 'LoanReferralController@recordPayment')->name('loan-referrals.payments.store');
     Route::get('/reports', 'LoanReferralController@reports')->name('loan-referrals.reports');
@@ -2683,6 +2699,7 @@ Route::group(['prefix' => 'customer-care', 'namespace' => 'Artworks'], function 
     Route::get('/calendar', 'CustomerCareController@calendar')->name('customer-care.calendar');
     Route::post('/calendar/store', 'CustomerCareController@storeActivity')->name('customer-care.calendar.store');
     Route::get('/reports', 'CustomerCareController@reports')->name('customer-care.reports');
+    Route::get('/clients/search', 'CustomerCareController@searchClients')->name('customer-care.clients-search');
 });
 
 

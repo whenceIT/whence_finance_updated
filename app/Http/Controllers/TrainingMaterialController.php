@@ -270,11 +270,11 @@ class TrainingMaterialController extends Controller
             $rules = [
                 'topic_name' => 'required|string|max:255',
                 'topic_duration' => 'nullable|integer|min:1',
-                'video_file_path' => 'nullable|url',
-                'audio_file_path' => 'nullable|url',
-                'pdf_file_path' => 'nullable|url',
-                'ppt_file_path' => 'nullable|url',
-                'document_file_path' => 'nullable|url',
+                'video_file_path' => 'nullable',
+                'audio_file_path' => 'nullable',
+                'pdf_file_path' => 'nullable',
+                'ppt_file_path' => 'nullable',
+                'document_file_path' => 'nullable',
             ];
 
             $validator = Validator::make($request->all(), $rules);
@@ -299,39 +299,44 @@ class TrainingMaterialController extends Controller
 
             // Handle video file path
             if ($request->video_file_path) {
-                $topicData['video_file_path'] = $request->video_file_path;
-                $topicData['file_name'] = $this->extractFileNameFromUrl($request->video_file_path);
+                $paths = is_array($request->video_file_path) ? $request->video_file_path : [$request->video_file_path];
+                $topicData['video_file_path'] = implode(',', $paths);
+                $topicData['file_name'] = $this->extractFileNameFromUrl($paths[0]);
             }
             
             // Handle audio file path
             if ($request->audio_file_path) {
-                $topicData['audio_file_path'] = $request->audio_file_path;
+                $paths = is_array($request->audio_file_path) ? $request->audio_file_path : [$request->audio_file_path];
+                $topicData['audio_file_path'] = implode(',', $paths);
                 if (!isset($topicData['file_name'])) {
-                    $topicData['file_name'] = $this->extractFileNameFromUrl($request->audio_file_path);
+                    $topicData['file_name'] = $this->extractFileNameFromUrl($paths[0]);
                 }
             }
             
             // Handle PDF file path
             if ($request->pdf_file_path) {
-                $topicData['pdf_file_path'] = $request->pdf_file_path;
+                $paths = is_array($request->pdf_file_path) ? $request->pdf_file_path : [$request->pdf_file_path];
+                $topicData['pdf_file_path'] = implode(',', $paths);
                 if (!isset($topicData['file_name'])) {
-                    $topicData['file_name'] = $this->extractFileNameFromUrl($request->pdf_file_path);
+                    $topicData['file_name'] = $this->extractFileNameFromUrl($paths[0]);
                 }
             }
             
             // Handle PPT file path
             if ($request->ppt_file_path) {
-                $topicData['ppt_file_path'] = $request->ppt_file_path;
+                $paths = is_array($request->ppt_file_path) ? $request->ppt_file_path : [$request->ppt_file_path];
+                $topicData['ppt_file_path'] = implode(',', $paths);
                 if (!isset($topicData['file_name'])) {
-                    $topicData['file_name'] = $this->extractFileNameFromUrl($request->ppt_file_path);
+                    $topicData['file_name'] = $this->extractFileNameFromUrl($paths[0]);
                 }
             }
 
             // Handle document file path
             if ($request->document_file_path) {
-                $topicData['document_file_path'] = $request->document_file_path;
+                $paths = is_array($request->document_file_path) ? $request->document_file_path : [$request->document_file_path];
+                $topicData['document_file_path'] = implode(',', $paths);
                 if (!isset($topicData['file_name'])) {
-                    $topicData['file_name'] = $this->extractFileNameFromUrl($request->document_file_path);
+                    $topicData['file_name'] = $this->extractFileNameFromUrl($paths[0]);
                 }
             }
 
@@ -1172,11 +1177,11 @@ class TrainingMaterialController extends Controller
         $role = $user->roles->first();
         
         // Check if user is a trainer
-        if (!$user || $user->istrainer != 1) {
-            return redirect()->route('learning.training-materials.index')
-                ->with('toastr_type', 'error')
-                ->with('toastr_message', 'You do not have permission to manage topics and quizzes.');
-        }
+        // if (!$user || $user->istrainer != 1) {
+        //     return redirect()->route('learning.training-materials.index')
+        //         ->with('toastr_type', 'error')
+        //         ->with('toastr_message', 'You do not have permission to manage topics and quizzes.');
+        // }
 
         $material = TrainingMaterial::with(['topics' => function($query) {
             $query->ordered();

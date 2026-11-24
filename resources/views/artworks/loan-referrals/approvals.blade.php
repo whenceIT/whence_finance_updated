@@ -4,8 +4,8 @@
 @section('content')
 <section class="content">
     <div class="box box-primary">
-        <div class="box-header with-border">
-            <h3 class="box-title">Pending Loan Referral Approvals</h3>
+        <div class="box-header with-border" style="background: linear-gradient(135deg, #155724, #28a745); color: #fff; padding: 15px 20px;">
+            <h3 class="box-title">Pending Loan Referral Approvals - referred by Creative Artworks</h3>
         </div>
         <div class="box-body">
             @if(session('success'))
@@ -21,9 +21,13 @@
                         <th>Reference</th>
                         <th>Client</th>
                         <th>Type</th>
+                        <th>Gender</th>
+                        <th>Address</th>
+                        <th>Marital Status</th>
                         <th>NRC</th>
                         <th>Email</th>
                         <th>Referral Date</th>
+                        <th>Remarks</th>
                         <th>Actions</th>
                     </tr>
                     </thead>
@@ -31,11 +35,15 @@
                     @forelse($referrals as $referral)
                         <tr>
                             <td>{{ $referral->referral_reference }}</td>
-                            <td>{{ $referral->client_name }}</td>
+                            <td>{{ $referral->fn_name }} {{ $referral->lname }}</td>
                             <td>{{ ucfirst($referral->client_type ?: 'N/A') }}</td>
+                            <td>{{ $referral->gender ?: 'N/A' }}</td>
+                            <td>{{ $referral->address ?: 'N/A' }}</td>
+                            <td>{{ $referral->marital_status ?: 'N/A' }}</td>
                             <td>{{ $referral->nrc_number ?: 'N/A' }}</td>
                             <td>{{ $referral->email ?: 'N/A' }}</td>
                             <td>{{ $referral->referral_date }}</td>
+                            <td>{{ $referral->notes ?: 'N/A' }}</td>
                             <td>
                                 <button type="button" class="btn btn-success btn-xs"
                                     data-toggle="modal"
