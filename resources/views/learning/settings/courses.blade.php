@@ -69,6 +69,9 @@
                                                 <button class="btn btn-info btn-sm" onclick="viewCourseDetails({{ $course->id }})">
                                                     <i class="fa fa-eye"></i> View Details
                                                 </button>
+                                                <a href="{{ route('learning.settings.courses.sort-resources', ['courseId' => $course->id]) }}" class="btn btn-warning btn-sm" style="margin-left: 5px;">
+                                                    <i class="fa fa-sort"></i> Sort Resources
+                                                </a>
                                             </td>
                                         </tr>
                                     @endforeach

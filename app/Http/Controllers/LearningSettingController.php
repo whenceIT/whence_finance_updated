@@ -224,6 +224,71 @@ class LearningSettingController extends Controller
     }
 
     /**
+     * Display course topics for sorting (Sort Resources).
+     *
+     * @param int $courseId
+     * @return \Illuminate\Http\Response
+     */
+    public function sortResources($courseId)
+    {
+        if (!Sentinel::check()) {
+            return redirect('login');
+        }
+
+        $user = Sentinel::getUser();
+        $role = $user->roles->first();
+        $isAdmin = $role && in_array($role->id, ['1']);
+
+        if (!$isAdmin) {
+            return redirect()->route('learning.settings')
+                ->with('toastr_type', 'error')
+                ->with('toastr_message', 'You do not have permission to access this page.');
+        }
+
+        $course = \App\Models\TrainingMaterial::findOrFail($courseId);
+        $topics = \App\Models\CourseTopic::where('training_material_id', $courseId)->orderBy('sort_order', 'asc')->get();
+
+        return view('learning.settings.sort-resources', compact('course', 'topics'));
+    }
+
+    /**
+     * Update topic sort order.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param int $topicId
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updateTopicSortOrder(\Illuminate\Http\Request $request, $topicId)
+    {
+        if (!Sentinel::check()) {
+            return redirect('login');
+        }
+
+        $user = Sentinel::getUser();
+        $role = $user->roles->first();
+        $isAdmin = $role && in_array($role->id, ['1']);
+
+        if (!$isAdmin) {
+            return redirect()->route('learning.settings')
+                ->with('toastr_type', 'error')
+                ->with('toastr_message', 'You do not have permission to perform this action.');
+        }
+
+        $request->validate([
+            'sort_order' => 'required|integer|min:0',
+        ]);
+
+        $topic = \App\Models\CourseTopic::findOrFail($topicId);
+        $courseId = $topic->training_material_id;
+        $topic->sort_order = $request->sort_order;
+        $topic->save();
+
+        return redirect()->route('learning.settings.courses.sort-resources', ['courseId' => $courseId])
+            ->with('toastr_type', 'success')
+            ->with('toastr_message', 'Sort order updated successfully.');
+    }
+
+    /**
      * Get all roles.
      *
      * @return \Illuminate\Http\JsonResponse

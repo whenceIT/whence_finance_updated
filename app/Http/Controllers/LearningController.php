@@ -163,7 +163,16 @@ class LearningController extends Controller
             ->limit(12)
             ->get();
         
-        return view('learning.dashboard', compact('courses', 'stats', 'uploads', 'topicsWithUploads', 'isFeaturedTab', 'page', 'perPage', 'groupedVideos', 'groupedAudios', 'groupedDocuments'));
+        // Featured training materials for bento banner (from config)
+        $featuredMaterialIds = config('learning.featured_training_materials', []);
+        $featuredMaterialsQuery = TrainingMaterial::where('is_active', 1)
+            ->whereIn('id', $featuredMaterialIds);
+        if (!empty($featuredMaterialIds)) {
+            $featuredMaterialsQuery->orderByRaw(DB::raw("FIELD(id, " . implode(',', $featuredMaterialIds) . ")"));
+        }
+        $featuredMaterials = $featuredMaterialsQuery->get();
+
+        return view('learning.dashboard', compact('courses', 'stats', 'uploads', 'topicsWithUploads', 'isFeaturedTab', 'page', 'perPage', 'groupedVideos', 'groupedAudios', 'groupedDocuments', 'featuredMaterials'));
        } catch (\Throwable $th) {
         //  dd($th);
        }
