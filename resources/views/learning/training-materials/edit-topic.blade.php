@@ -149,41 +149,124 @@ $breadcrumb = [
                     <!-- Current Files Info -->
                     <div style="background: var(--light-bg); border-radius: 8px; padding: 16px; margin-bottom: 20px; border: 1px solid var(--border-color);">
                         <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">Current Files</h4>
-                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                            @if($topic->video_file_path)
-                            <div style="display: flex; align-items: center; gap: 6px; background: rgba(255, 107, 107, 0.1); padding: 6px 12px; border-radius: 4px; font-size: 12px; color: #ff6b6b;">
-                                <i class="fa fa-video-camera"></i>
-                                <span>Video</span>
-                            </div>
-                            @endif
-                            @if($topic->audio_file_path)
-                            <div style="display: flex; align-items: center; gap: 6px; background: rgba(80, 200, 120, 0.1); padding: 6px 12px; border-radius: 4px; font-size: 12px; color: #50c878;">
-                                <i class="fa fa-headphones"></i>
-                                <span>Audio</span>
-                            </div>
-                            @endif
-                            @if($topic->pdf_file_path)
-                            <div style="display: flex; align-items: center; gap: 6px; background: rgba(74, 144, 226, 0.1); padding: 6px 12px; border-radius: 4px; font-size: 12px; color: #4a90e2;">
-                                <i class="fa fa-file-pdf-o"></i>
-                                <span>PDF</span>
-                            </div>
-                            @endif
-                            @if($topic->ppt_file_path)
-                            <div style="display: flex; align-items: center; gap: 6px; background: rgba(247, 183, 51, 0.1); padding: 6px 12px; border-radius: 4px; font-size: 12px; color: #f7b733;">
-                                <i class="fa fa-file-powerpoint-o"></i>
-                                <span>PPT</span>
-                            </div>
-                            @endif
-                            @if($topic->document_file_path)
-                            <div style="display: flex; align-items: center; gap: 6px; background: rgba(149, 165, 166, 0.1); padding: 6px 12px; border-radius: 4px; font-size: 12px; color: #95a5a6;">
-                                <i class="fa fa-file-text-o"></i>
-                                <span>Document</span>
-                            </div>
-                            @endif
-                            @if(!$topic->video_file_path && !$topic->audio_file_path && !$topic->pdf_file_path && !$topic->ppt_file_path && !$topic->document_file_path)
-                            <span style="color: var(--text-secondary); font-size: 12px;">No files attached</span>
-                            @endif
+
+                        @php
+                            $videoFiles = $topic->video_file_path ? array_filter(explode(',', $topic->video_file_path)) : [];
+                            $audioFiles = $topic->audio_file_path ? array_filter(explode(',', $topic->audio_file_path)) : [];
+                            $pdfFiles = $topic->pdf_file_path ? array_filter(explode(',', $topic->pdf_file_path)) : [];
+                            $pptFiles = $topic->ppt_file_path ? array_filter(explode(',', $topic->ppt_file_path)) : [];
+                            $documentFiles = $topic->document_file_path ? array_filter(explode(',', $topic->document_file_path)) : [];
+                            $totalFiles = count($videoFiles) + count($audioFiles) + count($pdfFiles) + count($pptFiles) + count($documentFiles);
+                            $firstNonEmptyGroup = null;
+                            foreach (['video' => $videoFiles, 'audio' => $audioFiles, 'pdf' => $pdfFiles, 'ppt' => $pptFiles, 'document' => $documentFiles] as $group => $files) {
+                                if (count($files) > 0) {
+                                    $firstNonEmptyGroup = $group;
+                                    break;
+                                }
+                            }
+                        @endphp
+
+                        @if($totalFiles > 0)
+                        <!-- Category Tabs -->
+                        <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); margin-bottom: 12px;">
+                            <button class="resource-tab {{ count($videoFiles) ? 'active' : '' }}" onclick="showFileGroup('video', this)" data-group="video" style="{{ count($videoFiles) ? '' : 'opacity:0.5;cursor:not-allowed;' }}">
+                                <i class="fa fa-video-camera"></i> Video <span class="resource-tab-count">({{ count($videoFiles) }})</span>
+                            </button>
+                            <button class="resource-tab {{ count($audioFiles) ? 'active' : '' }}" onclick="showFileGroup('audio', this)" data-group="audio" style="{{ count($audioFiles) ? '' : 'opacity:0.5;cursor:not-allowed;' }}">
+                                <i class="fa fa-headphones"></i> Audio <span class="resource-tab-count">({{ count($audioFiles) }})</span>
+                            </button>
+                            <button class="resource-tab {{ count($pdfFiles) ? 'active' : '' }}" onclick="showFileGroup('pdf', this)" data-group="pdf" style="{{ count($pdfFiles) ? '' : 'opacity:0.5;cursor:not-allowed;' }}">
+                                <i class="fa fa-file-pdf-o"></i> PDF <span class="resource-tab-count">({{ count($pdfFiles) }})</span>
+                            </button>
+                            <button class="resource-tab {{ count($pptFiles) ? 'active' : '' }}" onclick="showFileGroup('ppt', this)" data-group="ppt" style="{{ count($pptFiles) ? '' : 'opacity:0.5;cursor:not-allowed;' }}">
+                                <i class="fa fa-file-powerpoint-o"></i> PowerPoint <span class="resource-tab-count">({{ count($pptFiles) }})</span>
+                            </button>
+                            <button class="resource-tab {{ count($documentFiles) ? 'active' : '' }}" onclick="showFileGroup('document', this)" data-group="document" style="{{ count($documentFiles) ? '' : 'opacity:0.5;cursor:not-allowed;' }}">
+                                <i class="fa fa-file-text-o"></i> Word Document <span class="resource-tab-count">({{ count($documentFiles) }})</span>
+                            </button>
                         </div>
+
+                        <!-- File Groups -->
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <!-- Video -->
+                            <div class="file-group-panel {{ count($videoFiles) ? '' : 'resource-group-empty' }}" id="file-group-video" style="{{ ($firstNonEmptyGroup === 'video') ? 'display:block' : 'display:none' }};">
+                                @foreach($videoFiles as $vf)
+                                <div style="display: flex; align-items: center; gap: 8px; background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                                    <div style="flex: 1;">
+                                        <i class="fa fa-video-camera" style="color: #ff6b6b; margin-right: 6px;"></i>
+                                        <span style="font-size: 12px; color: var(--text-primary);">{{ e(basename($vf)) }}</span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-default" style="padding: 4px 10px; font-size: 11px; margin-left: auto; color: #dc3545; border-color: #dc3545;" data-delete-url="{{ route('learning.training-materials.remove-file', ['topicId' => $topic->id, 'fileType' => 'video_file_path', 'fileIndex' => $loop->index]) }}" onclick="if(confirm('Are you sure you want to remove this file?')){ deleteFile(this); }">
+                                        <i class="fa fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                                @endforeach
+                            </div>
+
+                            <!-- Audio -->
+                            <div class="file-group-panel {{ count($audioFiles) ? '' : 'resource-group-empty' }}" id="file-group-audio" style="{{ ($firstNonEmptyGroup === 'audio') ? 'display:block' : 'display:none' }};">
+                                @foreach($audioFiles as $af)
+                                <div style="display: flex; align-items: center; gap: 8px; background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                                    <div style="flex: 1;">
+                                        <i class="fa fa-headphones" style="color: #50c878; margin-right: 6px;"></i>
+                                        <span style="font-size: 12px; color: var(--text-primary);">{{ e(basename($af)) }}</span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-default" style="padding: 4px 10px; font-size: 11px; margin-left: auto; color: #dc3545; border-color: #dc3545;" data-delete-url="{{ route('learning.training-materials.remove-file', ['topicId' => $topic->id, 'fileType' => 'audio_file_path', 'fileIndex' => $loop->index]) }}" onclick="if(confirm('Are you sure you want to remove this file?')){ deleteFile(this); }">
+                                        <i class="fa fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                                @endforeach
+                            </div>
+
+                            <!-- PDF -->
+                            <div class="file-group-panel {{ count($pdfFiles) ? '' : 'resource-group-empty' }}" id="file-group-pdf" style="{{ ($firstNonEmptyGroup === 'pdf') ? 'display:block' : 'display:none' }};">
+                                @foreach($pdfFiles as $pf)
+                                <div style="display: flex; align-items: center; gap: 8px; background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                                    <div style="flex: 1;">
+                                        <i class="fa fa-file-pdf-o" style="color: #4a90e2; margin-right: 6px;"></i>
+                                        <span style="font-size: 12px; color: var(--text-primary);">{{ e(basename($pf)) }}</span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-default" style="padding: 4px 10px; font-size: 11px; margin-left: auto; color: #dc3545; border-color: #dc3545;" data-delete-url="{{ route('learning.training-materials.remove-file', ['topicId' => $topic->id, 'fileType' => 'pdf_file_path', 'fileIndex' => $loop->index]) }}" onclick="if(confirm('Are you sure you want to remove this file?')){ deleteFile(this); }">
+                                        <i class="fa fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                                @endforeach
+                            </div>
+
+                            <!-- PowerPoint -->
+                            <div class="file-group-panel {{ count($pptFiles) ? '' : 'resource-group-empty' }}" id="file-group-ppt" style="{{ ($firstNonEmptyGroup === 'ppt') ? 'display:block' : 'display:none' }};">
+                                @foreach($pptFiles as $ptf)
+                                <div style="display: flex; align-items: center; gap: 8px; background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                                    <div style="flex: 1;">
+                                        <i class="fa fa-file-powerpoint-o" style="color: #f7b733; margin-right: 6px;"></i>
+                                        <span style="font-size: 12px; color: var(--text-primary);">{{ e(basename($ptf)) }}</span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-default" style="padding: 4px 10px; font-size: 11px; margin-left: auto; color: #dc3545; border-color: #dc3545;" data-delete-url="{{ route('learning.training-materials.remove-file', ['topicId' => $topic->id, 'fileType' => 'ppt_file_path', 'fileIndex' => $loop->index]) }}" onclick="if(confirm('Are you sure you want to remove this file?')){ deleteFile(this); }">
+                                        <i class="fa fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                                @endforeach
+                            </div>
+
+                            <!-- Word Document -->
+                            <div class="file-group-panel {{ count($documentFiles) ? '' : 'resource-group-empty' }}" id="file-group-document" style="{{ ($firstNonEmptyGroup === 'document') ? 'display:block' : 'display:none' }};">
+                                @foreach($documentFiles as $df)
+                                <div style="display: flex; align-items: center; gap: 8px; background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                                    <div style="flex: 1;">
+                                        <i class="fa fa-file-text-o" style="color: #95a5a6; margin-right: 6px;"></i>
+                                        <span style="font-size: 12px; color: var(--text-primary);">{{ e(basename($df)) }}</span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-default" style="padding: 4px 10px; font-size: 11px; margin-left: auto; color: #dc3545; border-color: #dc3545;" data-delete-url="{{ route('learning.training-materials.remove-file', ['topicId' => $topic->id, 'fileType' => 'document_file_path', 'fileIndex' => $loop->index]) }}" onclick="if(confirm('Are you sure you want to remove this file?')){ deleteFile(this); }">
+                                        <i class="fa fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        @else
+                        <p style="color: var(--text-secondary); font-size: 12px;">No files attached</p>
+                        @endif
+
                         <p style="font-size: 11px; color: var(--text-secondary); margin-top: 8px; margin-bottom: 0;">
                             <i class="fa fa-info-circle"></i> To replace a file, upload a new one below. Leave empty to keep the existing file.
                         </p>
@@ -457,5 +540,70 @@ async function uploadFile(file, type, onProgress) {
 function generateFileId(file) {
     return `${file.name}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
+
+// Toggle between file category groups
+function showFileGroup(type, btn) {
+    // Hide all panels
+    document.querySelectorAll('.file-group-panel').forEach(function(panel){
+        panel.style.display = 'none';
+    });
+    // Show selected panel
+    var panel = document.getElementById('file-group-' + type);
+    if (panel) panel.style.display = 'block';
+    // Update active tab styling
+    document.querySelectorAll('.resource-tab').forEach(function(b){
+        b.style.background = '';
+        b.style.color = '';
+        b.style.fontWeight = '600';
+    });
+    if (btn) {
+        btn.style.background = 'var(--primary-color)';
+        btn.style.color = 'white';
+        btn.style.fontWeight = '700';
+    }
+}
+
+// Delete a file from a topic's comma-separated list
+function deleteFile(btn) {
+    var url = btn.getAttribute('data-delete-url');
+    fetch(url, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+    })
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.success) {
+            // Remove the row from DOM
+            var row = btn.closest('div[style*="display: flex; align-items: center"]');
+            if (row) {
+                row.remove();
+            }
+            // If no files remain in this group, show empty state
+            var panel = btn.closest('.file-group-panel');
+            if (panel && panel.querySelectorAll('div[style*="display: flex; align-items: center"]').length === 0) {
+                panel.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-secondary); font-size: 13px;">No files in this group.</div>';
+            }
+        } else {
+            alert(data.error || 'Failed to remove file.');
+        }
+    })
+    .catch(function() {
+        alert('An error occurred while removing the file.');
+    });
+}
+
+// Activate first available file group on page load
+document.addEventListener('DOMContentLoaded', function() {
+    var firstTab = document.querySelector('.resource-tab:not([style*="opacity:0.5"])');
+    if (firstTab) {
+        showFileGroup(firstTab.dataset.group, firstTab);
+    }
+});
 </script>
 @endsection

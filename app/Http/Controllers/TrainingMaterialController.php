@@ -411,11 +411,11 @@ class TrainingMaterialController extends Controller
         $user = Sentinel::getUser();
         
         // Check if user is a trainer
-        if (!$user || $user->istrainer != 1) {
-            return redirect()->route('learning.training-materials.index')
-                ->with('toastr_type', 'error')
-                ->with('toastr_message', 'You do not have permission to manage topics.');
-        }
+        // if (!$user || $user->istrainer != 1) {
+        //     return redirect()->route('learning.training-materials.index')
+        //         ->with('toastr_type', 'error')
+        //         ->with('toastr_message', 'You do not have permission to manage topics.');
+        // }
 
         $topic = CourseTopic::with('trainingMaterial')->findOrFail($topicId);
         $material = $topic->trainingMaterial;
@@ -433,18 +433,18 @@ class TrainingMaterialController extends Controller
      */
     public function updateTopic(Request $request, $topicId)
     {
-        if (!Sentinel::check()) {
-            return redirect('login');
-        }
+        // if (!Sentinel::check()) {
+        //     return redirect('login');
+        // }
 
-        $user = Sentinel::getUser();
+        // $user = Sentinel::getUser();
         
-        // Check if user is a trainer
-        if (!$user || $user->istrainer != 1) {
-            return redirect()->route('learning.training-materials.index')
-                ->with('toastr_type', 'error')
-                ->with('toastr_message', 'You do not have permission to manage topics.');
-        }
+        // // Check if user is a trainer
+        // if (!$user || $user->istrainer != 1) {
+        //     return redirect()->route('learning.training-materials.index')
+        //         ->with('toastr_type', 'error')
+        //         ->with('toastr_message', 'You do not have permission to manage topics.');
+        // }
 
         $topic = CourseTopic::with('trainingMaterial')->findOrFail($topicId);
         $material = $topic->trainingMaterial;
@@ -458,39 +458,25 @@ class TrainingMaterialController extends Controller
         $topic->topic_name = $request->topic_name;
         $topic->duration = $request->topic_duration;
 
-        // Handle file path updates (only if new files are uploaded)
-        if ($request->filled('video_file_path')) {
-            $topic->video_file_path = $request->video_file_path;
-            if ($request->filled('video_file_name')) {
-                $topic->file_name = $request->video_file_name;
-            }
-        }
+        // Handle file path updates (append new uploads to existing comma-separated list)
+        $fileTypes = ['video_file_path', 'audio_file_path', 'pdf_file_path', 'ppt_file_path', 'document_file_path'];
+        $fileNameTypes = ['video_file_name', 'audio_file_name', 'pdf_file_name', 'ppt_file_name', 'document_file_name'];
 
-        if ($request->filled('audio_file_path')) {
-            $topic->audio_file_path = $request->audio_file_path;
-            if (!isset($topic->file_name) && $request->filled('audio_file_name')) {
-                $topic->file_name = $request->audio_file_name;
-            }
-        }
+        foreach ($fileTypes as $index => $fileType) {
+            if ($request->filled($fileType)) {
+                $existing = $topic->$fileType ? explode(',', $topic->$fileType) : [];
+                $existing = array_filter($existing);
+                $newPaths = is_array($request->$fileType) ? $request->$fileType : [$request->$fileType];
+                $newPaths = array_filter($newPaths);
+                $allPaths = array_merge(array_values($existing), array_values($newPaths));
+                $topic->$fileType = implode(',', array_values(array_filter($allPaths)));
 
-        if ($request->filled('pdf_file_path')) {
-            $topic->pdf_file_path = $request->pdf_file_path;
-            if (!isset($topic->file_name) && $request->filled('pdf_file_name')) {
-                $topic->file_name = $request->pdf_file_name;
-            }
-        }
-
-        if ($request->filled('ppt_file_path')) {
-            $topic->ppt_file_path = $request->ppt_file_path;
-            if (!isset($topic->file_name) && $request->filled('ppt_file_name')) {
-                $topic->file_name = $request->ppt_file_name;
-            }
-        }
-
-        if ($request->filled('document_file_path')) {
-            $topic->document_file_path = $request->document_file_path;
-            if (!isset($topic->file_name) && $request->filled('document_file_name')) {
-                $topic->file_name = $request->document_file_name;
+                if ($request->filled($fileNameTypes[$index])) {
+                    $fileNameValue = $request->$fileNameTypes[$index];
+                    $topic->file_name = is_array($fileNameValue) ? ($fileNameValue[0] ?? null) : $fileNameValue;
+                } elseif (empty($topic->file_name) && !empty($newPaths)) {
+                    $topic->file_name = $this->extractFileNameFromUrl($newPaths[0]);
+                }
             }
         }
 
@@ -499,6 +485,48 @@ class TrainingMaterialController extends Controller
         return redirect()->route('learning.training-materials.topics', ['materialId' => $material->id])
             ->with('toastr_type', 'success')
             ->with('toastr_message', 'Topic updated successfully.');
+    }
+
+    /**
+     * Remove a single file from a topic's comma-separated file list.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param int $topicId
+     * @param string $fileType
+     * @param int $fileIndex
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function removeFile(Request $request, $topicId, $fileType, $fileIndex)
+    {
+        // if (!Sentinel::check()) {
+        //     return response()->json(['error' => 'Unauthorized'], 401);
+        // }
+
+        // $user = Sentinel::getUser();
+        // if (!$user || $user->istrainer != 1) {
+        //     return response()->json(['error' => 'Unauthorized'], 401);
+        // }
+
+        $validTypes = ['video_file_path', 'audio_file_path', 'pdf_file_path', 'ppt_file_path', 'document_file_path'];
+        if (!in_array($fileType, $validTypes)) {
+            return response()->json(['error' => 'Invalid file type'], 400);
+        }
+
+        $topic = CourseTopic::findOrFail($topicId);
+        $existing = $topic->$fileType ? explode(',', $topic->$fileType) : [];
+        $existing = array_filter($existing);
+        $existing = array_values($existing);
+
+        if (!isset($existing[$fileIndex])) {
+            return response()->json(['error' => 'File not found'], 404);
+        }
+
+        unset($existing[$fileIndex]);
+        $existing = array_values(array_filter($existing));
+        $topic->$fileType = empty($existing) ? null : implode(',', $existing);
+        $topic->save();
+
+        return response()->json(['success' => true]);
     }
 
     /**

@@ -800,6 +800,71 @@
         width: 100%;
     }
 }
+
+/* Resource group tabs */
+.resource-group-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-color);
+}
+.resource-tab {
+    background: var(--light-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.resource-tab:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+.resource-tab-empty {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.resource-tab-count {
+    font-weight: 500;
+    opacity: 0.8;
+}
+.resource-tab i {
+    font-size: 14px;
+}
+
+/* Resource group panels */
+.resource-group-panel {
+    display: none;
+    animation: fadeIn 0.2s ease;
+}
+.resource-group-panel.resource-group-empty {
+    display: none;
+}
+.resource-group-empty-msg {
+    padding: 20px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Ensure resource list items inside panels show correctly */
+.resource-group-panel .resource-list-item {
+    display: flex;
+}
+
+/* Existing resource-list-item default hidden for panels - shown via JS */
 </style>
 
 <div class="classroom-page">
@@ -1295,14 +1360,8 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
     
     if (hasFile) {
         resourceContainer.style.display = 'block';
-        
-        // Display resources in classroom-style list layout
-        let previewHTML = `<div class="resource-list">
-            <div class="resource-list-header">
-                <i class="fa fa-folder-open"></i>
-                <span>Learning Resources</span>
-            </div>`;
-        
+
+        // Build sorted arrays per type
         function getFirstNumber(filePath) {
             var fileName = filePath.split('/').pop();
             var match = fileName.match(/\d+/);
@@ -1311,64 +1370,88 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
         function sortByFirstNumber(a, b) {
             return getFirstNumber(a) - getFirstNumber(b);
         }
+        var videoArr = (Array.isArray(videoFilePath)?videoFilePath:[videoFilePath]).filter(Boolean).sort(sortByFirstNumber);
+        var audioArr = (Array.isArray(audioFilePath)?audioFilePath:[audioFilePath]).filter(Boolean).sort(sortByFirstNumber);
+        var pdfArr = (Array.isArray(pdfFilePath)?pdfFilePath:[pdfFilePath]).filter(Boolean).sort(sortByFirstNumber);
+        var pptArr = (Array.isArray(pptFilePath)?pptFilePath:[pptFilePath]).filter(Boolean).sort(sortByFirstNumber);
+        var docArr = (Array.isArray(documentFilePath)?documentFilePath:[documentFilePath]).filter(Boolean).sort(sortByFirstNumber);
 
-        (Array.isArray(videoFilePath)?videoFilePath:[videoFilePath]).filter(Boolean).sort(sortByFirstNumber).forEach(function(p, i){
-            previewHTML += `<div class="resource-list-item" data-type="video" onclick="previewResource('video', '${p}')">
-                <div class="resource-list-icon"><i class="fa fa-video-camera"></i></div>
-                <div class="resource-list-info">
-                    <div class="resource-list-name"><i class="fa fa-play-circle"></i><span>Video ${i+1}</span></div>
-                    <div class="resource-list-description">${p.split('/').pop()}</div>
-                </div>
-                <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
-            </div>`;
-        });
-        (Array.isArray(audioFilePath)?audioFilePath:[audioFilePath]).filter(Boolean).sort(sortByFirstNumber).forEach(function(p, i){
-            previewHTML += `<div class="resource-list-item" data-type="audio" onclick="previewResource('audio', '${p}')">
-                <div class="resource-list-icon"><i class="fa fa-music"></i></div>
-                <div class="resource-list-info">
-                    <div class="resource-list-name"><i class="fa fa-volume-up"></i><span>Audio ${i+1}</span></div>
-                    <div class="resource-list-description">${p.split('/').pop()}</div>
-                </div>
-                <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
-            </div>`;
-        });
-        (Array.isArray(pdfFilePath)?pdfFilePath:[pdfFilePath]).filter(Boolean).sort(sortByFirstNumber).forEach(function(p, i){
-            previewHTML += `<div class="resource-list-item" data-type="pdf" onclick="previewResource('pdf', '${p}')">
-                <div class="resource-list-icon"><i class="fa fa-file-pdf-o"></i></div>
-                <div class="resource-list-info">
-                    <div class="resource-list-name"><i class="fa fa-file-text-o"></i><span>PDF ${i+1}</span>o ${i+1}</span></div>
-                    <div class="resource-list-description">${p.split('/').pop()}</div>
-                </div>
-                <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
-            </div>`;
-        });
-        (Array.isArray(pptFilePath)?pptFilePath:[pptFilePath]).filter(Boolean).sort(sortByFirstNumber).forEach(function(p, i){
-            previewHTML += `<div class="resource-list-item" data-type="ppt" onclick="previewResource('ppt', '${p}')">
-                <div class="resource-list-icon"><i class="fa fa-file-powerpoint-o"></i></div>
-                <div class="resource-list-info">
-                    <div class="resource-list-name"><i class="fa fa-slideshare"></i><span>Presentation ${i+1}</span></div>
-                    <div class="resource-list-description">${p.split('/').pop()}</div>
-                </div>
-                <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
-            </div>`;
-        });
-        (Array.isArray(documentFilePath)?documentFilePath:[documentFilePath]).filter(Boolean).sort(sortByFirstNumber).forEach(function(p, i){
-            previewHTML += `<div class="resource-list-item" data-type="document" onclick="previewResource('document', '${p}')">
-                <div class="resource-list-icon"><i class="fa fa-file-word-o"></i></div>
-                <div class="resource-list-info">
-                    <div class="resource-list-name"><i class="fa fa-file-text-o"></i><span>Document ${i+1}</span></div>
-                    <div class="resource-list-description">${p.split('/').pop()}</div>
-                </div>
-                <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
-            </div>`;
-        });
-        
-        previewHTML += `</div>`;
+        function renderGroup(label, icon, type, arr) {
+            var html = '';
+            arr.forEach(function(p, i){
+                html += `<div class="resource-list-item resource-item-${type}" data-type="${type}" onclick="previewResource('${type}', '${p}')">
+                    <div class="resource-list-icon"><i class="fa ${icon}"></i></div>
+                    <div class="resource-list-info">
+                        <div class="resource-list-name"><i class="fa ${icon}"></i><span>${label} ${i+1}</span></div>
+                        <div class="resource-list-description">${p.split('/').pop()}</div>
+                    </div>
+                    <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
+                </div>`;
+            });
+            return html;
+        }
+
+        var groupData = [
+            { label: 'Video', icon: 'fa-video-camera', type: 'video', arr: videoArr },
+            { label: 'Audio', icon: 'fa-music', type: 'audio', arr: audioArr },
+            { label: 'PDF', icon: 'fa-file-pdf-o', type: 'pdf', arr: pdfArr },
+            { label: 'PowerPoint', icon: 'fa-file-powerpoint-o', type: 'ppt', arr: pptArr },
+            { label: 'Word Document', icon: 'fa-file-word-o', type: 'document', arr: docArr }
+        ];
+
+        // Display resources in classroom-style grouped layout
+        let previewHTML = `<div class="resource-list">
+            <div class="resource-list-header">
+                <i class="fa fa-folder-open"></i>
+                <span>Learning Resources</span>
+            </div>
+
+            <div class="resource-group-tabs">
+                ${groupData.map(function(g){
+                    return `<button class="resource-tab ${g.arr.length ? '' : 'resource-tab-empty'}" onclick="showResourceGroup('${g.type}', this)" data-group="${g.type}">
+                        <i class="fa ${g.icon}"></i> ${g.label} <span class="resource-tab-count">(${g.arr.length})</span>
+                    </button>`;
+                }).join('')}
+            </div>
+
+            <div class="resource-group-body">
+                ${groupData.map(function(g, idx){
+                    return `<div class="resource-group-panel ${g.arr.length ? '' : 'resource-group-empty'}" id="resource-group-${g.type}" style="${idx===0 ? 'display:block' : 'display:none'};">
+                        ${g.arr.length ? renderGroup(g.label, g.icon, g.type, g.arr) : `<div class="resource-group-empty-msg">No ${g.label.toLowerCase()} resources available.</div>`}
+                    </div>`;
+                }).join('')}
+            </div>
+        </div>`;
         resourcePreview.innerHTML = previewHTML;
     } else {
         resourceContainer.style.display = 'none';
     }
-    
+
+    // Toggle between resource type groups
+    window.showResourceGroup = function(type, btn) {
+        // Hide all panels
+        document.querySelectorAll('.resource-group-panel').forEach(function(panel){
+            panel.style.display = 'none';
+        });
+        // Show selected panel
+        var panel = document.getElementById('resource-group-' + type);
+        if (panel) panel.style.display = 'block';
+        // Update active tab styling
+        document.querySelectorAll('.resource-tab').forEach(function(b){
+            b.style.background = '';
+            b.style.color = '';
+        });
+        if (btn) {
+            btn.style.background = 'var(--primary-color)';
+            btn.style.color = 'white';
+        }
+    };
+    // Activate first available group on load
+    var firstTab = document.querySelector('.resource-tab:not(.resource-tab-empty)');
+    if (firstTab) {
+        showResourceGroup(firstTab.dataset.group, firstTab);
+    }
+
     // Update header actions - show/hide based on topic and quiz status
     const headerActions = document.getElementById('header-actions');
     if (headerActions) {

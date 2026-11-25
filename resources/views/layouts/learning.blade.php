@@ -48,21 +48,27 @@
                     </a>
                 </div>
                   
-<!-- Search Field with Animated Placeholder (Desktop - opens modal) -->
+                <!-- Search Field with Animated Placeholder (Desktop - opens modal) -->
                 <div class="search-container desktop-search" style="margin-left: 20px; position: relative; display: flex; align-items: center;">
                     <i class="fa fa-search" style="color: rgba(255,255,255,0.7); font-size: 16px; margin-right: 8px;"></i>
                     <input type="text" id="learning-search" name="q" class="form-control search-input-click" placeholder="Search topics and resources..." readonly style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 6px 10px; border-radius: 4px; font-size: 14px; width: 550px; outline: none; cursor: pointer;">
                 </div>
 
-                <!-- Search Button (Mobile) -->
-                <button class="mobile-search-btn" id="mobile-search-toggle" type="button" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.7); padding: 6px 12px; border-radius: 4px; font-size: 14px; display: none; align-items: center; gap: 8px;">
-                    <i class="fa fa-search"></i>
-                </button>
-                
-                @if(($user && $user->istrainer == 1) || ($role && in_array($role->id, ['1'])))
-                <!-- Navigation -->
-                <div class="dropdown">
-                    <button type="button" class="btn btn-sm" id="learning-menu-toggle" style="background: rgba(255,255,255,0.15); border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer;">
+                <!-- Right-aligned actions -->
+                <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+                    <!-- Search Button (Mobile) -->
+                    <button class="mobile-search-btn" id="mobile-search-toggle" type="button" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.7); padding: 6px 12px; border-radius: 4px; font-size: 14px; display: none; align-items: center; gap: 8px;">
+                        <i class="fa fa-search"></i>
+                    </button>
+
+                    <!-- Back to Main Button (Mobile only) -->
+                    <a href="{{ url('/') }}" class="mobile-back-main-btn" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.7); padding: 6px 12px; border-radius: 4px; font-size: 14px; display: none; align-items: center; gap: 8px; text-decoration: none;">
+                        <i class="fa fa-arrow-left"></i>
+                    </a>
+                    @if(($user && $user->istrainer == 1) || ($role && in_array($role->id, ['1'])))
+                    <!-- Navigation -->
+                    <div class="dropdown">
+                    <button type="button" class="btn btn" id="learning-menu-toggle" style="background: rgba(255,255,255,0.15); border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer;">
                         <i class="fa fa-th"></i>
                     </button>
                     <div class="dropdown-menu" id="learning-dropdown" style="display: none; position: absolute; top: 100%; left: 0; background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); min-width: 220px; z-index: 1001; overflow: hidden;">
@@ -89,7 +95,9 @@
                     </div>
                 </div>
                 @endif
-                
+
+                </div>
+
                 <!-- User Menu -->
                 <div class="user-menu">
                     @if($user)
@@ -994,6 +1002,12 @@
             font-size: 12px;
             color: #a0aec0;
             font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-back-main-btn {
+                display: inline-flex !important;
+            }
         }
     </style>
     <script>

@@ -903,7 +903,7 @@
 <!-- Bento Banner: featured training materials defined in config/learning.php -->
 <div class="bento-banner">
     <div class="section-header" style="position: relative;">
-        <h2 style="color: #D2691E; font-weight: 700;">Recommed Trainings for You</h2>
+        <h2 style="color: #D2691E; font-weight: 700;">Mandatory Orientation for all Staff Members</h2>
         <span class="badge" style="position: relative; overflow: hidden; display: inline-block; padding: 4px 12px; border-radius: 12px; background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05)); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.3); color: #D2691E; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
             <span style="position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent); animation: badgeShine 3s infinite;"></span>
             Hand-picked
@@ -919,11 +919,11 @@
             @endphp
             <a href="{{ url('learning/course/' . $material->id) }}" class="bento-tile {{ $isLarge ? 'large' : '' }} {{ $isWide ? 'wide' : '' }}" style="text-decoration: none; color: inherit; display: block; position: relative;">
                 @if($posterUrl)
-                    <div class="tile-image" style="background-image: url('{{ $posterUrl }}'); background-size: cover; background-position: center;">
-                        <span class="tile-tag">{{ ucfirst($material->category ?? 'Training Course') }}</span>
+                    <div class="tile-image" style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.85)), url('{{ $posterUrl }}'); background-size: cover; background-position: center;">
+                        <span class="tile-tag">{{ ucfirst($material->category ?? 'Orientation On') }}</span>
                     </div>
                     <div class="tile-body" style="position: absolute; bottom: 0; left: 0; right: 0; padding: 12px; background: linear-gradient(to top, rgba(0, 0, 0, 0.89), transparent); color: white;">
-                        <div class="tile-category">{{ $material->category ?? 'Training Course' }}</div>
+                        <div class="tile-category">{{ $material->category ?? 'Orientation On' }}</div>
                         <h3 class="tile-title">{{ $material->title }}</h3>
                         <div class="tile-meta">
                             <i class="fa fa-eye"></i> {{ number_format($material->view_count ?? 0) }} views
@@ -932,10 +932,10 @@
                 @else
                     <div class="tile-image">
                         <i class="fa {{ $iconClass }} placeholder-icon"></i>
-                        <span class="tile-tag">{{ ucfirst($material->category ?? 'Training Course') }}</span>
+                        <span class="tile-tag">{{ ucfirst($material->category ?? 'Orientation On') }}</span>
                     </div>
                     <div class="tile-body">
-                        <div class="tile-category">{{ $material->category ?? 'Training Course' }}</div>
+                        <div class="tile-category">{{ $material->category ?? 'Orientation On' }}</div>
                         <h3 class="tile-title">{{ $material->title }}</h3>
                         <div class="tile-meta">
                             <i class="fa fa-eye"></i> {{ number_format($material->view_count ?? 0) }} views
