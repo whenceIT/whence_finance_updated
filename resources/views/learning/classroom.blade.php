@@ -1095,6 +1095,7 @@ function toggleSidebar() {
 }
 
 function previewResource(type, filePath) {
+    window.scrollTo(0, 0);
     // Start engagement tracking for topic views
     startEngagementTracking();
 
