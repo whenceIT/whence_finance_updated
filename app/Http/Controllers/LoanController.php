@@ -512,7 +512,7 @@ public function decline_client_app_reloan($transactionId)
             'created_by_id'     => $transaction->created_by_id,
             'office_id'         => $transaction->office_id,
             'loan_id'           => $transaction->loan_id,
-            'payment_apply_to'  => $transaction->payment_apply_to,
+            'payment_apply_to'  => 'part_payment',
             'payment_detail_id' => $transaction->payment_detail_id,
             'transaction_type'  => $transaction->transaction_type,
             'date'              => $transaction->date,

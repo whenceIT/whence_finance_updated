@@ -119,6 +119,37 @@ public function updatePhone(Request $request, $client)
 
 }
 
+
+public function searchPage()
+{
+    return view('client.search');
+}
+
+public function search1(Request $request)
+{
+    $search = trim($request->input('search'));
+
+    if (empty($search)) {
+        return redirect()->route('clients.search.page');
+    }
+
+    $clients = Client::with(['office', 'staff'])
+        ->where(function ($query) use ($search) {
+
+            $query->where('first_name', 'LIKE', "%{$search}%")
+                ->orWhere('last_name', 'LIKE', "%{$search}%")
+                ->orWhere('nrc_number', 'LIKE', "%{$search}%")
+                ->orWhere('phone', 'LIKE', "%{$search}%")
+                ->orWhere('mobile', 'LIKE', "%{$search}%");
+
+        })
+        ->orderBy('first_name')
+        ->paginate(20)
+        ->withQueryString();
+
+    return view('client.search', compact('clients', 'search'));
+}
+
     public function my_index()
     {
         if (!Sentinel::hasAccess('clients.my_clients')) {
