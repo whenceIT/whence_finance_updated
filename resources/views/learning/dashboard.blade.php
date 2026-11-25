@@ -695,7 +695,7 @@
 
 .bento-banner .bento-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     grid-auto-rows: 180px;
     gap: 14px;
 }
@@ -912,7 +912,7 @@
     <div class="bento-grid">
         @forelse($featuredMaterials as $index => $material)
             @php
-                $isLarge = in_array($index, [0, 3]);
+                $isLarge = $index === 0;
                 $isWide = in_array($index, [1, 2]);
                 $posterUrl = $material->poster ? $material->poster : null;
                 $iconClass = $material->icon ?? 'fa-graduation-cap';
