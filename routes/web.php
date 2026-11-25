@@ -921,6 +921,11 @@ Route::group(['prefix' => 'client'], function () {
     Route::get('{id}/approve_transfer','ClientController@approve_transfer');
     Route::get('{id}/delete_transfer','ClientController@delete_transfer');
     Route::any('{id}/location/store','ClientController@store_client_location');
+
+
+Route::any('search-clients', 'ClientController@searchPage')->name('clients.search.page');
+
+Route::any('search-clients/results', 'ClientController@search1')->name('clients.search');
     //identification
     Route::post('{id}/identification/store', 'ClientController@store_client_identification');
     Route::get('identification/{id}/delete', 'ClientController@delete_client_identification');

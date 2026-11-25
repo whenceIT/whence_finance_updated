@@ -766,6 +766,11 @@ use App\Models\Ticket;
                             </span>
                         </a>
                         <ul class="treeview-menu">
+
+
+
+                                <li><a href="{{ route('clients.search.page') }}"><i class="fa fa-circle-o"></i>Search Clients</a></li>
+                     
                             @if(Sentinel::hasAccess('clients.view'))
                                 <li><a href="{{ url('client/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.view',1)}} {{trans_choice('general.client',2)}}</a></li>
                             @endif
