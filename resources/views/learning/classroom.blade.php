@@ -1302,7 +1302,16 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
                 <span>Learning Resources</span>
             </div>`;
         
-        (Array.isArray(videoFilePath)?videoFilePath:[videoFilePath]).filter(Boolean).forEach(function(p, i){
+        function getFirstNumber(filePath) {
+            var fileName = filePath.split('/').pop();
+            var match = fileName.match(/\d+/);
+            return match ? parseInt(match[0], 10) : Infinity;
+        }
+        function sortByFirstNumber(a, b) {
+            return getFirstNumber(a) - getFirstNumber(b);
+        }
+
+        (Array.isArray(videoFilePath)?videoFilePath:[videoFilePath]).filter(Boolean).sort(sortByFirstNumber).forEach(function(p, i){
             previewHTML += `<div class="resource-list-item" data-type="video" onclick="previewResource('video', '${p}')">
                 <div class="resource-list-icon"><i class="fa fa-video-camera"></i></div>
                 <div class="resource-list-info">
@@ -1312,7 +1321,7 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
                 <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
             </div>`;
         });
-        (Array.isArray(audioFilePath)?audioFilePath:[audioFilePath]).filter(Boolean).forEach(function(p, i){
+        (Array.isArray(audioFilePath)?audioFilePath:[audioFilePath]).filter(Boolean).sort(sortByFirstNumber).forEach(function(p, i){
             previewHTML += `<div class="resource-list-item" data-type="audio" onclick="previewResource('audio', '${p}')">
                 <div class="resource-list-icon"><i class="fa fa-music"></i></div>
                 <div class="resource-list-info">
@@ -1322,7 +1331,7 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
                 <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
             </div>`;
         });
-        (Array.isArray(pdfFilePath)?pdfFilePath:[pdfFilePath]).filter(Boolean).forEach(function(p, i){
+        (Array.isArray(pdfFilePath)?pdfFilePath:[pdfFilePath]).filter(Boolean).sort(sortByFirstNumber).forEach(function(p, i){
             previewHTML += `<div class="resource-list-item" data-type="pdf" onclick="previewResource('pdf', '${p}')">
                 <div class="resource-list-icon"><i class="fa fa-file-pdf-o"></i></div>
                 <div class="resource-list-info">
@@ -1332,7 +1341,7 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
                 <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
             </div>`;
         });
-        (Array.isArray(pptFilePath)?pptFilePath:[pptFilePath]).filter(Boolean).forEach(function(p, i){
+        (Array.isArray(pptFilePath)?pptFilePath:[pptFilePath]).filter(Boolean).sort(sortByFirstNumber).forEach(function(p, i){
             previewHTML += `<div class="resource-list-item" data-type="ppt" onclick="previewResource('ppt', '${p}')">
                 <div class="resource-list-icon"><i class="fa fa-file-powerpoint-o"></i></div>
                 <div class="resource-list-info">
@@ -1342,7 +1351,7 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
                 <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
             </div>`;
         });
-        (Array.isArray(documentFilePath)?documentFilePath:[documentFilePath]).filter(Boolean).forEach(function(p, i){
+        (Array.isArray(documentFilePath)?documentFilePath:[documentFilePath]).filter(Boolean).sort(sortByFirstNumber).forEach(function(p, i){
             previewHTML += `<div class="resource-list-item" data-type="document" onclick="previewResource('document', '${p}')">
                 <div class="resource-list-icon"><i class="fa fa-file-word-o"></i></div>
                 <div class="resource-list-info">

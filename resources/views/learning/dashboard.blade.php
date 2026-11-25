@@ -14,14 +14,13 @@
     gap: 8px;
     flex-wrap: wrap;
     margin-bottom: 3px;
-    padding: 15px 20px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
+    padding: 5px 20px;
+    background: transparent;
+    border-radius: 6px;
 }
 
 .tab-pill {
-    padding: 8px 18px;
+    padding: 8px 9px;
     font-size: 13px;
     font-weight: 600;
     border: none;
@@ -661,6 +660,182 @@
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
 }
+
+/* Bento Banner Styles */
+.bento-banner {
+    width: 100%;
+    margin: 0 0 30px 0;
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+
+.bento-banner .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.bento-banner .section-header h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.bento-banner .section-header .badge {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: white;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    padding: 4px 10px;
+    border-radius: 50px;
+}
+
+.bento-banner .bento-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: 180px;
+    gap: 14px;
+}
+
+.bento-banner .bento-tile {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    border: 2px solid transparent;
+    background: var(--light-bg);
+    display: flex;
+    flex-direction: column;
+}
+
+.bento-banner .bento-tile:hover {
+    transform: translateY(-6px);
+    border-color: var(--primary-color);
+    box-shadow: 0 14px 35px rgba(0,0,0,0.18);
+    z-index: 10;
+}
+
+.bento-banner .bento-tile.large {
+    grid-row: span 2;
+}
+
+.bento-banner .bento-tile.wide {
+    grid-column: span 2;
+}
+
+.bento-banner .bento-tile.large.wide {
+    grid-row: span 2;
+    grid-column: span 2;
+}
+
+.bento-banner .bento-tile .tile-image {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+}
+
+.bento-banner .bento-tile .tile-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.bento-banner .bento-tile .tile-image .placeholder-icon {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 42px;
+    color: rgba(255,255,255,0.85);
+}
+
+.bento-banner .bento-tile .tile-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.75), transparent 60%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.bento-banner .bento-tile .tile-tag {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: white;
+    background: rgba(0,0,0,0.65);
+    padding: 3px 8px;
+    border-radius: 50px;
+    backdrop-filter: blur(2px);
+}
+
+.bento-banner .bento-tile .tile-body {
+    padding: 14px 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.bento-banner .bento-tile .tile-category {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--primary-color);
+    margin-bottom: 4px;
+}
+
+.bento-banner .bento-tile .tile-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 6px 0;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.bento-banner .bento-tile .tile-meta {
+    font-size: 11px;
+    color: var(--text-secondary);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.bento-banner .bento-tile .tile-meta i {
+    font-size: 10px;
+    color: var(--primary-color);
+}
+
+@media (max-width: 1024px) {
+    .bento-banner .bento-grid {
+        grid-template-columns: repeat(2, 1fr);
+        grid-auto-rows: 160px;
+    }
+    .bento-banner .bento-tile.large,
+    .bento-banner .bento-tile.wide,
+    .bento-banner .bento-tile.large.wide {
+        grid-row: span 1;
+        grid-column: span 1;
+    }
+}
 </style>
 
 @section('content')
@@ -706,11 +881,11 @@
 
 <!-- Tab Pills Container -->
 <div class="tab-pills-container">
-    <button onclick="switchTab('featured')" id="tab-featured" class="tab-pill">
-        <i class="fa fa-star"></i> Featured Topics
+    <button onclick="switchTab('featured')" title="Featured Topics" id="tab-featured" class="tab-pill">
+        <i class="fa fa-star"></i>
     </button>
-    <button onclick="switchTab('courses')" id="tab-courses" class="tab-pill">
-        <i class="fa fa-graduation-cap"></i> Training Courses
+    <button onclick="switchTab('courses')" title="Training Courses" id="tab-courses" class="tab-pill">
+        <i class="fa fa-graduation-cap"></i>
     </button>
 </div>
 
@@ -720,24 +895,52 @@
     <input type="text" id="search-input" class="search-input" placeholder="Search courses, videos, audio, books, documents..." oninput="handleSearch(this.value)">
 </div>
 
-<!-- Filter Pills (for uploads) -->
-<div class="filter-pills" id="type-filters" style="display: none;">
-    <button onclick="filterByType('all')" class="filter-pill active" data-filter="all">All Types</button>
-    <button onclick="filterByType('video')" class="filter-pill" data-filter="video">
-        <i class="fa fa-video-camera"></i> Videos
-    </button>
-    <button onclick="filterByType('audio')" class="filter-pill" data-filter="audio">
-        <i class="fa fa-headphones"></i> Audio
-    </button>
-    <button onclick="filterByType('book')" class="filter-pill" data-filter="book">
-        <i class="fa fa-book"></i> Books
-    </button>
-    <button onclick="filterByType('paper')" class="filter-pill" data-filter="paper">
-        <i class="fa fa-file-text"></i> Papers
-    </button>
-    <button onclick="filterByType('document')" class="filter-pill" data-filter="document">
-        <i class="fa fa-file-word-o"></i> Documents
-    </button>
+<!-- Bento Banner: featured training materials defined in config/learning.php -->
+<div class="bento-banner">
+    <div class="section-header">
+        <h2>Featured Training</h2>
+        <span class="badge">Hand-picked</span>
+    </div>
+    <div class="bento-grid">
+        @forelse($featuredMaterials as $index => $material)
+            @php
+                $isLarge = in_array($index, [0, 3]);
+                $isWide = in_array($index, [1, 2]);
+                $posterUrl = $material->poster ? $material->poster : null;
+                $iconClass = $material->icon ?? 'fa-graduation-cap';
+            @endphp
+            <a href="{{ url('learning/course/' . $material->id) }}" class="bento-tile {{ $isLarge ? 'large' : '' }} {{ $isWide ? 'wide' : '' }}" style="text-decoration: none; color: inherit; display: block; position: relative;">
+                @if($posterUrl)
+                    <div class="tile-image" style="background-image: url('{{ $posterUrl }}'); background-size: cover; background-position: center;">
+                        <span class="tile-tag">{{ ucfirst($material->category ?? 'Training Course') }}</span>
+                    </div>
+                    <div class="tile-body" style="position: absolute; bottom: 0; left: 0; right: 0; padding: 12px; background: linear-gradient(to top, rgba(0, 0, 0, 0.89), transparent); color: white;">
+                        <div class="tile-category">{{ $material->category ?? 'Training Course' }}</div>
+                        <h3 class="tile-title">{{ $material->title }}</h3>
+                        <div class="tile-meta">
+                            <i class="fa fa-eye"></i> {{ number_format($material->view_count ?? 0) }} views
+                        </div>
+                    </div>
+                @else
+                    <div class="tile-image">
+                        <i class="fa {{ $iconClass }} placeholder-icon"></i>
+                        <span class="tile-tag">{{ ucfirst($material->category ?? 'Training Course') }}</span>
+                    </div>
+                    <div class="tile-body">
+                        <div class="tile-category">{{ $material->category ?? 'Training Course' }}</div>
+                        <h3 class="tile-title">{{ $material->title }}</h3>
+                        <div class="tile-meta">
+                            <i class="fa fa-eye"></i> {{ number_format($material->view_count ?? 0) }} views
+                        </div>
+                    </div>
+                @endif
+            </a>
+        @empty
+            <div style="grid-column: 1 / -1; padding: 40px; text-align: center; color: var(--text-secondary);">
+                No featured training materials configured.
+            </div>
+        @endforelse
+    </div>
 </div>
 
 
@@ -745,10 +948,10 @@
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
     <h2 id="content-title" style="font-size: 20px; font-weight: 600; color: var(--text-primary); margin: 0;">
         <i class="fa fa-th-large" style="color: var(--primary-color); margin-right: 10px;"></i>
-        Featured Topics
+        Topics
     </h2>
     <span id="content-count" style="font-size: 13px; color: var(--text-secondary);">
-    Showing {{ $isFeaturedTab ? count($topicsWithUploads) : (count($courses) + $uploads->count()) }} items
+        Showing {{ $isFeaturedTab ? count($topicsWithUploads) : (count($courses) + $uploads->count()) }} items
     </span>
 </div>
 
@@ -1056,10 +1259,12 @@ function switchTab(tab) {
 
     // Show/hide type filters
     var typeFilters = document.getElementById('type-filters');
-    if (tab === 'uploads' || ['video', 'audio', 'book', 'paper', 'document'].includes(tab)) {
-        typeFilters.style.display = 'flex';
-    } else {
-        typeFilters.style.display = 'none';
+    if (typeFilters) {
+        if (tab === 'uploads' || ['video', 'audio', 'book', 'paper', 'document'].includes(tab)) {
+            typeFilters.style.display = 'flex';
+        } else {
+            typeFilters.style.display = 'none';
+        }
     }
 
     // Update title
@@ -1072,7 +1277,7 @@ function switchTab(tab) {
         'audio': 'Audio Materials',
         'book': 'Books',
         'document': 'Documents',
-        'featured': 'Featured Topics'
+        'featured': 'Topics'
     };
     document.getElementById('content-title').innerHTML = '<i class="fa fa-th-large" style="color: var(--primary-color); margin-right: 10px;"></i>' + titles[tab];
 

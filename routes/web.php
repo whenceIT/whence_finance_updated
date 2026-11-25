@@ -247,6 +247,8 @@ Route::group(['prefix' => 'learning', 'middleware' => 'sentinel'], function () {
     Route::get('/settings/courses', [LearningSettingController::class, 'courses'])->name('learning.settings.courses');
     Route::get('/settings/courses/{id}/details', [LearningSettingController::class, 'getCourseDetails'])->name('learning.settings.courses.details');
     Route::get('/settings/courses/resource-preview', [LearningSettingController::class, 'resourcePreview'])->name('learning.settings.courses.resource-preview');
+    Route::get('/settings/courses/{courseId}/sort-resources', [LearningSettingController::class, 'sortResources'])->name('learning.settings.courses.sort-resources');
+    Route::post('/settings/courses/topics/{topicId}/sort-order', [LearningSettingController::class, 'updateTopicSortOrder'])->name('learning.settings.courses.topics.update-sort-order');
 Route::post('/settings/set-content-push-mode', [PlatformController::class, 'setContentPushMode'])->name('learning.settings.set-content-push-mode');
 });
 
