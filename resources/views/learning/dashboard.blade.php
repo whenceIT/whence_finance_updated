@@ -665,7 +665,7 @@
 .bento-banner {
     width: 100%;
     margin: 0 0 30px 0;
-    padding: 0 20px;
+    padding: 0 0px;
     box-sizing: border-box;
 }
 
@@ -836,6 +836,11 @@
         grid-column: span 1;
     }
 }
+@keyframes badgeShine {
+    0% { left: -100%; }
+    20% { left: 100%; }
+    100% { left: 100%; }
+}
 </style>
 
 @section('content')
@@ -897,9 +902,12 @@
 
 <!-- Bento Banner: featured training materials defined in config/learning.php -->
 <div class="bento-banner">
-    <div class="section-header">
-        <h2>Featured Training</h2>
-        <span class="badge">Hand-picked</span>
+    <div class="section-header" style="position: relative;">
+        <h2 style="color: #D2691E; font-weight: 700;">Recommed Trainings for You</h2>
+        <span class="badge" style="position: relative; overflow: hidden; display: inline-block; padding: 4px 12px; border-radius: 12px; background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05)); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.3); color: #D2691E; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+            <span style="position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent); animation: badgeShine 3s infinite;"></span>
+            Hand-picked
+        </span>
     </div>
     <div class="bento-grid">
         @forelse($featuredMaterials as $index => $material)
