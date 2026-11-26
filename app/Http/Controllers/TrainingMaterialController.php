@@ -464,7 +464,8 @@ class TrainingMaterialController extends Controller
 
         foreach ($fileTypes as $index => $fileType) {
             $newPathValue = $request->input($fileType);
-            \Log::info("updateTopic: $fileType = " . ($newPathValue ?? 'NULL') . " | existing = " . ($topic->$fileType ?? 'NULL'));
+            $logNew = is_array($newPathValue) ? implode(',', $newPathValue) : ($newPathValue ?? 'NULL');
+            \Log::info("updateTopic: $fileType = " . $logNew . " | existing = " . ($topic->$fileType ?? 'NULL'));
             if (!empty($newPathValue)) {
                 $existing = $topic->$fileType ? explode(',', $topic->$fileType) : [];
                 $existing = array_filter($existing);
