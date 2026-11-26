@@ -864,7 +864,114 @@
     display: flex;
 }
 
-/* Existing resource-list-item default hidden for panels - shown via JS */
+/* Play All button */
+.play-all-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 14px 12px;
+    padding: 9px 18px;
+    background: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+.play-all-btn:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+}
+.play-all-btn i {
+    font-size: 15px;
+}
+
+/* Play All overlay */
+.play-all-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.play-all-box {
+    position: relative;
+    width: min(950px, 100vw);
+    max-height: 100vh;
+    background: #1b1b1b;
+    color: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.play-all-box .exit-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    border: none;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    z-index: 2;
+}
+.play-all-box .exit-button:hover {
+    background: rgba(0, 0, 0, 0.95);
+}
+.play-all-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+.play-all-header #play-all-counter {
+    margin-left: auto;
+    font-weight: 500;
+    opacity: 0.8;
+}
+.play-all-stage {
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+}
+.play-all-stage video {
+    max-height: 60vh;
+}
+.play-all-playlist {
+    overflow-y: auto;
+    max-height: 22vh;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+.play-all-track {
+    padding: 8px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.play-all-track:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+.play-all-track.active {
+    background: var(--primary-color);
+    font-weight: 600;
+}
 </style>
 
 <div class="classroom-page">
@@ -1378,6 +1485,9 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
 
         function renderGroup(label, icon, type, arr) {
             var html = '';
+            if ((type === 'video' || type === 'audio') && arr.length) {
+                html += `<button class="play-all-btn" onclick="playAllGroup('${type}')"><i class="fa fa-play-circle"></i> Play All ${label}</button>`;
+            }
             arr.forEach(function(p, i){
                 html += `<div class="resource-list-item resource-item-${type}" data-type="${type}" onclick="previewResource('${type}', '${p}')">
                     <div class="resource-list-icon"><i class="fa ${icon}"></i></div>
@@ -1398,6 +1508,72 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
             { label: 'PowerPoint', icon: 'fa-file-powerpoint-o', type: 'ppt', arr: pptArr },
             { label: 'Word Document', icon: 'fa-file-word-o', type: 'document', arr: docArr }
         ];
+
+        var groupArrays = { video: videoArr, audio: audioArr };
+
+        // Play all resources of a type in sort order, one after another
+        window.playAllGroup = function(type) {
+            var arr = groupArrays[type];
+            if (!arr || !arr.length) return;
+            startEngagementTracking();
+
+            var isVideo = type === 'video';
+            var icon = isVideo ? 'fa-video-camera' : 'fa-music';
+            var label = isVideo ? 'Video' : 'Audio';
+
+            var overlay = document.createElement('div');
+            overlay.className = 'play-all-overlay';
+            overlay.innerHTML = `<div class="play-all-box">
+                <button class="exit-button" onclick="closePlayAll()"><i class="fa fa-times"></i></button>
+                <div class="play-all-header">
+                    <i class="fa ${icon}"></i> Playing ${label}
+                    <span id="play-all-counter">1 / ${arr.length}</span>
+                </div>
+                <div class="play-all-stage">${isVideo
+                    ? `<video id="play-all-media" controls autoplay controlsList="nodownload nofullscreen noremoteplayback" disablePictureInPicture oncontextmenu="return false;" style="width:100%;"><source src="${arr[0]}" type="video/mp4"></video>`
+                    : `<audio id="play-all-media" controls autoplay controlsList="nodownload nofullscreen noremoteplayback" oncontextmenu="return false;" style="width:100%;"><source src="${arr[0]}" type="audio/mpeg"></audio>`}
+                </div>
+                <div class="play-all-playlist">${arr.map(function(p, i){
+                    return `<div class="play-all-track ${i === 0 ? 'active' : ''}" data-idx="${i}">${i + 1}. ${p.split('/').pop()}</div>`;
+                }).join('')}</div>
+            </div>`;
+            document.body.appendChild(overlay);
+
+            var media = document.getElementById('play-all-media');
+            var current = 0;
+
+            function playTrack(i) {
+                current = i;
+                var source = media.querySelector('source');
+                source.src = arr[i];
+                media.load();
+                var p = media.play();
+                if (p && p.catch) p.catch(function(){});
+                document.getElementById('play-all-counter').textContent = (i + 1) + ' / ' + arr.length;
+                overlay.querySelectorAll('.play-all-track').forEach(function(t){
+                    t.classList.toggle('active', parseInt(t.dataset.idx, 10) === i);
+                });
+            }
+
+            media.addEventListener('ended', function() {
+                if (current + 1 < arr.length) {
+                    playTrack(current + 1);
+                } else {
+                    closePlayAll();
+                }
+            });
+
+            overlay.querySelectorAll('.play-all-track').forEach(function(t){
+                t.addEventListener('click', function(){
+                    playTrack(parseInt(this.dataset.idx, 10));
+                });
+            });
+        };
+
+        window.closePlayAll = function() {
+            var o = document.querySelector('.play-all-overlay');
+            if (o) o.remove();
+        };
 
         // Display resources in classroom-style grouped layout
         let previewHTML = `<div class="resource-list">
