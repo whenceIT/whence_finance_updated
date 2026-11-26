@@ -149,59 +149,156 @@ $breadcrumb = [
                     <!-- Current Files Info -->
                     <div style="background: var(--light-bg); border-radius: 8px; padding: 16px; margin-bottom: 20px; border: 1px solid var(--border-color);">
                         <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">Current Files</h4>
-                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                            @if($topic->video_file_path)
-                            <div style="display: flex; align-items: center; gap: 6px; background: rgba(255, 107, 107, 0.1); padding: 6px 12px; border-radius: 4px; font-size: 12px; color: #ff6b6b;">
-                                <i class="fa fa-video-camera"></i>
-                                <span>Video</span>
-                            </div>
-                            @endif
-                            @if($topic->audio_file_path)
-                            <div style="display: flex; align-items: center; gap: 6px; background: rgba(80, 200, 120, 0.1); padding: 6px 12px; border-radius: 4px; font-size: 12px; color: #50c878;">
-                                <i class="fa fa-headphones"></i>
-                                <span>Audio</span>
-                            </div>
-                            @endif
-                            @if($topic->pdf_file_path)
-                            <div style="display: flex; align-items: center; gap: 6px; background: rgba(74, 144, 226, 0.1); padding: 6px 12px; border-radius: 4px; font-size: 12px; color: #4a90e2;">
-                                <i class="fa fa-file-pdf-o"></i>
-                                <span>PDF</span>
-                            </div>
-                            @endif
-                            @if($topic->ppt_file_path)
-                            <div style="display: flex; align-items: center; gap: 6px; background: rgba(247, 183, 51, 0.1); padding: 6px 12px; border-radius: 4px; font-size: 12px; color: #f7b733;">
-                                <i class="fa fa-file-powerpoint-o"></i>
-                                <span>PPT</span>
-                            </div>
-                            @endif
-                            @if($topic->document_file_path)
-                            <div style="display: flex; align-items: center; gap: 6px; background: rgba(149, 165, 166, 0.1); padding: 6px 12px; border-radius: 4px; font-size: 12px; color: #95a5a6;">
-                                <i class="fa fa-file-text-o"></i>
-                                <span>Document</span>
-                            </div>
-                            @endif
-                            @if(!$topic->video_file_path && !$topic->audio_file_path && !$topic->pdf_file_path && !$topic->ppt_file_path && !$topic->document_file_path)
-                            <span style="color: var(--text-secondary); font-size: 12px;">No files attached</span>
-                            @endif
+
+                        @php
+                            $videoFiles = $topic->video_file_path ? array_filter(explode(',', $topic->video_file_path)) : [];
+                            $audioFiles = $topic->audio_file_path ? array_filter(explode(',', $topic->audio_file_path)) : [];
+                            $pdfFiles = $topic->pdf_file_path ? array_filter(explode(',', $topic->pdf_file_path)) : [];
+                            $pptFiles = $topic->ppt_file_path ? array_filter(explode(',', $topic->ppt_file_path)) : [];
+                            $documentFiles = $topic->document_file_path ? array_filter(explode(',', $topic->document_file_path)) : [];
+                            $sortFn = function($a, $b) {
+                                $aName = basename($a);
+                                $bName = basename($b);
+                                preg_match('/\d+/', $aName, $aMatch);
+                                preg_match('/\d+/', $bName, $bMatch);
+                                $aNum = isset($aMatch[0]) ? (int)$aMatch[0] : PHP_INT_MAX;
+                                $bNum = isset($bMatch[0]) ? (int)$bMatch[0] : PHP_INT_MAX;
+                                return $aNum - $bNum;
+                            };
+                            usort($videoFiles, $sortFn);
+                            usort($audioFiles, $sortFn);
+                            usort($pdfFiles, $sortFn);
+                            usort($pptFiles, $sortFn);
+                            usort($documentFiles, $sortFn);
+                            $totalFiles = count($videoFiles) + count($audioFiles) + count($pdfFiles) + count($pptFiles) + count($documentFiles);
+                            $firstNonEmptyGroup = null;
+                            foreach (['video' => $videoFiles, 'audio' => $audioFiles, 'pdf' => $pdfFiles, 'ppt' => $pptFiles, 'document' => $documentFiles] as $group => $files) {
+                                if (count($files) > 0) {
+                                    $firstNonEmptyGroup = $group;
+                                    break;
+                                }
+                            }
+                        @endphp
+
+                        @if($totalFiles > 0)
+                        <!-- Category Tabs -->
+                        <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); margin-bottom: 12px;">
+                            <button class="resource-tab {{ count($videoFiles) ? 'active' : '' }}" onclick="showFileGroup('video', this)" data-group="video" style="{{ count($videoFiles) ? '' : 'opacity:0.5;cursor:not-allowed;' }}">
+                                <i class="fa fa-video-camera"></i> Video <span class="resource-tab-count">({{ count($videoFiles) }})</span>
+                            </button>
+                            <button class="resource-tab {{ count($audioFiles) ? 'active' : '' }}" onclick="showFileGroup('audio', this)" data-group="audio" style="{{ count($audioFiles) ? '' : 'opacity:0.5;cursor:not-allowed;' }}">
+                                <i class="fa fa-headphones"></i> Audio <span class="resource-tab-count">({{ count($audioFiles) }})</span>
+                            </button>
+                            <button class="resource-tab {{ count($pdfFiles) ? 'active' : '' }}" onclick="showFileGroup('pdf', this)" data-group="pdf" style="{{ count($pdfFiles) ? '' : 'opacity:0.5;cursor:not-allowed;' }}">
+                                <i class="fa fa-file-pdf-o"></i> PDF <span class="resource-tab-count">({{ count($pdfFiles) }})</span>
+                            </button>
+                            <button class="resource-tab {{ count($pptFiles) ? 'active' : '' }}" onclick="showFileGroup('ppt', this)" data-group="ppt" style="{{ count($pptFiles) ? '' : 'opacity:0.5;cursor:not-allowed;' }}">
+                                <i class="fa fa-file-powerpoint-o"></i> PowerPoint <span class="resource-tab-count">({{ count($pptFiles) }})</span>
+                            </button>
+                            <button class="resource-tab {{ count($documentFiles) ? 'active' : '' }}" onclick="showFileGroup('document', this)" data-group="document" style="{{ count($documentFiles) ? '' : 'opacity:0.5;cursor:not-allowed;' }}">
+                                <i class="fa fa-file-text-o"></i> Word Document <span class="resource-tab-count">({{ count($documentFiles) }})</span>
+                            </button>
                         </div>
+
+                        <!-- File Groups -->
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <!-- Video -->
+                            <div class="file-group-panel {{ count($videoFiles) ? '' : 'resource-group-empty' }}" id="file-group-video" style="{{ ($firstNonEmptyGroup === 'video') ? 'display:block' : 'display:none' }};">
+                                @foreach($videoFiles as $vf)
+                                <div style="display: flex; align-items: center; gap: 8px; background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                                    <div style="flex: 1;">
+                                        <i class="fa fa-video-camera" style="color: #ff6b6b; margin-right: 6px;"></i>
+                                        <span style="font-size: 12px; color: var(--text-primary);">{{ e(basename($vf)) }}</span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-default" style="padding: 4px 10px; font-size: 11px; margin-left: auto; color: #dc3545; border-color: #dc3545;" data-delete-url="{{ route('learning.training-materials.remove-file', ['topicId' => $topic->id, 'fileType' => 'video_file_path', 'fileIndex' => $loop->index]) }}" onclick="if(confirm('Are you sure you want to remove this file?')){ deleteFile(this); }">
+                                        <i class="fa fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                                @endforeach
+                            </div>
+
+                            <!-- Audio -->
+                            <div class="file-group-panel {{ count($audioFiles) ? '' : 'resource-group-empty' }}" id="file-group-audio" style="{{ ($firstNonEmptyGroup === 'audio') ? 'display:block' : 'display:none' }};">
+                                @foreach($audioFiles as $af)
+                                <div style="display: flex; align-items: center; gap: 8px; background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                                    <div style="flex: 1;">
+                                        <i class="fa fa-headphones" style="color: #50c878; margin-right: 6px;"></i>
+                                        <span style="font-size: 12px; color: var(--text-primary);">{{ e(basename($af)) }}</span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-default" style="padding: 4px 10px; font-size: 11px; margin-left: auto; color: #dc3545; border-color: #dc3545;" data-delete-url="{{ route('learning.training-materials.remove-file', ['topicId' => $topic->id, 'fileType' => 'audio_file_path', 'fileIndex' => $loop->index]) }}" onclick="if(confirm('Are you sure you want to remove this file?')){ deleteFile(this); }">
+                                        <i class="fa fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                                @endforeach
+                            </div>
+
+                            <!-- PDF -->
+                            <div class="file-group-panel {{ count($pdfFiles) ? '' : 'resource-group-empty' }}" id="file-group-pdf" style="{{ ($firstNonEmptyGroup === 'pdf') ? 'display:block' : 'display:none' }};">
+                                @foreach($pdfFiles as $pf)
+                                <div style="display: flex; align-items: center; gap: 8px; background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                                    <div style="flex: 1;">
+                                        <i class="fa fa-file-pdf-o" style="color: #4a90e2; margin-right: 6px;"></i>
+                                        <span style="font-size: 12px; color: var(--text-primary);">{{ e(basename($pf)) }}</span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-default" style="padding: 4px 10px; font-size: 11px; margin-left: auto; color: #dc3545; border-color: #dc3545;" data-delete-url="{{ route('learning.training-materials.remove-file', ['topicId' => $topic->id, 'fileType' => 'pdf_file_path', 'fileIndex' => $loop->index]) }}" onclick="if(confirm('Are you sure you want to remove this file?')){ deleteFile(this); }">
+                                        <i class="fa fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                                @endforeach
+                            </div>
+
+                            <!-- PowerPoint -->
+                            <div class="file-group-panel {{ count($pptFiles) ? '' : 'resource-group-empty' }}" id="file-group-ppt" style="{{ ($firstNonEmptyGroup === 'ppt') ? 'display:block' : 'display:none' }};">
+                                @foreach($pptFiles as $ptf)
+                                <div style="display: flex; align-items: center; gap: 8px; background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                                    <div style="flex: 1;">
+                                        <i class="fa fa-file-powerpoint-o" style="color: #f7b733; margin-right: 6px;"></i>
+                                        <span style="font-size: 12px; color: var(--text-primary);">{{ e(basename($ptf)) }}</span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-default" style="padding: 4px 10px; font-size: 11px; margin-left: auto; color: #dc3545; border-color: #dc3545;" data-delete-url="{{ route('learning.training-materials.remove-file', ['topicId' => $topic->id, 'fileType' => 'ppt_file_path', 'fileIndex' => $loop->index]) }}" onclick="if(confirm('Are you sure you want to remove this file?')){ deleteFile(this); }">
+                                        <i class="fa fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                                @endforeach
+                            </div>
+
+                            <!-- Word Document -->
+                            <div class="file-group-panel {{ count($documentFiles) ? '' : 'resource-group-empty' }}" id="file-group-document" style="{{ ($firstNonEmptyGroup === 'document') ? 'display:block' : 'display:none' }};">
+                                @foreach($documentFiles as $df)
+                                <div style="display: flex; align-items: center; gap: 8px; background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                                    <div style="flex: 1;">
+                                        <i class="fa fa-file-text-o" style="color: #95a5a6; margin-right: 6px;"></i>
+                                        <span style="font-size: 12px; color: var(--text-primary);">{{ e(basename($df)) }}</span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-default" style="padding: 4px 10px; font-size: 11px; margin-left: auto; color: #dc3545; border-color: #dc3545;" data-delete-url="{{ route('learning.training-materials.remove-file', ['topicId' => $topic->id, 'fileType' => 'document_file_path', 'fileIndex' => $loop->index]) }}" onclick="if(confirm('Are you sure you want to remove this file?')){ deleteFile(this); }">
+                                        <i class="fa fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        @else
+                        <p style="color: var(--text-secondary); font-size: 12px;">No files attached</p>
+                        @endif
+
                         <p style="font-size: 11px; color: var(--text-secondary); margin-top: 8px; margin-bottom: 0;">
-                            <i class="fa fa-info-circle"></i> To replace a file, upload a new one below. Leave empty to keep the existing file.
+                            <i class="fa fa-info-circle"></i> To add more files, upload below. Leave empty to keep existing files.
                         </p>
                     </div>
                     
                     <!-- File Uploads with Custom Chunked Upload -->
                     <div style="margin-top: 15px;">
                         <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">
-                            Video File (replace existing)
+                            Video File (add files)
                         </label>
                         <div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px; background: white;">
                             <i class="fa fa-video-camera" style="font-size: 16px; color: #ff6b6b;"></i>
                             <input type="file" id="video-file-input" 
                                 style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
-                                accept="video/*" onchange="handleFileSelect(this, 'video')">
+                                accept="video/*" onchange="handleFileSelect(this, 'video')" multiple>
                         </div>
                         <div id="video-progress-container" style="margin-top: 8px; display: none;">
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                            <div style="display: block; margin-bottom: 4px;">
                                 <span id="video-file-name" style="font-size: 12px; color: var(--text-secondary);"></span>
                                 <span id="video-progress-text" style="font-size: 12px; color: var(--text-secondary);">0%</span>
                             </div>
@@ -218,16 +315,16 @@ $breadcrumb = [
 
                     <div style="margin-top: 15px;">
                         <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">
-                            Audio File (replace existing)
+                            Audio File (add files)
                         </label>
                         <div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px; background: white;">
                             <i class="fa fa-headphones" style="font-size: 16px; color: #50c878;"></i>
                             <input type="file" id="audio-file-input" 
                                 style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
-                                accept="audio/*" onchange="handleFileSelect(this, 'audio')">
+                                accept="audio/*" onchange="handleFileSelect(this, 'audio')" multiple>
                         </div>
                         <div id="audio-progress-container" style="margin-top: 8px; display: none;">
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                            <div style="display: block; margin-bottom: 4px;">
                                 <span id="audio-file-name" style="font-size: 12px; color: var(--text-secondary);"></span>
                                 <span id="audio-progress-text" style="font-size: 12px; color: var(--text-secondary);">0%</span>
                             </div>
@@ -244,16 +341,16 @@ $breadcrumb = [
 
                     <div style="margin-top: 15px;">
                         <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">
-                            PDF File (replace existing)
+                            PDF File (add files)
                         </label>
                         <div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px; background: white;">
                             <i class="fa fa-file-pdf-o" style="font-size: 16px; color: #4a90e2;"></i>
                             <input type="file" id="pdf-file-input" 
                                 style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
-                                accept="application/pdf" onchange="handleFileSelect(this, 'pdf')">
+                                accept="application/pdf" onchange="handleFileSelect(this, 'pdf')" multiple>
                         </div>
                         <div id="pdf-progress-container" style="margin-top: 8px; display: none;">
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                            <div style="display: block; margin-bottom: 4px;">
                                 <span id="pdf-file-name" style="font-size: 12px; color: var(--text-secondary);"></span>
                                 <span id="pdf-progress-text" style="font-size: 12px; color: var(--text-secondary);">0%</span>
                             </div>
@@ -270,16 +367,16 @@ $breadcrumb = [
 
                     <div style="margin-top: 15px;">
                         <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">
-                            PPT File (replace existing)
+                            PPT File (add files)
                         </label>
                         <div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px; background: white;">
                             <i class="fa fa-file-powerpoint-o" style="font-size: 16px; color: #f7b733;"></i>
                             <input type="file" id="ppt-file-input" 
                                 style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
-                                accept="application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation" onchange="handleFileSelect(this, 'ppt')">
+                                accept="application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation" onchange="handleFileSelect(this, 'ppt')" multiple>
                         </div>
                         <div id="ppt-progress-container" style="margin-top: 8px; display: none;">
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                            <div style="display: block; margin-bottom: 4px;">
                                 <span id="ppt-file-name" style="font-size: 12px; color: var(--text-secondary);"></span>
                                 <span id="ppt-progress-text" style="font-size: 12px; color: var(--text-secondary);">0%</span>
                             </div>
@@ -296,16 +393,16 @@ $breadcrumb = [
 
                     <div style="margin-top: 15px;">
                         <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">
-                            Document File (replace existing)
+                            Document File (add files)
                         </label>
                         <div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px; background: white;">
                             <i class="fa fa-file-text-o" style="font-size: 16px; color: #95a5a6;"></i>
                             <input type="file" id="document-file-input" 
                                 style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
-                                accept="application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" onchange="handleFileSelect(this, 'document')">
+                                accept="application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" onchange="handleFileSelect(this, 'document')" multiple>
                         </div>
                         <div id="document-progress-container" style="margin-top: 8px; display: none;">
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                            <div style="display: block; margin-bottom: 4px;">
                                 <span id="document-file-name" style="font-size: 12px; color: var(--text-secondary);"></span>
                                 <span id="document-progress-text" style="font-size: 12px; color: var(--text-secondary);">0%</span>
                             </div>
@@ -363,36 +460,83 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (form) {
         form.addEventListener('submit', async function(e) {
-            // Check if there are any pending uploads
-            const pendingUploads = Object.keys(uploadPromises).filter(key => uploadPromises[key] instanceof Promise);
+            e.preventDefault();
             
-            if (pendingUploads.length > 0 && isUploading) {
-                e.preventDefault();
-                alert('Please wait for file uploads to complete before submitting.');
+            if (isUploading) {
                 return;
+            }
+            
+            isUploading = true;
+            
+            const submitButtons = form.querySelectorAll('button[type="submit"]');
+            submitButtons.forEach(button => {
+                button.disabled = true;
+                button.style.opacity = '0.7';
+            });
+            
+            try {
+                await Promise.all(Object.values(uploadPromises));
+                form.submit();
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('Error uploading files. Please try again.');
+                isUploading = false;
+                submitButtons.forEach(button => {
+                    button.disabled = false;
+                    button.style.opacity = '1';
+                });
             }
         });
     }
 });
 
 async function handleFileSelect(input, type) {
-    const file = input.files[0];
-    if (!file) return;
-    
+    const files = Array.from(input.files || []);
+    if (!files.length) return;
+
     const progressContainer = document.getElementById(`${type}-progress-container`);
     const fileNameElement = document.getElementById(`${type}-file-name`);
     const progressText = document.getElementById(`${type}-progress-text`);
     const progressBar = document.getElementById(`${type}-progress-bar`);
-    
-    fileNameElement.textContent = file.name;
-    progressContainer.style.display = 'block';
-    progressText.textContent = '0%';
-    progressBar.style.width = '0%';
-    
-    // Create and store upload promise
-    uploadPromises[type] = uploadFile(file, type, (progress) => {
-        progressText.textContent = `${Math.round(progress)}%`;
-        progressBar.style.width = `${progress}%`;
+
+    // single file keeps original container
+    if (files.length === 1) {
+        const file = files[0];
+        fileNameElement.textContent = file.name;
+        progressContainer.style.display = 'block';
+        progressText.textContent = '0%';
+        progressBar.style.width = '0%';
+        uploadPromises[type] = uploadFile(file, type, (progress) => {
+            progressText.textContent = `${Math.round(progress)}%`;
+            progressBar.style.width = `${progress}%`;
+        });
+        return;
+    }
+
+    // multiple: create a progress container per file
+    files.forEach(function(file, idx) {
+        const key = `${type}_${idx}`;
+        const container = document.createElement('div');
+        container.className = 'progress-container';
+        container.style.display = 'block';
+        container.innerHTML = `
+            <div style="display:block;margin-bottom:4px;">
+                <span id="${key}-file-name" style="font-size:12px;color:var(--text-secondary);"></span>
+                <span id="${key}-progress-text" style="font-size:12px;color:var(--text-secondary);">0%</span>
+            </div>
+            <div style="width:100%;height:4px;background:var(--border-color);border-radius:2px;overflow:hidden;">
+                <div id="${key}-progress-bar" style="height:100%;background:var(--secondary-color);width:0%;transition:width .3s ease;"></div>
+            </div>
+        `;
+        progressContainer.parentNode.insertBefore(container, progressContainer.nextSibling);
+        const fn = document.getElementById(`${key}-file-name`);
+        const pt = document.getElementById(`${key}-progress-text`);
+        const pb = document.getElementById(`${key}-progress-bar`);
+        fn.textContent = file.name;
+        uploadPromises[key] = uploadFile(file, type, (progress) => {
+            pt.textContent = `${Math.round(progress)}%`;
+            pb.style.width = `${progress}%`;
+        });
     });
 }
 
@@ -400,12 +544,12 @@ async function uploadFile(file, type, onProgress) {
     const chunkSize = CHUNK_SIZE;
     const totalChunks = Math.ceil(file.size / chunkSize);
     const fileId = generateFileId(file);
-    
+
     for (let i = 0; i < totalChunks; i++) {
         const start = i * chunkSize;
         const end = Math.min(start + chunkSize, file.size);
         const chunk = file.slice(start, end);
-        
+
         const formData = new FormData();
         formData.append('chunk', chunk);
         formData.append('index', i);
@@ -413,7 +557,7 @@ async function uploadFile(file, type, onProgress) {
         formData.append('filename', file.name);
         formData.append('fileId', fileId);
         formData.append('type', type);
-        
+
         const response = await fetch('{{ url("learning/training-materials/upload-chunk") }}', {
             method: 'POST',
             headers: {
@@ -421,15 +565,15 @@ async function uploadFile(file, type, onProgress) {
             },
             body: formData
         });
-        
+
         if (!response.ok) {
             throw new Error(`Failed to upload chunk ${i + 1}/${totalChunks}`);
         }
-        
+
         const progress = ((i + 1) / totalChunks) * 100;
         onProgress(progress);
     }
-    
+
     // Merge chunks and get file path
     const mergeResponse = await fetch('{{ url("learning/training-materials/merge-chunks") }}', {
         method: 'POST',
@@ -444,18 +588,86 @@ async function uploadFile(file, type, onProgress) {
             totalChunks: totalChunks
         })
     });
-    
+
     if (!mergeResponse.ok) {
         throw new Error('Failed to merge chunks');
     }
-    
+
     const data = await mergeResponse.json();
-    document.getElementById(`${type}_file_path`).value = data.filePath;
-    document.getElementById(`${type}_file_name`).value = data.fileName;
+    const hidden = document.createElement('input');
+    hidden.type = 'hidden';
+    hidden.name = `${type}_file_path[]`;
+    hidden.value = data.filePath;
+    document.querySelector('form').appendChild(hidden);
 }
 
 function generateFileId(file) {
     return `${file.name}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
+
+// Toggle between file category groups
+function showFileGroup(type, btn) {
+    // Hide all panels
+    document.querySelectorAll('.file-group-panel').forEach(function(panel){
+        panel.style.display = 'none';
+    });
+    // Show selected panel
+    var panel = document.getElementById('file-group-' + type);
+    if (panel) panel.style.display = 'block';
+    // Update active tab styling
+    document.querySelectorAll('.resource-tab').forEach(function(b){
+        b.style.background = '';
+        b.style.color = '';
+        b.style.fontWeight = '600';
+    });
+    if (btn) {
+        btn.style.background = 'var(--primary-color)';
+        btn.style.color = 'white';
+        btn.style.fontWeight = '700';
+    }
+}
+
+// Delete a file from a topic's comma-separated list
+function deleteFile(btn) {
+    var url = btn.getAttribute('data-delete-url');
+    fetch(url, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+    })
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.success) {
+            // Remove the row from DOM
+            var row = btn.closest('div[style*="display: flex; align-items: center"]');
+            if (row) {
+                row.remove();
+            }
+            // If no files remain in this group, show empty state
+            var panel = btn.closest('.file-group-panel');
+            if (panel && panel.querySelectorAll('div[style*="display: flex; align-items: center"]').length === 0) {
+                panel.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-secondary); font-size: 13px;">No files in this group.</div>';
+            }
+        } else {
+            alert(data.error || 'Failed to remove file.');
+        }
+    })
+    .catch(function() {
+        alert('An error occurred while removing the file.');
+    });
+}
+
+// Activate first available file group on page load
+document.addEventListener('DOMContentLoaded', function() {
+    var firstTab = document.querySelector('.resource-tab:not([style*="opacity:0.5"])');
+    if (firstTab) {
+        showFileGroup(firstTab.dataset.group, firstTab);
+    }
+});
 </script>
 @endsection

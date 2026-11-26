@@ -3,14 +3,14 @@
 @section('title', $material->title . ' - Whence Learn')
 
 @section('content')
-<div class="page-header">
+<div class="page-header" style="{{ $material->poster ? 'background: linear-gradient(rgba(255,255,255,0.82), rgba(255,255,255,0.82)), url(\'' . $material->poster . '\'); background-size: cover; background-position: center; border-radius: 12px;' : 'background: #ffffff;' }}">
     <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;">
         <div style="display: flex; align-items: center; gap: 16px; flex: 1; min-width: 0;">
             <a href="{{ url('/learning') }}" style="color: var(--primary-color); font-size: 24px;">
                 <i class="fa fa-arrow-left"></i>
             </a>
             <div style="min-width: 0;">
-                <h1 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $material->title }}</h1>
+                <h1 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 900; -webkit-text-stroke: 0.6px currentColor; text-shadow: 1px 1px 0 rgba(0,0,0,0.18);">{{ $material->title }}</h1>
                 <p style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">by {{ $material->creator->first_name }} {{ $material->creator->last_name }}</p>
             </div>
         </div>
@@ -40,6 +40,41 @@
 </div>
 
 <style>
+.classroom-cta-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    width: 100%;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+    color: #fff !important;
+    font-size: 20px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: none;
+    border-radius: 16px;
+    text-decoration: none !important;
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.45);
+    animation: classroomCtaBlink 1.1s ease-in-out infinite;
+    transition: transform 0.15s ease;
+}
+.classroom-cta-btn:hover {
+    transform: scale(1.04);
+    animation-play-state: paused;
+    box-shadow: 0 8px 28px rgba(40, 167, 69, 0.6);
+}
+.classroom-cta-btn img {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+}
+@keyframes classroomCtaBlink {
+    0%, 100% { box-shadow: 0 6px 20px rgba(40, 167, 69, 0.45); filter: brightness(1); }
+    50% { box-shadow: 0 6px 34px rgba(40, 167, 69, 0.9); filter: brightness(1.25); }
+}
 @media (max-width: 768px) {
     .page-header > div {
         flex-direction: column !important;
@@ -112,7 +147,7 @@
                     <i class="fa fa-eye"></i>
                     <span>{{ \App\Helpers\GeneralHelper::calculate_view_percentage($totalTopicViews) }}% views</span>
                 </div>
-                <div style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px; text-align: center; color: white; box-shadow: 0 8px 32px rgba(74, 144, 226, 0.3);">
+                <div style="background: #FF7A00; border-radius: 16px; padding: 32px; margin-bottom: 24px; text-align: center; color: white; box-shadow: 0 8px 32px rgba(255, 122, 0, 0.3);">
                     <div style="display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 8px;">
                         <i class="fa fa-eye" style="font-size: 32px; opacity: 0.9;"></i>
                         <div style="font-size: 48px; font-weight: 700; line-height: 1;">{{ number_format($totalTopicViews) }}</div>
@@ -270,8 +305,9 @@
                     @endif
 
                     <!-- Classroom Button -->
-                    <a href="{{ url('/learning/course/' . $material->id . '/classroom') }}" class="btn btn-success btn-block" style="margin-bottom: 12px;">
-                        <i class="fa fa-chalkboard-teacher"></i> Open Classroom
+                    <a href="{{ url('/learning/course/' . $material->id . '/classroom') }}" class="classroom-cta-btn">
+                        <img src="{{ asset('anim/learning.gif') }}" alt="Open Classroom" />
+                        <span>Open Classroom</span>
                     </a>
                 
                 @else

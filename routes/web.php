@@ -442,7 +442,8 @@ Route::post('/quiz/{quizId}/submit', [QuizController::class, 'submit'])->name('l
       // Topics management route for trainers
      Route::get('/{materialId}/topics', [TrainingMaterialController::class, 'topics'])->name('learning.training-materials.topics');
      Route::post('/topic/{topicId}/increment-view', [TrainingMaterialController::class, 'incrementTopicView'])->name('learning.training-materials.increment-topic-view');
- });
+     Route::delete('/topic/{topicId}/file/{fileType}/{fileIndex}', [TrainingMaterialController::class, 'removeFile'])->name('learning.training-materials.remove-file');
+});
 
 // General Uploads Management Routes
     Route::group(['prefix' => 'learning/general-uploads', 'middleware' => 'sentinel'], function () {

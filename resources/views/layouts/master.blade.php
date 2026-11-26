@@ -2381,7 +2381,24 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
     @endif
 
     {{-- Clean up disbursed loans with zero balance --}}
-
+    <!-- <script>
+        (function() {
+            fetch('{{ route("cleanup-loans") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            }).then(function(response) {
+                return response.json();
+            }).then(function(data) {
+                console.log('Loan cleanup completed:', data);
+            }).catch(function(error) {
+                console.error('Loan cleanup error:', error);
+            });
+        })();
+    </script> -->
 
 </body>
 

@@ -800,6 +800,178 @@
         width: 100%;
     }
 }
+
+/* Resource group tabs */
+.resource-group-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-color);
+}
+.resource-tab {
+    background: var(--light-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.resource-tab:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+.resource-tab-empty {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.resource-tab-count {
+    font-weight: 500;
+    opacity: 0.8;
+}
+.resource-tab i {
+    font-size: 14px;
+}
+
+/* Resource group panels */
+.resource-group-panel {
+    display: none;
+    animation: fadeIn 0.2s ease;
+}
+.resource-group-panel.resource-group-empty {
+    display: none;
+}
+.resource-group-empty-msg {
+    padding: 20px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Ensure resource list items inside panels show correctly */
+.resource-group-panel .resource-list-item {
+    display: flex;
+}
+
+/* Play All button */
+.play-all-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 14px 12px;
+    padding: 9px 18px;
+    background: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+.play-all-btn:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+}
+.play-all-btn i {
+    font-size: 15px;
+}
+
+/* Play All overlay */
+.play-all-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.play-all-box {
+    position: relative;
+    width: min(950px, 100vw);
+    max-height: 100vh;
+    background: #1b1b1b;
+    color: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.play-all-box .exit-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    border: none;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    z-index: 2;
+}
+.play-all-box .exit-button:hover {
+    background: rgba(0, 0, 0, 0.95);
+}
+.play-all-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+.play-all-header #play-all-counter {
+    margin-left: auto;
+    font-weight: 500;
+    opacity: 0.8;
+}
+.play-all-stage {
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+}
+.play-all-stage video {
+    max-height: 60vh;
+}
+.play-all-playlist {
+    overflow-y: auto;
+    max-height: 22vh;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+.play-all-track {
+    padding: 8px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.play-all-track:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+.play-all-track.active {
+    background: var(--primary-color);
+    font-weight: 600;
+}
 </style>
 
 <div class="classroom-page">
@@ -1295,14 +1467,8 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
     
     if (hasFile) {
         resourceContainer.style.display = 'block';
-        
-        // Display resources in classroom-style list layout
-        let previewHTML = `<div class="resource-list">
-            <div class="resource-list-header">
-                <i class="fa fa-folder-open"></i>
-                <span>Learning Resources</span>
-            </div>`;
-        
+
+        // Build sorted arrays per type
         function getFirstNumber(filePath) {
             var fileName = filePath.split('/').pop();
             var match = fileName.match(/\d+/);
@@ -1311,64 +1477,157 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
         function sortByFirstNumber(a, b) {
             return getFirstNumber(a) - getFirstNumber(b);
         }
+        var videoArr = (Array.isArray(videoFilePath)?videoFilePath:[videoFilePath]).filter(Boolean).sort(sortByFirstNumber);
+        var audioArr = (Array.isArray(audioFilePath)?audioFilePath:[audioFilePath]).filter(Boolean).sort(sortByFirstNumber);
+        var pdfArr = (Array.isArray(pdfFilePath)?pdfFilePath:[pdfFilePath]).filter(Boolean).sort(sortByFirstNumber);
+        var pptArr = (Array.isArray(pptFilePath)?pptFilePath:[pptFilePath]).filter(Boolean).sort(sortByFirstNumber);
+        var docArr = (Array.isArray(documentFilePath)?documentFilePath:[documentFilePath]).filter(Boolean).sort(sortByFirstNumber);
 
-        (Array.isArray(videoFilePath)?videoFilePath:[videoFilePath]).filter(Boolean).sort(sortByFirstNumber).forEach(function(p, i){
-            previewHTML += `<div class="resource-list-item" data-type="video" onclick="previewResource('video', '${p}')">
-                <div class="resource-list-icon"><i class="fa fa-video-camera"></i></div>
-                <div class="resource-list-info">
-                    <div class="resource-list-name"><i class="fa fa-play-circle"></i><span>Video ${i+1}</span></div>
-                    <div class="resource-list-description">${p.split('/').pop()}</div>
+        function renderGroup(label, icon, type, arr) {
+            var html = '';
+            if ((type === 'video' || type === 'audio') && arr.length) {
+                html += `<button class="play-all-btn" onclick="playAllGroup('${type}')"><i class="fa fa-play-circle"></i> Play All ${label}</button>`;
+            }
+            arr.forEach(function(p, i){
+                html += `<div class="resource-list-item resource-item-${type}" data-type="${type}" onclick="previewResource('${type}', '${p}')">
+                    <div class="resource-list-icon"><i class="fa ${icon}"></i></div>
+                    <div class="resource-list-info">
+                        <div class="resource-list-name"><i class="fa ${icon}"></i><span>${label} ${i+1}</span></div>
+                        <div class="resource-list-description">${p.split('/').pop()}</div>
+                    </div>
+                    <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
+                </div>`;
+            });
+            return html;
+        }
+
+        var groupData = [
+            { label: 'Video', icon: 'fa-video-camera', type: 'video', arr: videoArr },
+            { label: 'Audio', icon: 'fa-music', type: 'audio', arr: audioArr },
+            { label: 'PDF', icon: 'fa-file-pdf-o', type: 'pdf', arr: pdfArr },
+            { label: 'PowerPoint', icon: 'fa-file-powerpoint-o', type: 'ppt', arr: pptArr },
+            { label: 'Word Document', icon: 'fa-file-word-o', type: 'document', arr: docArr }
+        ];
+
+        var groupArrays = { video: videoArr, audio: audioArr };
+
+        // Play all resources of a type in sort order, one after another
+        window.playAllGroup = function(type) {
+            var arr = groupArrays[type];
+            if (!arr || !arr.length) return;
+            startEngagementTracking();
+
+            var isVideo = type === 'video';
+            var icon = isVideo ? 'fa-video-camera' : 'fa-music';
+            var label = isVideo ? 'Video' : 'Audio';
+
+            var overlay = document.createElement('div');
+            overlay.className = 'play-all-overlay';
+            overlay.innerHTML = `<div class="play-all-box">
+                <button class="exit-button" onclick="closePlayAll()"><i class="fa fa-times"></i></button>
+                <div class="play-all-header">
+                    <i class="fa ${icon}"></i> Playing ${label}
+                    <span id="play-all-counter">1 / ${arr.length}</span>
                 </div>
-                <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
-            </div>`;
-        });
-        (Array.isArray(audioFilePath)?audioFilePath:[audioFilePath]).filter(Boolean).sort(sortByFirstNumber).forEach(function(p, i){
-            previewHTML += `<div class="resource-list-item" data-type="audio" onclick="previewResource('audio', '${p}')">
-                <div class="resource-list-icon"><i class="fa fa-music"></i></div>
-                <div class="resource-list-info">
-                    <div class="resource-list-name"><i class="fa fa-volume-up"></i><span>Audio ${i+1}</span></div>
-                    <div class="resource-list-description">${p.split('/').pop()}</div>
+                <div class="play-all-stage">${isVideo
+                    ? `<video id="play-all-media" controls autoplay controlsList="nodownload nofullscreen noremoteplayback" disablePictureInPicture oncontextmenu="return false;" style="width:100%;"><source src="${arr[0]}" type="video/mp4"></video>`
+                    : `<audio id="play-all-media" controls autoplay controlsList="nodownload nofullscreen noremoteplayback" oncontextmenu="return false;" style="width:100%;"><source src="${arr[0]}" type="audio/mpeg"></audio>`}
                 </div>
-                <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
+                <div class="play-all-playlist">${arr.map(function(p, i){
+                    return `<div class="play-all-track ${i === 0 ? 'active' : ''}" data-idx="${i}">${i + 1}. ${p.split('/').pop()}</div>`;
+                }).join('')}</div>
             </div>`;
-        });
-        (Array.isArray(pdfFilePath)?pdfFilePath:[pdfFilePath]).filter(Boolean).sort(sortByFirstNumber).forEach(function(p, i){
-            previewHTML += `<div class="resource-list-item" data-type="pdf" onclick="previewResource('pdf', '${p}')">
-                <div class="resource-list-icon"><i class="fa fa-file-pdf-o"></i></div>
-                <div class="resource-list-info">
-                    <div class="resource-list-name"><i class="fa fa-file-text-o"></i><span>PDF ${i+1}</span>o ${i+1}</span></div>
-                    <div class="resource-list-description">${p.split('/').pop()}</div>
-                </div>
-                <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
-            </div>`;
-        });
-        (Array.isArray(pptFilePath)?pptFilePath:[pptFilePath]).filter(Boolean).sort(sortByFirstNumber).forEach(function(p, i){
-            previewHTML += `<div class="resource-list-item" data-type="ppt" onclick="previewResource('ppt', '${p}')">
-                <div class="resource-list-icon"><i class="fa fa-file-powerpoint-o"></i></div>
-                <div class="resource-list-info">
-                    <div class="resource-list-name"><i class="fa fa-slideshare"></i><span>Presentation ${i+1}</span></div>
-                    <div class="resource-list-description">${p.split('/').pop()}</div>
-                </div>
-                <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
-            </div>`;
-        });
-        (Array.isArray(documentFilePath)?documentFilePath:[documentFilePath]).filter(Boolean).sort(sortByFirstNumber).forEach(function(p, i){
-            previewHTML += `<div class="resource-list-item" data-type="document" onclick="previewResource('document', '${p}')">
-                <div class="resource-list-icon"><i class="fa fa-file-word-o"></i></div>
-                <div class="resource-list-info">
-                    <div class="resource-list-name"><i class="fa fa-file-text-o"></i><span>Document ${i+1}</span></div>
-                    <div class="resource-list-description">${p.split('/').pop()}</div>
-                </div>
-                <div class="resource-list-action"><i class="fa fa-arrow-right"></i></div>
-            </div>`;
-        });
-        
-        previewHTML += `</div>`;
+            document.body.appendChild(overlay);
+
+            var media = document.getElementById('play-all-media');
+            var current = 0;
+
+            function playTrack(i) {
+                current = i;
+                var source = media.querySelector('source');
+                source.src = arr[i];
+                media.load();
+                var p = media.play();
+                if (p && p.catch) p.catch(function(){});
+                document.getElementById('play-all-counter').textContent = (i + 1) + ' / ' + arr.length;
+                overlay.querySelectorAll('.play-all-track').forEach(function(t){
+                    t.classList.toggle('active', parseInt(t.dataset.idx, 10) === i);
+                });
+            }
+
+            media.addEventListener('ended', function() {
+                if (current + 1 < arr.length) {
+                    playTrack(current + 1);
+                } else {
+                    closePlayAll();
+                }
+            });
+
+            overlay.querySelectorAll('.play-all-track').forEach(function(t){
+                t.addEventListener('click', function(){
+                    playTrack(parseInt(this.dataset.idx, 10));
+                });
+            });
+        };
+
+        window.closePlayAll = function() {
+            var o = document.querySelector('.play-all-overlay');
+            if (o) o.remove();
+        };
+
+        // Display resources in classroom-style grouped layout
+        let previewHTML = `<div class="resource-list">
+            <div class="resource-list-header">
+                <i class="fa fa-folder-open"></i>
+                <span>Learning Resources</span>
+            </div>
+
+            <div class="resource-group-tabs">
+                ${groupData.map(function(g){
+                    return `<button class="resource-tab ${g.arr.length ? '' : 'resource-tab-empty'}" onclick="showResourceGroup('${g.type}', this)" data-group="${g.type}">
+                        <i class="fa ${g.icon}"></i> ${g.label} <span class="resource-tab-count">(${g.arr.length})</span>
+                    </button>`;
+                }).join('')}
+            </div>
+
+            <div class="resource-group-body">
+                ${groupData.map(function(g, idx){
+                    return `<div class="resource-group-panel ${g.arr.length ? '' : 'resource-group-empty'}" id="resource-group-${g.type}" style="${idx===0 ? 'display:block' : 'display:none'};">
+                        ${g.arr.length ? renderGroup(g.label, g.icon, g.type, g.arr) : `<div class="resource-group-empty-msg">No ${g.label.toLowerCase()} resources available.</div>`}
+                    </div>`;
+                }).join('')}
+            </div>
+        </div>`;
         resourcePreview.innerHTML = previewHTML;
     } else {
         resourceContainer.style.display = 'none';
     }
-    
+
+    // Toggle between resource type groups
+    window.showResourceGroup = function(type, btn) {
+        // Hide all panels
+        document.querySelectorAll('.resource-group-panel').forEach(function(panel){
+            panel.style.display = 'none';
+        });
+        // Show selected panel
+        var panel = document.getElementById('resource-group-' + type);
+        if (panel) panel.style.display = 'block';
+        // Update active tab styling
+        document.querySelectorAll('.resource-tab').forEach(function(b){
+            b.style.background = '';
+            b.style.color = '';
+        });
+        if (btn) {
+            btn.style.background = 'var(--primary-color)';
+            btn.style.color = 'white';
+        }
+    };
+    // Activate first available group on load
+    var firstTab = document.querySelector('.resource-tab:not(.resource-tab-empty)');
+    if (firstTab) {
+        showResourceGroup(firstTab.dataset.group, firstTab);
+    }
+
     // Update header actions - show/hide based on topic and quiz status
     const headerActions = document.getElementById('header-actions');
     if (headerActions) {

@@ -800,7 +800,7 @@
 }
 
 .bento-banner .bento-tile .tile-title {
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 700;
     color: #fff;
     margin: 0 0 6px 0;
@@ -903,7 +903,7 @@
 <!-- Bento Banner: featured training materials defined in config/learning.php -->
 <div class="bento-banner">
     <div class="section-header" style="position: relative;">
-        <h2 style="color: #D2691E; font-weight: 700;">Recommed Trainings for You</h2>
+        <h2 style="color: #D2691E; font-weight: 900; -webkit-text-stroke: 0.5px #D2691E; text-shadow: 1px 1px 0 rgba(210,105,30,0.35);">Mandatory Orientation for all Staff Members</h2>
         <span class="badge" style="position: relative; overflow: hidden; display: inline-block; padding: 4px 12px; border-radius: 12px; background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05)); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.3); color: #D2691E; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
             <span style="position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent); animation: badgeShine 3s infinite;"></span>
             Hand-picked
@@ -919,11 +919,11 @@
             @endphp
             <a href="{{ url('learning/course/' . $material->id) }}" class="bento-tile {{ $isLarge ? 'large' : '' }} {{ $isWide ? 'wide' : '' }}" style="text-decoration: none; color: inherit; display: block; position: relative;">
                 @if($posterUrl)
-                    <div class="tile-image" style="background-image: url('{{ $posterUrl }}'); background-size: cover; background-position: center;">
-                        <span class="tile-tag">{{ ucfirst($material->category ?? 'Training Course') }}</span>
+                    <div class="tile-image" style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.85)), url('{{ $posterUrl }}'); background-size: cover; background-position: center;">
+                        <span class="tile-tag">{{ ucfirst($material->category ?? 'Staff Orientation') }}</span>
                     </div>
                     <div class="tile-body" style="position: absolute; bottom: 0; left: 0; right: 0; padding: 12px; background: linear-gradient(to top, rgba(0, 0, 0, 0.89), transparent); color: white;">
-                        <div class="tile-category">{{ $material->category ?? 'Training Course' }}</div>
+                        <div class="tile-category">{{ $material->category ?? 'Orientation On' }}</div>
                         <h3 class="tile-title">{{ $material->title }}</h3>
                         <div class="tile-meta">
                             <i class="fa fa-eye"></i> {{ number_format($material->view_count ?? 0) }} views
@@ -932,10 +932,10 @@
                 @else
                     <div class="tile-image">
                         <i class="fa {{ $iconClass }} placeholder-icon"></i>
-                        <span class="tile-tag">{{ ucfirst($material->category ?? 'Training Course') }}</span>
+                        <span class="tile-tag">{{ ucfirst($material->category ?? 'Staff Orientation') }}</span>
                     </div>
                     <div class="tile-body">
-                        <div class="tile-category">{{ $material->category ?? 'Training Course' }}</div>
+                        <div class="tile-category">{{ $material->category ?? 'Orientation On' }}</div>
                         <h3 class="tile-title">{{ $material->title }}</h3>
                         <div class="tile-meta">
                             <i class="fa fa-eye"></i> {{ number_format($material->view_count ?? 0) }} views
@@ -954,7 +954,7 @@
 
 <!-- Content Count -->
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-    <h2 id="content-title" style="font-size: 20px; font-weight: 600; color: var(--text-primary); margin: 0;">
+    <h2 id="content-title" style="font-size: 20px; font-weight: 900; -webkit-text-stroke: 0.4px var(--text-primary); color: var(--text-primary); margin: 0;">
         <i class="fa fa-th-large" style="color: var(--primary-color); margin-right: 10px;"></i>
         Topics
     </h2>
@@ -1078,7 +1078,7 @@
     <!-- Browse by Content Type Segment -->
     <div class="content-segment" id="type-segment" style="margin-top: 50px; margin-bottom: 50px; padding: 0 15px; width: 100%; clear: both;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;">
-            <h2 style="font-size: 26px; font-weight: 800; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 12px;">
+            <h2 style="font-size: 26px; font-weight: 900; -webkit-text-stroke: 0.5px var(--text-primary); color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 12px;">
                 <div style="width: 45px; height: 45px; border-radius: 12px; background: rgba(52, 152, 219, 0.1); display: flex; align-items: center; justify-content: center;">
                     <i class="fa fa-cubes" style="color: var(--primary-color); font-size: 20px;"></i>
                 </div>
@@ -1132,7 +1132,7 @@
         @if(count($groupedAudios) > 0)
         <div class="type-section" data-type="audio" style="margin-bottom: 45px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="font-size: 20px; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 10px;">
+                <h3 style="font-size: 20px; font-weight: 900; -webkit-text-stroke: 0.4px var(--text-primary); color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 10px;">
                     <i class="fa fa-headphones" style="color: #f093fb;"></i> Listen to Audios
                     <span style="font-size: 12px; font-weight: 500; color: var(--text-secondary); background: #f0f0f0; padding: 2px 10px; border-radius: 20px;">{{ count($groupedAudios) }}</span>
                 </h3>
@@ -1167,7 +1167,7 @@
         @if(count($groupedDocuments) > 0)
         <div class="type-section" data-type="document" style="margin-bottom: 45px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="font-size: 20px; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 10px;">
+                <h3 style="font-size: 20px; font-weight: 900; -webkit-text-stroke: 0.4px var(--text-primary); color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 10px;">
                     <i class="fa fa-file-text-o" style="color: #fa709a;"></i> Documents and Job Description Checklists
                     <span style="font-size: 12px; font-weight: 500; color: var(--text-secondary); background: #f0f0f0; padding: 2px 10px; border-radius: 20px;">{{ count($groupedDocuments) }}</span>
                 </h3>

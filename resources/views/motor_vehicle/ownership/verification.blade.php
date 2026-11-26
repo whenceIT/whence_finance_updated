@@ -848,12 +848,37 @@
 
                                     <div class="form-group">
                                         <label>Document Name</label>
-                                        <input type="text" name="document_name" class="form-control">
+                                        <input type="text" name="document_name" class="form-control" placeholder="Enter a name for this document">
                                     </div>
 
                                     <div class="form-group">
                                         <label>Select File</label>
-                                        <input type="file" name="document_file" class="form-control" required>
+                                        <div class="file-upload-wrapper">
+                                            <div class="drop-zone" id="dropZone">
+                                                <input type="file" name="document_file" id="documentFile" class="file-input" required accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif" style="display: none;">
+                                                <div class="drop-zone-content">
+                                                    <i class="fa fa-cloud-upload fa-3x"></i>
+                                                    <h4>Drag & Drop File Here</h4>
+                                                    <p>or <span class="browse-btn">Browse Files</span></p>
+                                                    <small class="text-muted">Supported: PDF, DOC, DOCX, JPG, PNG, GIF (Max 10MB)</small>
+                                                </div>
+                                                <div class="file-preview" id="filePreview" style="display: none;">
+                                                    <div class="preview-header">
+                                                        <i class="fa fa-file-o preview-icon" id="previewIcon"></i>
+                                                        <div class="preview-info">
+                                                            <span class="preview-name" id="previewName"></span>
+                                                            <span class="preview-size" id="previewSize"></span>
+                                                        </div>
+                                                        <button type="button" class="btn btn-danger btn-xs remove-file" id="removeFile" title="Remove file">
+                                                            <i class="fa fa-times"></i>
+                                                        </button>
+                                                    </div>
+                                                    <div class="progress" style="display: none;">
+                                                        <div class="progress-bar progress-bar-striped active" id="uploadProgress" role="progressbar" style="width: 0%"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
 
                                 </div>
@@ -983,7 +1008,7 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Receiving Officer</label>
-                                                <select name="received_by" class="form-control">
+                                                <select name="received_by" id="received_by" class="form-control select2">
                                                     <option></option>
                                                     @foreach(\App\Models\User::all() as $user)
                                                         @if(!\Cartalyst\Sentinel\Laravel\Facades\Sentinel::findUserById($user->id)->inRole('client'))
@@ -1314,6 +1339,328 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
+
+    // Initialize Select2
+    $('.select2').select2({
+        width: '100%'
+    });
+
+    // File Upload Handler
+    initFileUpload();
 });
 </script>
+
+<style>
+/* File Upload Styles */
+.file-upload-wrapper {
+    position: relative;
+}
+
+.drop-zone {
+    border: 2px dashed #d2d6de;
+    border-radius: 8px;
+    padding: 30px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #fafafa;
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.drop-zone:hover,
+.drop-zone.dragover {
+    border-color: #3c8dbc;
+    background: #f0f7fb;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(60, 141, 188, 0.15);
+}
+
+.drop-zone.has-file {
+    border-color: #00a65a;
+    background: #f0faf4;
+    min-height: auto;
+    padding: 15px;
+}
+
+.drop-zone-content {
+    width: 100%;
+}
+
+.drop-zone-content i {
+    color: #3c8dbc;
+    margin-bottom: 15px;
+    transition: transform 0.3s ease;
+}
+
+.drop-zone:hover .drop-zone-content i {
+    transform: translateY(-5px);
+}
+
+.drop-zone-content h4 {
+    margin: 10px 0;
+    color: #333;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.drop-zone-content p {
+    color: #666;
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+.drop-zone-content .browse-btn {
+    color: #3c8dbc;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    transition: color 0.2s;
+}
+
+.drop-zone-content .browse-btn:hover {
+    color: #2a6d9e;
+}
+
+.drop-zone-content small {
+    display: block;
+    margin-top: 10px;
+    color: #999;
+    font-size: 12px;
+}
+
+.file-preview {
+    width: 100%;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.preview-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    background: white;
+    border: 1px solid #e0e4e8;
+    border-radius: 6px;
+}
+
+.preview-icon {
+    font-size: 28px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f7fa;
+    border-radius: 6px;
+    color: #3c8dbc;
+}
+
+.preview-icon.pdf { color: #e74c3c; background: #fdf2f2; }
+.preview-icon.word { color: #2c7be5; background: #eef4fd; }
+.preview-icon.image { color: #00a65a; background: #eefaf3; }
+.preview-icon.other { color: #6c757d; background: #f5f6f8; }
+
+.preview-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.preview-name {
+    font-weight: 500;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 14px;
+}
+
+.preview-size {
+    font-size: 12px;
+    color: #999;
+}
+
+.remove-file {
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: none;
+    background: #f8f9fa;
+    color: #dc3545;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.remove-file:hover {
+    background: #dc3545;
+    color: white;
+    transform: scale(1.05);
+}
+
+.progress {
+    height: 6px;
+    margin-top: 10px;
+    border-radius: 3px;
+    background: #e9ecef;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #3c8dbc, #00a65a);
+    transition: width 0.3s ease;
+    border-radius: 3px;
+}
+
+.file-input {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 10;
+}
+</style>
+
+<script>
+function initFileUpload() {
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('documentFile');
+    const filePreview = document.getElementById('filePreview');
+    const previewIcon = document.getElementById('previewIcon');
+    const previewName = document.getElementById('previewName');
+    const previewSize = document.getElementById('previewSize');
+    const removeFile = document.getElementById('removeFile');
+    const uploadProgress = document.getElementById('uploadProgress');
+    const dropZoneContent = dropZone.querySelector('.drop-zone-content');
+
+    // Trigger file dialog on click (fast response)
+    dropZone.addEventListener('click', (e) => {
+        if (e.target === dropZone || dropZoneContent.contains(e.target)) {
+            fileInput.click();
+        }
+    });
+
+    // Prevent default drag behaviors
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    // Highlight drop zone
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+    });
+
+    // Handle dropped files
+    dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        handleFiles(files);
+    }, false);
+
+    // Handle file input change
+    fileInput.addEventListener('change', (e) => {
+        handleFiles(e.target.files);
+    });
+
+    function handleFiles(files) {
+        if (files.length === 0) return;
+        
+        const file = files[0];
+        
+        // Validate file type
+        const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'image/gif'];
+        if (!allowedTypes.includes(file.type)) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid File Type',
+                text: 'Please select a PDF, Word document, or image file (JPG, PNG, GIF).'
+            });
+            fileInput.value = '';
+            return;
+        }
+
+        // Validate file size (10MB)
+        const maxSize = 10 * 1024 * 1024;
+        if (file.size > maxSize) {
+            Swal.fire({
+                icon: 'error',
+                title: 'File Too Large',
+                text: 'Maximum file size is 10MB.'
+            });
+            fileInput.value = '';
+            return;
+        }
+
+        // Update UI
+        showFilePreview(file);
+    }
+
+    function showFilePreview(file) {
+        // Set icon based on file type
+        previewIcon.className = 'fa fa-file-o preview-icon';
+        if (file.type === 'application/pdf') {
+            previewIcon.classList.add('pdf');
+            previewIcon.className = 'fa fa-file-pdf-o preview-icon pdf';
+        } else if (file.type.includes('word') || file.type.includes('document')) {
+            previewIcon.className = 'fa fa-file-word-o preview-icon word';
+        } else if (file.type.startsWith('image/')) {
+            previewIcon.className = 'fa fa-file-image-o preview-icon image';
+        } else {
+            previewIcon.className = 'fa fa-file-o preview-icon other';
+        }
+
+        previewName.textContent = file.name;
+        previewSize.textContent = formatFileSize(file.size);
+
+        dropZone.classList.add('has-file');
+        dropZoneContent.style.display = 'none';
+        filePreview.style.display = 'block';
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Remove file
+    removeFile.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fileInput.value = '';
+        dropZone.classList.remove('has-file');
+        dropZoneContent.style.display = 'block';
+        filePreview.style.display = 'none';
+        uploadProgress.style.display = 'none';
+        uploadProgress.style.width = '0%';
+    });
+
+    // Optional: Simulate upload progress for visual feedback
+    // This can be replaced with actual AJAX upload if needed
+}
+</script>
+
 @endsection
