@@ -463,16 +463,18 @@ class TrainingMaterialController extends Controller
         $fileNameTypes = ['video_file_name', 'audio_file_name', 'pdf_file_name', 'ppt_file_name', 'document_file_name'];
 
         foreach ($fileTypes as $index => $fileType) {
-            if ($request->filled($fileType)) {
+            $newPathValue = $request->input($fileType);
+            \Log::info("updateTopic: $fileType = " . ($newPathValue ?? 'NULL') . " | existing = " . ($topic->$fileType ?? 'NULL'));
+            if (!empty($newPathValue)) {
                 $existing = $topic->$fileType ? explode(',', $topic->$fileType) : [];
                 $existing = array_filter($existing);
-                $newPaths = is_array($request->$fileType) ? $request->$fileType : [$request->$fileType];
+                $newPaths = is_array($newPathValue) ? $newPathValue : [$newPathValue];
                 $newPaths = array_filter($newPaths);
                 $allPaths = array_merge(array_values($existing), array_values($newPaths));
                 $topic->$fileType = implode(',', array_values(array_filter($allPaths)));
 
-                if ($request->filled($fileNameTypes[$index])) {
-                    $fileNameValue = $request->$fileNameTypes[$index];
+                $fileNameValue = $request->input($fileNameTypes[$index]);
+                if (!empty($fileNameValue)) {
                     $topic->file_name = is_array($fileNameValue) ? ($fileNameValue[0] ?? null) : $fileNameValue;
                 } elseif (empty($topic->file_name) && !empty($newPaths)) {
                     $topic->file_name = $this->extractFileNameFromUrl($newPaths[0]);
