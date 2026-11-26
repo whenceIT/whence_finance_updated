@@ -148,56 +148,64 @@ class UserController extends Controller
 
 
 
-    public function pmdashboard(Request $request){
-
- $position_id = Sentinel::getUser()->position_id;
-    
-           if ($position_id == '9') {
-                return redirect('/vehicles/dashboard');
-            }
-
    
-             $province_id = Sentinel::getUser()->province_id;
+public function pmdashboard(Request $request)
+{
+    $position_id = Sentinel::getUser()->position_id;
 
-            $today = Carbon::today();
+    if ($position_id == '9') {
+        return redirect('/vehicles/dashboard');
+    }
+
+    $province_id = Sentinel::getUser()->province_id;
+
+    $today = Carbon::today();
 
     $cycleStart = $today->copy()->day(25);
+
     if ($today->day < 25) {
         $cycleStart->subMonth();
     }
 
     $cycleEnd = $cycleStart->copy()->addMonth()->subDay();
 
-    // ✅ OVERRIDE WITH FILTER
+    // OVERRIDE WITH FILTER
     $start_date = $request->start_date ?? $cycleStart->format('Y-m-d');
-    $end_date   = $request->end_date ?? $cycleEnd->format('Y-m-d');
+    $end_date = $request->end_date ?? $cycleEnd->format('Y-m-d');
 
-   try {
+    try {
 
-        // ✅ FETCH PROVINCES
-        $provinceResponse = Http::timeout(60)->get('https://lms2backend.whencefinancesystem.com/province-performance', [
-            'start_date' => $start_date,
-            'end_date' => $end_date,
-            'province_id' => $province_id
-        ]);
+        // FETCH PROVINCES
+        $provinceResponse = Http::timeout(60)->get(
+            'https://lms2backend.whencefinancesystem.com/province-performance',
+            [
+                'start_date' => $start_date,
+                'end_date' => $end_date,
+                'province_id' => $province_id
+            ]
+        );
 
         $provinces = $provinceResponse->successful()
             ? ($provinceResponse->json()['data'] ?? [])
             : [];
 
-        // ✅ FETCH BRANCHES
-        $branchResponse = Http::timeout(60)->get('https://lms2backend.whencefinancesystem.com/branch-performance-by-province', [
-            'start_date' => $start_date,
-            'end_date' => $end_date,
-            'province_id' => $province_id
-        ]);
+
+        // FETCH BRANCHES
+        $branchResponse = Http::timeout(60)->get(
+            'https://lms2backend.whencefinancesystem.com/branch-performance-by-province',
+            [
+                'start_date' => $start_date,
+                'end_date' => $end_date,
+                'province_id' => $province_id
+            ]
+        );
 
         $branches = $branchResponse->successful()
             ? ($branchResponse->json()['data'] ?? [])
             : [];
 
-            
-        // ✅ FETCH CONSULTANT TARGET EARLY WARNINGS
+
+        // FETCH CONSULTANT TARGET EARLY WARNINGS
         $earlyWarningResponse = Http::timeout(60)->get(
             'https://lms2backend.whencefinancesystem.com/consultants-target-early-warning-province',
             [
@@ -207,62 +215,187 @@ class UserController extends Controller
             ]
         );
 
-           $targetEarlyWarnings = $earlyWarningResponse->successful()
+        $targetEarlyWarnings = $earlyWarningResponse->successful()
             ? ($earlyWarningResponse->json()['data'] ?? [])
             : [];
 
     } catch (\Exception $e) {
 
-        // 👤 Fail gracefully
+        // Fail gracefully
         $provinces = [];
         $branches = [];
         $targetEarlyWarnings = [];
     }
- 
-
-$url = "https://lms2backend.whencefinancesystem.com/province-ledger-summary?province_id=$province_id";
-
-$json = @file_get_contents($url);
-$province_data = $json ? json_decode($json, true) : [];
 
 
-            $user = Sentinel::getUser();
-   
-                     $cycle_end = $user->cycle_dates
-    ? (int) $user->cycle_dates->cycle_end_date
-    : 24;
+    $url = "https://lms2backend.whencefinancesystem.com/province-ledger-summary?province_id=$province_id";
 
-      $today = Carbon::today();
+    $json = @file_get_contents($url);
 
-          $buildCycleDate = function (Carbon $month) use ($cycle_end) {
-    $month = $month->copy()->startOfMonth();
-    $cycleDay = min($cycle_end, $month->daysInMonth);
-    return $month->day($cycleDay)->addDay();
-};
+    $province_data = $json ? json_decode($json, true) : [];
 
 
-$cycleDate = $buildCycleDate(Carbon::now());
+    $user = Sentinel::getUser();
 
-// If today is before cycle date, fall back to previous month
-if ($today->lt($cycleDate)) {
-    $cycleDate = $buildCycleDate(Carbon::now()->subMonth());
-}
+    $cycle_end = $user->cycle_dates
+        ? (int) $user->cycle_dates->cycle_end_date
+        : 24;
 
-$cycle_date = $cycleDate->format('Y-m-d');
+    $today = Carbon::today();
 
-            $data = [];
-            $start = null;
-            $end = null;
+    $buildCycleDate = function (Carbon $month) use ($cycle_end) {
 
-return view('user.pmdashboard',compact(
-                'province_data',
-                  'provinces',
+        $month = $month->copy()->startOfMonth();
+
+        $cycleDay = min($cycle_end, $month->daysInMonth);
+
+        return $month->day($cycleDay)->addDay();
+    };
+
+    $cycleDate = $buildCycleDate(Carbon::now());
+
+    // If today is before cycle date, fall back to previous month
+    if ($today->lt($cycleDate)) {
+        $cycleDate = $buildCycleDate(Carbon::now()->subMonth());
+    }
+
+    $cycle_date = $cycleDate->format('Y-m-d');
+
+    $data = [];
+    $start = null;
+    $end = null;
+
+
+    // ========================================
+    // PROVINCIAL TARGET ACHIEVEMENTS
+    // ========================================
+
+    // Get all offices belonging to this province
+    $provinceOffices = Office::where('province_id', $province_id)
+        ->get();
+
+    $officeIds = $provinceOffices->pluck('id')->toArray();
+
+    // Get all users assigned to offices in this province
+    $provinceUsers = \App\Models\User::whereIn('office_id', $officeIds)
+        ->get(['id', 'first_name', 'last_name', 'office_id']);
+
+    $userIds = $provinceUsers->pluck('id')->toArray();
+
+    // Get all targets achieved within selected dates
+    $provinceTargets = \App\Models\TargetsMet::whereIn('user_id', $userIds)
+        ->whereBetween('date', [$start_date, $end_date])
+        ->whereIn('target_level', [40000, 80000, 120000])
+        ->orderBy('date', 'desc')
+        ->get();
+
+
+    // ========================================
+    // PROVINCE TARGET SUMMARY
+    // ========================================
+
+    $provinceTargetSummary = [
+        'regular' => $provinceTargets->where('target_level', 40000)->count(),
+
+        'double' => $provinceTargets->where('target_level', 80000)->count(),
+
+        'triple' => $provinceTargets->where('target_level', 120000)->count(),
+
+        'total' => $provinceTargets->count(),
+    ];
+
+
+    // ========================================
+    // CONSULTANT TARGET BREAKDOWN
+    // ========================================
+
+    $usersById = $provinceUsers->keyBy('id');
+
+    $provinceTargetConsultants = $provinceTargets
+        ->groupBy('user_id')
+        ->map(function ($targets, $userId) use ($usersById) {
+
+            $consultant = $usersById->get($userId);
+
+            return [
+                'user_id' => $userId,
+
+                'office_id' => $consultant
+                    ? $consultant->office_id
+                    : null,
+
+                'name' => $consultant
+                    ? $consultant->first_name . ' ' . $consultant->last_name
+                    : 'Unknown Consultant',
+
+                'regular' => $targets->where('target_level', 40000)->count(),
+
+                'double' => $targets->where('target_level', 80000)->count(),
+
+                'triple' => $targets->where('target_level', 120000)->count(),
+
+                'total' => $targets->count(),
+
+                'targets' => $targets
+            ];
+
+        })
+        ->sortByDesc('total')
+        ->values();
+
+
+    // ========================================
+    // BRANCH TARGET BREAKDOWN
+    // ========================================
+
+    $provinceTargetBranches = $provinceOffices
+        ->map(function ($office) use ($provinceTargetConsultants) {
+
+            // Get consultants belonging to this branch
+            $consultants = $provinceTargetConsultants
+                ->where('office_id', $office->id)
+                ->values();
+
+            // Calculate branch achievements
+            return [
+                'office_id' => $office->id,
+
+                'office_name' => $office->name,
+
+                'regular' => $consultants->sum('regular'),
+
+                'double' => $consultants->sum('double'),
+
+                'triple' => $consultants->sum('triple'),
+
+                'total' => $consultants->sum('total'),
+
+                'consultants' => $consultants
+            ];
+
+        })
+        ->sortByDesc('total')
+        ->values();
+
+
+    // ========================================
+    // RETURN VIEW
+    // ========================================
+
+    return view('user.pmdashboard', compact(
+        'province_data',
+        'provinces',
         'branches',
         'start_date',
         'end_date',
         'targetEarlyWarnings',
-            ));
+        'provinceTargetSummary',
+        'provinceTargetBranches',
+        'provinceTargetConsultants'
+    ));
 }
+
+
 
 
 public function bmdashboard(Request $request)
@@ -281,29 +414,33 @@ public function bmdashboard(Request $request)
 
     $cycleEnd = $cycleStart->copy()->addMonth()->subDay();
 
-    // ✅ OVERRIDE WITH FILTER
+    // OVERRIDE WITH FILTER
     $start_date = $request->start_date ?? $cycleStart->format('Y-m-d');
-    $end_date   = $request->end_date ?? $cycleEnd->format('Y-m-d');
+    $end_date = $request->end_date ?? $cycleEnd->format('Y-m-d');
 
     $url = "https://lms2backend.whencefinancesystem.com/branch-ledger-summary?branch_id=$office_id";
+
     $url2 = "https://lms2backend.whencefinancesystem.com/consultants-performance-by-office?office_id=$office_id&start_date=$start_date&end_date=$end_date";
+
     $url3 = "https://lms2backend.whencefinancesystem.com/branch-performance-new?office_id=$office_id";
 
-            // ✅ FETCH CONSULTANT TARGET EARLY WARNINGS
-        $earlyWarningResponse = Http::withoutVerifying()->timeout(60)->get(
-            'https://lms2backend.whencefinancesystem.com/consultants-target-early-warning-branch',
-            [
-                'start_date' => $start_date,
-                'end_date' => $end_date,
-                'office_id' => $office_id
-            ]
-        );
 
-           $targetEarlyWarnings = $earlyWarningResponse->successful()
-            ? ($earlyWarningResponse->json()['data'] ?? [])
-            : [];
+    // FETCH CONSULTANT TARGET EARLY WARNINGS
+    $earlyWarningResponse = Http::withoutVerifying()->timeout(60)->get(
+        'https://lms2backend.whencefinancesystem.com/consultants-target-early-warning-branch',
+        [
+            'start_date' => $start_date,
+            'end_date' => $end_date,
+            'office_id' => $office_id
+        ]
+    );
+
+    $targetEarlyWarnings = $earlyWarningResponse->successful()
+        ? ($earlyWarningResponse->json()['data'] ?? [])
+        : [];
 
 
+    // FETCH EXISTING BRANCH DATA
     $json = @file_get_contents($url);
     $json2 = @file_get_contents($url2);
     $json3 = @file_get_contents($url3);
@@ -314,6 +451,65 @@ public function bmdashboard(Request $request)
 
     $consultants = $data['data'] ?? [];
 
+
+    // ========================================
+    // BRANCH TARGET ACHIEVEMENTS
+    // ========================================
+
+    // Get all users assigned to this branch
+    $branchUsers = \App\Models\User::where('office_id', $office_id)
+        ->get(['id', 'first_name', 'last_name']);
+
+    $userIds = $branchUsers->pluck('id')->toArray();
+
+    // Get targets achieved by branch consultants within selected dates
+    $branchTargets = \App\Models\TargetsMet::whereIn('user_id', $userIds)
+        ->whereBetween('date', [$start_date, $end_date])
+        ->whereIn('target_level', [40000, 80000, 120000])
+        ->orderBy('date', 'desc')
+        ->get();
+
+    // Calculate branch target totals
+    $branchTargetSummary = [
+        'regular' => $branchTargets->where('target_level', 40000)->count(),
+        'double'  => $branchTargets->where('target_level', 80000)->count(),
+        'triple'  => $branchTargets->where('target_level', 120000)->count(),
+        'total'   => $branchTargets->count(),
+    ];
+
+    // Group achievements by consultant
+    $usersById = $branchUsers->keyBy('id');
+
+    $branchTargetConsultants = $branchTargets
+        ->groupBy('user_id')
+        ->map(function ($targets, $userId) use ($usersById) {
+
+            $user = $usersById->get($userId);
+
+            return [
+                'user_id' => $userId,
+
+                'name' => $user
+                    ? $user->first_name . ' ' . $user->last_name
+                    : 'Unknown Consultant',
+
+                'regular' => $targets->where('target_level', 40000)->count(),
+
+                'double' => $targets->where('target_level', 80000)->count(),
+
+                'triple' => $targets->where('target_level', 120000)->count(),
+
+                'total' => $targets->count(),
+
+                'targets' => $targets
+            ];
+
+        })
+        ->sortByDesc('total')
+        ->values();
+
+
+    // RETURN VIEW
     return view('user.bmdashboard', compact(
         'branch',
         'consultants',
@@ -323,8 +519,11 @@ public function bmdashboard(Request $request)
         'office_id',
         'office',
         'targetEarlyWarnings',
+        'branchTargetSummary',
+        'branchTargetConsultants'
     ));
 }
+
 
 
 public function updateSetup(Request $request)
@@ -474,6 +673,194 @@ $triggeringPatternConsultants = $triggeringPatternResponse->successful()
         'triggeringPatternConsultants'
     ));
 }
+
+
+public function performanceLeaderboard(Request $request)
+    {
+        // =========================================
+        // DEFAULT CYCLE: 25TH TO 24TH
+        // =========================================
+
+        $today = Carbon::today();
+
+        $cycleStart = $today->copy()->day(25);
+
+        if ($today->day < 25) {
+            $cycleStart->subMonth();
+        }
+
+        $cycleEnd = $cycleStart->copy()
+            ->addMonth()
+            ->subDay();
+
+        $start_date = $request->start_date
+            ?? $cycleStart->format('Y-m-d');
+
+        $end_date = $request->end_date
+            ?? $cycleEnd->format('Y-m-d');
+
+        // =========================================
+        // RANKING METRIC
+        // =========================================
+
+        $metric = $request->get('metric', 'pdua');
+
+        if (!in_array($metric, ['pdua', 'efficiency', 'collections'])) {
+            $metric = 'pdua';
+        }
+
+        // =========================================
+        // FETCH PROVINCES
+        // =========================================
+
+        $provinces = [];
+
+        try {
+
+            $response = Http::timeout(30)->get(
+                'https://lms2backend.whencefinancesystem.com/province-performance-all',
+                [
+                    'start_date' => $start_date,
+                    'end_date' => $end_date
+                ]
+            );
+
+            if ($response->successful()) {
+                $provinces = $response->json()['data'] ?? [];
+            }
+
+        } catch (\Exception $e) {
+            $provinces = [];
+        }
+
+        // =========================================
+        // FETCH BRANCHES
+        // =========================================
+
+        $branches = [];
+
+        try {
+
+            $response = Http::timeout(30)->get(
+                'https://lms2backend.whencefinancesystem.com/branch-performance-all',
+                [
+                    'start_date' => $start_date,
+                    'end_date' => $end_date
+                ]
+            );
+
+            if ($response->successful()) {
+                $branches = $response->json()['data'] ?? [];
+            }
+
+        } catch (\Exception $e) {
+            $branches = [];
+        }
+
+        // =========================================
+        // FETCH LOAN CONSULTANTS
+        // =========================================
+
+        $consultants = [];
+
+        foreach ($branches as $branch) {
+
+            $officeId = $branch['office_id'] ?? null;
+
+            if (!$officeId) {
+                continue;
+            }
+
+            try {
+
+                $response = Http::timeout(15)->get(
+                    'https://lms2backend.whencefinancesystem.com/consultants-performance-by-office',
+                    [
+                        'office_id' => $officeId,
+                        'start_date' => $start_date,
+                        'end_date' => $end_date
+                    ]
+                );
+
+                if ($response->successful()) {
+
+                    $records = $response->json()['data'] ?? [];
+
+                    foreach ($records as $consultant) {
+
+                        $consultant['office_name'] =
+                            $consultant['office_name']
+                            ?? $branch['office']
+                            ?? 'N/A';
+
+                        $consultants[] = $consultant;
+                    }
+                }
+
+            } catch (\Exception $e) {
+                // Continue loading other branches.
+                continue;
+            }
+        }
+
+        // =========================================
+        // SORTING FUNCTION
+        // =========================================
+
+        $sortLeaderboard = function ($records) use ($metric) {
+
+            $records = array_values($records);
+
+            usort($records, function ($a, $b) use ($metric) {
+
+                $field = $metric === 'collections'
+                    ? 'total_collected'
+                    : $metric;
+
+                $valueA = data_get($a, $field);
+                $valueB = data_get($b, $field);
+
+                // Records without the selected metric go last.
+                $hasA = is_numeric($valueA);
+                $hasB = is_numeric($valueB);
+
+                if ($hasA !== $hasB) {
+                    return $hasA ? -1 : 1;
+                }
+
+                if (!$hasA && !$hasB) {
+                    return 0;
+                }
+
+                return (float) $valueB <=> (float) $valueA;
+            });
+
+            return $records;
+        };
+
+        // =========================================
+        // GENERATE LEADERBOARDS
+        // =========================================
+
+        $provinceLeaderboard = $sortLeaderboard($provinces);
+
+        $branchLeaderboard = $sortLeaderboard($branches);
+
+        $consultantLeaderboard = $sortLeaderboard($consultants);
+
+        // =========================================
+        // RETURN VIEW
+        // =========================================
+
+        return view('user.performance-leaderboard', compact(
+            'provinceLeaderboard',
+            'branchLeaderboard',
+            'consultantLeaderboard',
+            'start_date',
+            'end_date',
+            'metric'
+        ));
+    }
 
 
     public function create_carry_over(Request $request)
@@ -640,6 +1027,7 @@ public function save_wallet(Request $request)
         $end = null;
         $first_name = null;
         $last_name = null;
+        $myTargets = null;
         $role = Sentinel::getUser()->roles->first();
         
     $defaultedLoans = [];
@@ -971,6 +1359,10 @@ public function save_wallet(Request $request)
         ]);
     }
 
+$myTargets = TargetsMet::where('user_id', $user->id)
+    ->whereBetween('date', [$start, $end])
+    ->get();
+
 
         }
 
@@ -1189,7 +1581,7 @@ $cycle_date = $cycleDate->format('Y-m-d');
         // }
 
         if ($role->role_id != '2') {
-            return view('dashboard', compact('end','first_name','last_name' ,'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end', 'pendingApproval', 'true_date', 'numbers_status', 'branch_data', 'province_data', 'loanCount', 'clientCount', 'collateralCount','defaultedLoans'));
+            return view('dashboard', compact('end','first_name','last_name' ,'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end', 'pendingApproval', 'true_date', 'numbers_status', 'branch_data', 'province_data', 'loanCount', 'clientCount', 'collateralCount','defaultedLoans','myTargets'));
         } else {
 
 

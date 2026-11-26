@@ -16,7 +16,7 @@
                     New Loan Application
                 </p>
                 <h3 style="margin:0; font-size:20px; font-weight:800; color:#ffffff; letter-spacing:0.3px; line-height:1.2;">
-                    {{ trans_choice('general.add',1) }} {{ $loan_product->name }} {{ trans_choice('general.loan',1) }}
+                    {{ $loan_product->name }}
                     @if($loan_product->id == 0)
                         &nbsp;<span style="font-size:13px; font-weight:600; background:rgba(255,255,255,0.2); color:#fff; padding:2px 10px; border-radius:20px; vertical-align:middle;">Motor Vehicle</span>
                     @endif
@@ -44,19 +44,23 @@
                         {{trans_choice('general.loan',1)}} {{trans_choice('general.officer',1)}}
                         <i class="fa fa-question-circle" data-toggle="tooltip" data-title="The financial institution representative responsible for this client"></i>
                     </label>
-                    <div class="col-md-4">
-                        <select name="loan_officer_id" class="form-control select2" id="loan_officer_id" required>
-                            <option></option>
-                            @foreach(\App\Models\User::all() as $key)
-                                @if(!Sentinel::findUserById($key->id)->inRole('client'))
-                                    <option value="{{$key->id}}" @if($client->staff_id==$key->id) selected @endif>
-                                        {{$key->first_name}} {{$key->last_name}}
-                                    </option>
-                                @endif
-                            @endforeach
-                        </select>
-                    </div>
+                  <div class="col-md-4">
+    <select name="loan_officer_id" class="form-control select2" id="loan_officer_id" required>
+        <option value="">Select Loan Officer</option>
 
+        @foreach(\App\Models\User::where('id', $client->staff_id)->get() as $key)
+
+            @if(!Sentinel::findUserById($key->id)->inRole('client'))
+
+                <option value="{{ $key->id }}" selected>
+                    {{ $key->first_name }} {{ $key->last_name }}
+                </option>
+
+            @endif
+
+        @endforeach
+    </select>
+</div>
                     <label for="loan_purpose_id" class="control-label col-md-2">
                         {{trans_choice('general.loan',1)}} {{trans_choice('general.purpose',1)}}
                         <i class="fa fa-question-circle" data-toggle="tooltip" data-title="Purpose of the loan for reporting"></i>

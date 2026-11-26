@@ -716,6 +716,8 @@ Route::group(['prefix' => 'user'], function () {
     Route::get('role/{id}/edit', 'UserController@editRole');
     Route::post('role/{id}/update', 'UserController@updateRole');
     Route::get('role/{id}/delete', 'UserController@deleteRole');
+    Route::get('/performance-leaderboard', 'UserController@performanceLeaderboard')
+    ->name('performance.leaderboard');
 
 
 

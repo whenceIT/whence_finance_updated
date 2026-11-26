@@ -740,6 +740,16 @@
 
 </div>
 
+<div class="row" style="margin-bottom:15px;">
+    <div class="col-md-12">
+        <a href="{{ route('performance.leaderboard') }}"
+           class="btn btn-primary">
+            <i class="fa fa-trophy"></i>
+            View Performance Leaderboard
+        </a>
+    </div>
+</div>
+
 
     <div class="box box-primary">
         <div class="box-header with-border">
