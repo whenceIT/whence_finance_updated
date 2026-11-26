@@ -156,6 +156,20 @@ $breadcrumb = [
                             $pdfFiles = $topic->pdf_file_path ? array_filter(explode(',', $topic->pdf_file_path)) : [];
                             $pptFiles = $topic->ppt_file_path ? array_filter(explode(',', $topic->ppt_file_path)) : [];
                             $documentFiles = $topic->document_file_path ? array_filter(explode(',', $topic->document_file_path)) : [];
+                            $sortFn = function($a, $b) {
+                                $aName = basename($a);
+                                $bName = basename($b);
+                                preg_match('/\d+/', $aName, $aMatch);
+                                preg_match('/\d+/', $bName, $bMatch);
+                                $aNum = isset($aMatch[0]) ? (int)$aMatch[0] : PHP_INT_MAX;
+                                $bNum = isset($bMatch[0]) ? (int)$bMatch[0] : PHP_INT_MAX;
+                                return $aNum - $bNum;
+                            };
+                            usort($videoFiles, $sortFn);
+                            usort($audioFiles, $sortFn);
+                            usort($pdfFiles, $sortFn);
+                            usort($pptFiles, $sortFn);
+                            usort($documentFiles, $sortFn);
                             $totalFiles = count($videoFiles) + count($audioFiles) + count($pdfFiles) + count($pptFiles) + count($documentFiles);
                             $firstNonEmptyGroup = null;
                             foreach (['video' => $videoFiles, 'audio' => $audioFiles, 'pdf' => $pdfFiles, 'ppt' => $pptFiles, 'document' => $documentFiles] as $group => $files) {
