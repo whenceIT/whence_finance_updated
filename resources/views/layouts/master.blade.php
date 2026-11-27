@@ -552,6 +552,56 @@
             }
         }
 
+        /* Mini Preloader Styles */
+        .mini-preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(3px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.15s ease, visibility 0.15s ease;
+            pointer-events: none;
+        }
+
+        .mini-preloader.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .mini-preloader-spinner {
+            width: 44px;
+            height: 44px;
+            border: 3px solid transparent;
+            border-top-color: #3498db;
+            border-right-color: #2ecc71;
+            border-left-color: #f39c12;
+            border-radius: 50%;
+            animation: mini-preloader-spin 0.9s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            box-shadow: 0 2px 10px rgba(52, 152, 219, 0.2);
+        }
+
+        @keyframes mini-preloader-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .mini-preloader-text {
+            margin-top: 14px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #555;
+            letter-spacing: 0.3px;
+        }
+
         @keyframes modalFadeIn {
             0% {
                 opacity: 0;
@@ -795,7 +845,7 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
                     </a> -->
                 @endif
 
-                <a href="{{ url('learning') }}" title="Whence Learn"
+                <a target="_blank" href="{{ url('learning') }}" title="Whence Learn"
                     style="text-decoration: none; color: #333; text-align: center; padding: 8px; border-radius: 8px; background: transparent; display: inline-block; transition: all 0.3s;">
                     <img src="{{ asset('images/education.gif') }}" alt="Education"
                         style="width: 36px; height: 36px; display: block; margin: 0 auto 4px;">
@@ -1035,7 +1085,7 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
                                                     </a> -->
                                             @endif
 
-                                            <a href="{{ url('learning') }}" title="Whence Learn"
+                                            <a target="_blank" href="{{ url('learning') }}" title="Whence Learn"
                                                 style="text-decoration: none; color: #333; text-align: center; padding: 8px; border-radius: 8px; background: transparent; display: inline-block; transition: all 0.3s;">
                                                 <img src="{{ asset('images/education.gif') }}" alt="Education"
                                                     style="width: 36px; height: 36px; display: block; margin: 0 auto 4px;">
@@ -1219,6 +1269,12 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
             <!-- /.content -->
             <div id="loader-wrapper">
                 <div id="loader"></div>
+            </div>
+
+            <!-- Mini Preloader Overlay for Link Clicks -->
+            <div id="mini-preloader" class="mini-preloader">
+                <div class="mini-preloader-spinner"></div>
+                <div class="mini-preloader-text">Loading...</div>
             </div>
         </div>
         <!-- /.content-wrapper -->
@@ -2368,6 +2424,8 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
     });
     </script>
 
+
+
     <!-- @include('components.vacancy-alert-popup') -->
     <!-- @include('components.insurance-alert-popup') -->
 
@@ -2383,6 +2441,21 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
     {{-- Clean up disbursed loans with zero balance --}}
 
 
+    <div id="top-line-loader" style="position:fixed;top:0;left:0;height:3px;width:0;background:#3498db;z-index:99999;transition:width .3s;"></div>
+    <script>
+    (function(){
+        var bar=document.getElementById('top-line-loader');
+        document.addEventListener('click',function(e){
+            var t=e.target.closest('a');
+            if(!t) return;
+            var href=t.getAttribute('href');
+            if(!href||href.startsWith('#')||href.startsWith('javascript:')||t.target==='_blank') return;
+            bar.style.width='70%';
+            setTimeout(function(){bar.style.width='100%';},200);
+            setTimeout(function(){bar.style.width='0';},600);
+        });
+    })();
+    </script>
 </body>
 
 

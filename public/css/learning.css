@@ -119,9 +119,10 @@
         padding: 15px 0;
         box-shadow: 0 4px 15px rgba(0,0,0,0.15);
         position: sticky;
-        top: 0;
+        top: 2px;
+        margin: 0 3px 0 3px;
         z-index: 1000;
-        border-radius: 0 0 16px 16px;
+        border-radius: 16px 16px 16px 16px;
     }
 
     .learning-header .container {
@@ -135,6 +136,17 @@
         justify-content: space-between;
         align-items: center;
         gap: 3px;
+        padding: 8px 0;
+    }
+
+    .desktop-back-main-btn {
+        display: inline-flex;
+    }
+
+    @media (max-width: 768px) {
+        .desktop-back-main-btn {
+            display: none !important;
+        }
     }
 
     .header-left {
@@ -154,8 +166,6 @@
     .learning-logo-img {
         height: 45px;
         width: auto;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
 
     .learning-logo:hover .learning-logo-img {
@@ -733,7 +743,7 @@
     /* Mobile Menu Button */
     .mobile-menu-btn {
         display: none;
-        background: rgba(255,255,255,0.15);
+        background: rgba(255, 255, 255, 0);
         border: none;
         color: white;
         padding: 14px 12px;
@@ -946,7 +956,7 @@
         .sidebar-title {
             margin-bottom: 10px;
         }
-    }
+    
 
         .sidebar-menu a {
             padding: 10px 12px;
@@ -969,11 +979,11 @@
         }
 
         .learning-header {
-            padding: 8px 0;
+            padding: 2px 0;
         }
 
         .mobile-menu-btn {
-            padding: 6px 10px;
+            padding: 10px 10px;
             font-size: 16px;
             margin-right: 10px;
         }
@@ -981,8 +991,6 @@
         .learning-logo span {
             font-size: 16px;
         }
-
-
 
         .learning-content {
             padding: 16px;

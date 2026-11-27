@@ -21,158 +21,165 @@ class LearningController extends Controller
      */
     public function index(\Illuminate\Http\Request $request)
     {
-       try {
-         $user = Sentinel::getUser();
-        
-        // Get page number from request
-        $page = $request->input('page', 1);
-        $perPage = 20;
-        
-        // Get all active training materials with pagination
-        $allMaterials = TrainingMaterial::where('is_active', 1)
-            ->orderBy('created_at', 'desc')
-            ->paginate($perPage, ['*'], 'courses_page', $page);
-        
-        // Get enrolled materials for current user
-        $enrollments = Enrollment::where('user_id', $user->id)->get();
-        $enrolledMaterialIds = $enrollments->pluck('training_material_id')->toArray();
-        $enrollmentMap = $enrollments->keyBy('training_material_id');
-        
-        // Prepare courses data with enrollment status
-        $courses = $allMaterials->getCollection()->map(function ($material) use ($enrolledMaterialIds, $enrollmentMap) {
-            $isEnrolled = in_array($material->id, $enrolledMaterialIds);
-            $progress = $isEnrolled ? $enrollmentMap[$material->id]->progress : 0;
+        //increasing the PHP upload size and timeout from here
+        ini_set('upload_max_filesize', '200M');
+        ini_set('post_max_size', '200M');
+        ini_set('max_execution_time', 600); // 10 minutes
+        ini_set('max_input_time', 600); // 10 minutes
+        ini_set('memory_limit', '256M');
+
+        try {
+            $user = Sentinel::getUser();
             
-            return [
-                'id' => $material->id,
-                'title' => $material->title,
-                'description' => $material->description,
-                'category' => $material->category ?? 'General',
-                'icon' => $material->icon,
-                'material_type' => $material->material_type,
-                'duration' => $material->human_duration,
-                'file_size' => $material->human_file_size,
-                'view_count' => $material->view_count,
-                'download_count' => $material->download_count,
-                'department' => $material->department,
-                'is_featured' => $material->is_featured,
-                'enrolled' => $isEnrolled,
-                'progress' => $progress,
-                'lessons' => 1,
-                'poster' => $material->poster,
-            ];
-        })->toArray();
-        
-        // Calculate statistics for current user
-        $stats = [
-            'total_courses' => TrainingMaterial::where('is_active', 1)->count(),
-            'enrolled_courses' => count($enrolledMaterialIds),
-            'completed_courses' => Enrollment::where('user_id', $user->id)
-                ->whereNotNull('completed_at')
-                ->count(),
-            'total_hours' => 0,
-            'in_progress' => Enrollment::where('user_id', $user->id)
-                ->where('progress', '>', 0)
-                ->where('progress', '<', 100)
-                ->count(),
-        ];
-        
-        // Get unique categories from CourseCategory model
-        $categories = CourseCategory::active()->ordered()->get();
-        
-        // Share categories with all views
-        view()->share('categories', $categories);
-        
-        
-        // Check if featured tab is active
-        $isFeaturedTab = $request->input('tab') === 'featured' ? true : false;
-        
-        if ($isFeaturedTab) {
-           
-            // For featured tab, get uploads grouped by general topic (only videos)
-            $topicsWithUploads = \App\Models\GeneralTopic::with(['uploads' => function($query) use ($user) {
-                $query->where('type', 'video')
-                      ->whereHas('positions', function($q) use ($user) {
-                          if ($user->position_id) {
-                              $q->where('id', $user->position_id);
-                          }
-                      });
-            }])->paginate($perPage, ['*'], 'topics_page', $page)->getCollection()->shuffle()->map(function($topic) {
+            // Get page number from request
+            $page = $request->input('page', 1);
+            $perPage = 20;
+            
+            // Get all active training materials with pagination
+            $allMaterials = TrainingMaterial::where('is_active', 1)
+                ->orderBy('created_at', 'desc')
+                ->paginate($perPage, ['*'], 'courses_page', $page);
+            
+            // Get enrolled materials for current user
+            $enrollments = Enrollment::where('user_id', $user->id)->get();
+            $enrolledMaterialIds = $enrollments->pluck('training_material_id')->toArray();
+            $enrollmentMap = $enrollments->keyBy('training_material_id');
+            
+            // Prepare courses data with enrollment status
+            $courses = $allMaterials->getCollection()->map(function ($material) use ($enrolledMaterialIds, $enrollmentMap) {
+                $isEnrolled = in_array($material->id, $enrolledMaterialIds);
+                $progress = $isEnrolled ? $enrollmentMap[$material->id]->progress : 0;
+                
                 return [
-                    'id' => $topic->id,
-                    'name' => $topic->name,
-                    'description' => $topic->description,
-                    'poster' => $topic->poster,
-                    'uploads' => $topic->uploads
+                    'id' => $material->id,
+                    'title' => $material->title,
+                    'description' => $material->description,
+                    'category' => $material->category ?? 'General',
+                    'icon' => $material->icon,
+                    'material_type' => $material->material_type,
+                    'duration' => $material->human_duration,
+                    'file_size' => $material->human_file_size,
+                    'view_count' => $material->view_count,
+                    'download_count' => $material->download_count,
+                    'department' => $material->department,
+                    'is_featured' => $material->is_featured,
+                    'enrolled' => $isEnrolled,
+                    'progress' => $progress,
+                    'lessons' => 1,
+                    'poster' => $material->poster,
                 ];
-            })->filter(function($topic) {
-                return $topic['uploads']->count() > 0;
             })->toArray();
+            
+            // Calculate statistics for current user
+            $stats = [
+                'total_courses' => TrainingMaterial::where('is_active', 1)->count(),
+                'enrolled_courses' => count($enrolledMaterialIds),
+                'completed_courses' => Enrollment::where('user_id', $user->id)
+                    ->whereNotNull('completed_at')
+                    ->count(),
+                'total_hours' => 0,
+                'in_progress' => Enrollment::where('user_id', $user->id)
+                    ->where('progress', '>', 0)
+                    ->where('progress', '<', 100)
+                    ->count(),
+            ];
+            
+            // Get unique categories from CourseCategory model
+            $categories = CourseCategory::active()->ordered()->get();
+            
+            // Share categories with all views
+            view()->share('categories', $categories);
+            
+            
+            // Check if featured tab is active
+            $isFeaturedTab = $request->input('tab') === 'featured' ? true : false;
+            
+            if ($isFeaturedTab) {
+            
+                // For featured tab, get uploads grouped by general topic (only videos)
+                $topicsWithUploads = \App\Models\GeneralTopic::with(['uploads' => function($query) use ($user) {
+                    $query->where('type', 'video')
+                        ->whereHas('positions', function($q) use ($user) {
+                            if ($user->position_id) {
+                                $q->where('id', $user->position_id);
+                            }
+                        });
+                }])->paginate($perPage, ['*'], 'topics_page', $page)->getCollection()->shuffle()->map(function($topic) {
+                    return [
+                        'id' => $topic->id,
+                        'name' => $topic->name,
+                        'description' => $topic->description,
+                        'poster' => $topic->poster,
+                        'uploads' => $topic->uploads
+                    ];
+                })->filter(function($topic) {
+                    return $topic['uploads']->count() > 0;
+                })->toArray();
 
 
-            // Flatten uploads for statistics and backward compatibility (only videos)
-            $uploads = \App\Models\GeneralUpload::where('type', 'video')
-                ->whereHas('positions', function($q) use ($user) {
+                // Flatten uploads for statistics and backward compatibility (only videos)
+                $uploads = \App\Models\GeneralUpload::where('type', 'video')
+                    ->whereHas('positions', function($q) use ($user) {
+                        // if ($user->position_id) {
+                        //     $q->where('id', $user->position_id);
+                        // }
+                    })->orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'uploads_page', $page);
+            } else {
+                
+                // For other tabs, get general uploads normally
+                $uploads = \App\Models\GeneralUpload::whereHas('positions', function($q) use ($user) {
                     // if ($user->position_id) {
                     //     $q->where('id', $user->position_id);
                     // }
                 })->orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'uploads_page', $page);
-        } else {
-            
-            // For other tabs, get general uploads normally
-            $uploads = \App\Models\GeneralUpload::whereHas('positions', function($q) use ($user) {
-                // if ($user->position_id) {
-                //     $q->where('id', $user->position_id);
-                // }
-            })->orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'uploads_page', $page);
 
-        
-            $topicsWithUploads = \App\Models\GeneralTopic::with(['uploads' => function($query) use ($user) {
-                // $query->whereHas('positions', function($q) use ($user) {
-                //     if ($user->position_id) {
-                //         $q->where('id', $user->position_id);
-                //     }
-                // });
-            }])->inRandomOrder()->paginate($perPage, ['*'], 'topics_page', $page)->map(function($topic) {
-                return [
-                    'id' => $topic->id,
-                    'name' => $topic->name,
-                    'description' => $topic->description,
-                    'poster' => $topic->poster,
-                    'uploads' => $topic->uploads
-                ];
-            })->filter(function($topic) {
-                return $topic['uploads']->count() > 0;
-            })->toArray();
             
-        }
-        
-        // Fetch grouped uploads for browsing (12 max per type)
-        $groupedVideos = \App\Models\GeneralUpload::where('type', 'video')
-            ->orderBy('created_at', 'desc')
-            ->limit(12)
-            ->get();
+                $topicsWithUploads = \App\Models\GeneralTopic::with(['uploads' => function($query) use ($user) {
+                    // $query->whereHas('positions', function($q) use ($user) {
+                    //     if ($user->position_id) {
+                    //         $q->where('id', $user->position_id);
+                    //     }
+                    // });
+                }])->inRandomOrder()->paginate($perPage, ['*'], 'topics_page', $page)->map(function($topic) {
+                    return [
+                        'id' => $topic->id,
+                        'name' => $topic->name,
+                        'description' => $topic->description,
+                        'poster' => $topic->poster,
+                        'uploads' => $topic->uploads
+                    ];
+                })->filter(function($topic) {
+                    return $topic['uploads']->count() > 0;
+                })->toArray();
+                
+            }
             
-        $groupedAudios = \App\Models\GeneralUpload::where('type', 'audio')
-            ->orderBy('created_at', 'desc')
-            ->limit(12)
-            ->get();
+            // Fetch grouped uploads for browsing (12 max per type)
+            $groupedVideos = \App\Models\GeneralUpload::where('type', 'video')
+                ->orderBy('created_at', 'desc')
+                ->limit(12)
+                ->get();
+                
+            $groupedAudios = \App\Models\GeneralUpload::where('type', 'audio')
+                ->orderBy('created_at', 'desc')
+                ->limit(12)
+                ->get();
+                
+            $groupedDocuments = \App\Models\GeneralUpload::whereIn('type', ['document', 'book', 'paper'])
+                ->orderBy('created_at', 'desc')
+                ->limit(12)
+                ->get();
             
-        $groupedDocuments = \App\Models\GeneralUpload::whereIn('type', ['document', 'book', 'paper'])
-            ->orderBy('created_at', 'desc')
-            ->limit(12)
-            ->get();
-        
-        // Featured training materials for bento banner (from config)
-        $featuredMaterialIds = config('learning.featured_training_materials', []);
-        $featuredMaterialsQuery = TrainingMaterial::where('is_active', 1)
-            ->whereIn('id', $featuredMaterialIds);
-        if (!empty($featuredMaterialIds)) {
-            $featuredMaterialsQuery->orderByRaw(DB::raw("FIELD(id, " . implode(',', $featuredMaterialIds) . ")"));
-        }
-        $featuredMaterials = $featuredMaterialsQuery->get();
+            // Featured training materials for bento banner (from config)
+            $featuredMaterialIds = config('learning.featured_training_materials', []);
+            $featuredMaterialsQuery = TrainingMaterial::where('is_active', 1)
+                ->whereIn('id', $featuredMaterialIds);
+            if (!empty($featuredMaterialIds)) {
+                $featuredMaterialsQuery->orderByRaw(DB::raw("FIELD(id, " . implode(',', $featuredMaterialIds) . ")"));
+            }
+            $featuredMaterials = $featuredMaterialsQuery->get();
 
-        return view('learning.dashboard', compact('courses', 'stats', 'uploads', 'topicsWithUploads', 'isFeaturedTab', 'page', 'perPage', 'groupedVideos', 'groupedAudios', 'groupedDocuments', 'featuredMaterials'));
+            return view('learning.dashboard', compact('courses', 'stats', 'uploads', 'topicsWithUploads', 'isFeaturedTab', 'page', 'perPage', 'groupedVideos', 'groupedAudios', 'groupedDocuments', 'featuredMaterials'));
        } catch (\Throwable $th) {
         //  dd($th);
        }
