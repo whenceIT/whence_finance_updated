@@ -248,12 +248,7 @@ class TrainingMaterialController extends Controller
      */
     public function storeTopic(Request $request, $materialId)
     {
-        //increasing the PHP upload size and timeout from here
-        ini_set('upload_max_filesize', '200M');
-        ini_set('post_max_size', '200M');
-        ini_set('max_execution_time', 600); // 10 minutes
-        ini_set('max_input_time', 600); // 10 minutes
-        ini_set('memory_limit', '256M');
+        @set_time_limit(600);
 
         try {
             $user = Sentinel::getUser();
@@ -347,7 +342,7 @@ class TrainingMaterialController extends Controller
                 ->with('toastr_type', 'success')
                 ->with('toastr_message', 'Topic added successfully.');
         } catch (\Throwable $th) {
-            dd($th);
+            Log::error('Error adding topic: ' . $th->getMessage());
             return redirect()->back()
                 ->with('toastr_type', 'error')
                 ->with('toastr_message', 'Error adding topic: ' . $th->getMessage())
@@ -1244,18 +1239,26 @@ class TrainingMaterialController extends Controller
      */
     public function uploadChunk(Request $request)
     {
-        $fileName = $request->filename;
-        $chunkIndex = $request->index;
-        $fileId = $request->fileId;
-        
+        @set_time_limit(600);
+
+        $request->validate([
+            'chunk' => 'required|file',
+            'index' => 'required|integer|min:0',
+            'fileId' => 'required|string',
+        ]);
+
+        $chunk = $request->file('chunk');
+        $chunkIndex = $request->input('index');
+        $fileId = preg_replace('/[^a-zA-Z0-9_-]/', '_', $request->input('fileId'));
         $chunksPath = storage_path('app/chunks');
-        if (!file_exists($chunksPath)) {
-            mkdir($chunksPath, 0755, true);
+
+        if (!is_dir($chunksPath) && !mkdir($chunksPath, 0775, true) && !is_dir($chunksPath)) {
+            return response()->json(['status' => 'error', 'message' => 'Unable to create chunk directory'], 500);
         }
-        
-        $chunkPath = $chunksPath . '/' . $fileId . '_part_' . $chunkIndex;
-        $request->file('chunk')->move(dirname($chunkPath), basename($chunkPath));
-        
+
+        $chunkPath = $chunksPath . DIRECTORY_SEPARATOR . $fileId . '_part_' . $chunkIndex;
+        $chunk->move(dirname($chunkPath), basename($chunkPath));
+
         return response()->json(['status' => 'chunk uploaded']);
     }
     
@@ -1267,70 +1270,87 @@ class TrainingMaterialController extends Controller
      */
     public function mergeChunks(Request $request)
     {
-        $fileName = $request->filename;
-        $fileId = $request->fileId;
-        $type = $request->type;
-        $totalChunks = $request->totalChunks;
-        
+        @set_time_limit(600);
+
+        $request->validate([
+            'filename' => 'required|string',
+            'fileId' => 'required|string',
+            'totalChunks' => 'required|integer|min:1',
+        ]);
+
+        $fileName = $request->input('filename');
+        $fileId = preg_replace('/[^a-zA-Z0-9_-]/', '_', $request->input('fileId'));
+        $totalChunks = (int) $request->input('totalChunks');
         $chunksPath = storage_path('app/chunks');
-        $uploadsPath = storage_path('app/uploads');
-        if (!file_exists($uploadsPath)) {
-            mkdir($uploadsPath, 0755, true);
-        }
-        
-        $finalPath = $uploadsPath . '/' . $fileName;
-        $output = fopen($finalPath, 'ab');
-        
+        $chunkPaths = [];
+
         for ($i = 0; $i < $totalChunks; $i++) {
-            $chunkPath = $chunksPath . '/' . $fileId . '_part_' . $i;
-            
-            if (!file_exists($chunkPath)) {
+            $chunkPath = $chunksPath . DIRECTORY_SEPARATOR . $fileId . '_part_' . $i;
+            if (!is_file($chunkPath)) {
+                $this->deleteChunkFiles($chunkPaths);
                 return response()->json(['status' => 'error', 'message' => 'Chunk ' . $i . ' not found'], 400);
             }
-            
-            $chunk = fopen($chunkPath, 'rb');
-            stream_copy_to_stream($chunk, $output);
-            fclose($chunk);
-            unlink($chunkPath);
+            $chunkPaths[] = $chunkPath;
         }
-        
-        fclose($output);
-        
-        // Upload to S3
+
+        $originalName = pathinfo($fileName, PATHINFO_FILENAME);
+        $sanitizedName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $originalName);
+        $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        $finalFileName = $sanitizedName . '_' . uniqid() . ($extension !== '' ? '.' . $extension : '');
+        $mergedStream = fopen('php://temp', 'w+b');
+
         try {
-            $originalName = pathinfo($fileName, PATHINFO_FILENAME);
-            $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
-            $finalFileName = $sanitizedName . '_' . uniqid() . '.' . pathinfo($fileName, PATHINFO_EXTENSION);
-            
+            foreach ($chunkPaths as $chunkPath) {
+                $chunk = fopen($chunkPath, 'rb');
+                stream_copy_to_stream($chunk, $mergedStream);
+                fclose($chunk);
+            }
+
+            rewind($mergedStream);
+
             $s3Client = new \Aws\S3\S3Client([
                 'version' => 'latest',
                 'region' => 'nyc3',
                 'endpoint' => 'https://nyc3.digitaloceanspaces.com',
                 'credentials' => [
-                    'key' => 'DO00RP9FA3QZTA3JV637',
-                    'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
+                    'key' => env('DO_SPACES_KEY', 'DO00RP9FA3QZTA3JV637'),
+                    'secret' => env('DO_SPACES_SECRET', 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk'),
                 ],
             ]);
-            
-            $result = $s3Client->putObject([
-                'Bucket' => 'wfssystem',
-                'Key' => $finalFileName,
-                'Body' => fopen($finalPath, 'r'),
-                'ACL' => 'public-read',
+
+            $uploader = new \Aws\S3\MultipartUploader($s3Client, $mergedStream, [
+                'bucket' => 'wfssystem',
+                'key' => $finalFileName,
+                'acl' => 'public-read',
+                'concurrency' => 1,
+                'params' => [
+                    'ContentType' => 'application/octet-stream',
+                ],
             ]);
-            
-            unlink($finalPath);
-            
-            return response()->json([
-                'status' => 'file merged',
-                'filePath' => $result['ObjectURL'],
-                'fileName' => $fileName
-            ]);
-            
-        } catch (\Aws\Exception\AwsException $e) {
-            Log::error('S3 Upload Error: ' . $e->getMessage());
-            unlink($finalPath);
+            $uploader->upload();
+        } catch (\Throwable $e) {
+            Log::error('Training Material S3 Upload Error: ' . $e->getMessage());
             return response()->json(['status' => 'error', 'message' => 'Failed to upload to S3'], 500);
+        } finally {
+            if (is_resource($mergedStream)) {
+                fclose($mergedStream);
+            }
+            $this->deleteChunkFiles($chunkPaths);
+        }
+
+        return response()->json([
+            'status' => 'file merged',
+            'filePath' => 'https://wfssystem.nyc3.digitaloceanspaces.com/' . $finalFileName,
+            'fileName' => $fileName,
+        ]);
+    }
+
+    private function deleteChunkFiles(array $chunkPaths)
+    {
+        foreach ($chunkPaths as $chunkPath) {
+            if (is_file($chunkPath)) {
+                unlink($chunkPath);
+            }
         }
     }
 

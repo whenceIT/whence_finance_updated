@@ -459,33 +459,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.querySelector('form');
     
     if (form) {
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
+        form.addEventListener('submit', function(e) {
             if (isUploading) {
+                e.preventDefault();
                 return;
             }
-            
+
             isUploading = true;
-            
             const submitButtons = form.querySelectorAll('button[type="submit"]');
             submitButtons.forEach(button => {
                 button.disabled = true;
                 button.style.opacity = '0.7';
             });
-            
-            try {
-                await Promise.all(Object.values(uploadPromises));
-                form.submit();
-            } catch (error) {
-                console.error('Upload error:', error);
-                alert('Error uploading files. Please try again.');
-                isUploading = false;
-                submitButtons.forEach(button => {
-                    button.disabled = false;
-                    button.style.opacity = '1';
-                });
-            }
+
+            Object.values(uploadPromises).filter(Boolean).forEach(promise => {
+                promise.catch(error => console.error('Background upload error:', error));
+            });
         });
     }
 });
@@ -561,13 +550,15 @@ async function uploadFile(file, type, onProgress) {
         const response = await fetch('{{ url("learning/training-materials/upload-chunk") }}', {
             method: 'POST',
             headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
             },
             body: formData
         });
 
         if (!response.ok) {
-            throw new Error(`Failed to upload chunk ${i + 1}/${totalChunks}`);
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `Failed to upload chunk ${i + 1}/${totalChunks}`);
         }
 
         const progress = ((i + 1) / totalChunks) * 100;
@@ -579,7 +570,8 @@ async function uploadFile(file, type, onProgress) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
         },
         body: JSON.stringify({
             filename: file.name,
@@ -589,11 +581,12 @@ async function uploadFile(file, type, onProgress) {
         })
     });
 
-    if (!mergeResponse.ok) {
-        throw new Error('Failed to merge chunks');
+    const data = await mergeResponse.json().catch(() => ({}));
+    if (!mergeResponse.ok || data.status === 'error') {
+        throw new Error(data.message || 'Failed to merge chunks');
     }
+    onProgress(100);
 
-    const data = await mergeResponse.json();
     const hidden = document.createElement('input');
     hidden.type = 'hidden';
     hidden.name = `${type}_file_path[]`;

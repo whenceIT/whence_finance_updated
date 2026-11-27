@@ -382,48 +382,25 @@ const uploadPromises = {};
 let isUploading = false;
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Form submission with loading modal
     const form = document.querySelector('form');
-    const modal = document.getElementById('loading-modal');
-    const title = document.getElementById('loading-title');
-    const message = document.getElementById('loading-message');
-    
+
     if (form) {
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
+        form.addEventListener('submit', function(e) {
             if (isUploading) {
+                e.preventDefault();
                 return;
             }
-            
+
             isUploading = true;
-            
-            // Show loading modal
-            modal.style.display = 'flex';
-            title.textContent = 'Uploading and processing files';
-            message.textContent = 'Please wait while we upload and add this topic...';
-            
-            // Disable submit button to prevent double submissions
             const submitButtons = form.querySelectorAll('button[type="submit"]');
             submitButtons.forEach(button => {
                 button.disabled = true;
                 button.style.opacity = '0.7';
             });
-            
-            // Wait for all uploads to complete
-            try {
-                await Promise.all(Object.values(uploadPromises));
-                form.submit();
-            } catch (error) {
-                console.error('Upload error:', error);
-                alert('Error uploading files. Please try again.');
-                isUploading = false;
-                submitButtons.forEach(button => {
-                    button.disabled = false;
-                    button.style.opacity = '1';
-                });
-                modal.style.display = 'none';
-            }
+
+            Object.values(uploadPromises).filter(Boolean).forEach(promise => {
+                promise.catch(error => console.error('Background upload error:', error));
+            });
         });
     }
 });
@@ -499,13 +476,15 @@ async function uploadFile(file, type, onProgress) {
         const response = await fetch('{{ url("learning/training-materials/upload-chunk") }}', {
             method: 'POST',
             headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
             },
             body: formData
         });
-        
+
         if (!response.ok) {
-            throw new Error(`Failed to upload chunk ${i + 1}/${totalChunks}`);
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `Failed to upload chunk ${i + 1}/${totalChunks}`);
         }
         
         const progress = ((i + 1) / totalChunks) * 100;
@@ -513,11 +492,12 @@ async function uploadFile(file, type, onProgress) {
     }
     
     // Merge chunks and get file path
-        const mergeResponse = await fetch('{{ url("learning/training-materials/merge-chunks") }}', {
+    const mergeResponse = await fetch('{{ url("learning/training-materials/merge-chunks") }}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
         },
         body: JSON.stringify({
             filename: file.name,
@@ -526,12 +506,13 @@ async function uploadFile(file, type, onProgress) {
             totalChunks: totalChunks
         })
     });
-    
-    if (!mergeResponse.ok) {
-        throw new Error('Failed to merge chunks');
+
+    const data = await mergeResponse.json().catch(() => ({}));
+    if (!mergeResponse.ok || data.status === 'error') {
+        throw new Error(data.message || 'Failed to merge chunks');
     }
-    
-    const data = await mergeResponse.json();
+    onProgress(100);
+
     const hidden = document.createElement('input');
     hidden.type = 'hidden';
     hidden.name = `${type}_file_path[]`;
