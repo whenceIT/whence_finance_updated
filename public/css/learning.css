@@ -116,7 +116,7 @@
     .learning-header {
         background: linear-gradient(135deg, #00b5a3 0%, #63bea3 100%);
         color: white;
-        padding: 15px 0;
+        padding: 0;
         box-shadow: 0 4px 15px rgba(0,0,0,0.15);
         position: sticky;
         top: 2px;
@@ -187,8 +187,11 @@
 
     .logo-main {
         font-size: 18px;
-        font-weight: 700;
-        letter-spacing: -0.5px;
+        line-height: 0.92;
+        font-weight: 900;
+        letter-spacing: -1px;
+        text-transform: uppercase;
+        text-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
     }
 
     .logo-sub {
