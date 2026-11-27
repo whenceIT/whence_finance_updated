@@ -903,7 +903,7 @@
 <!-- Bento Banner: featured training materials defined in config/learning.php -->
 <div class="bento-banner">
     <div class="section-header" style="position: relative;">
-        <h2 style="color: #D2691E; font-weight: 900; -webkit-text-stroke: 0.5px #D2691E; text-shadow: 1px 1px 0 rgba(210,105,30,0.35);">Mandatory Orientation for all Staff Members</h2>
+        <h2 style="color: #D2691E; font-weight: 900; -webkit-text-stroke: 0.5px #D2691E; text-shadow: 1px 1px 0 rgba(210,105,30,0.35);"><a href="{{ route('learning.training-materials.index') }}" style="color: inherit; text-decoration: none;">Mandatory Orientation for all Staff Members</a></h2>
         <span class="badge" style="position: relative; overflow: hidden; display: inline-block; padding: 4px 12px; border-radius: 12px; background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05)); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.3); color: #D2691E; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
             <span style="position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent); animation: badgeShine 3s infinite;"></span>
             Hand-picked

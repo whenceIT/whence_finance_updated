@@ -287,37 +287,29 @@ class GeneralUploadsController extends Controller
      */
     public function uploadChunk(Request $request)
     {
-        Log::info('Upload chunk endpoint called', $request->all());
-        
-        if (!$request->hasFile('chunk')) {
-            Log::error('No chunk file provided');
-            return response()->json(['success' => false, 'message' => 'No chunk file provided'], 400);
-        }
-        
+        @set_time_limit(600);
+
+        $request->validate([
+            'chunk' => 'required|file',
+            'index' => 'required|integer|min:0',
+            'fileId' => 'required|string',
+        ]);
+
         $chunk = $request->file('chunk');
         $index = $request->input('index');
-        $totalChunks = $request->input('totalChunks');
-        $filename = $request->input('filename');
-        $fileId = $request->input('fileId');
-        $type = $request->input('type', 'other');
-        
-        Log::info("Processing chunk $index of $totalChunks for file $filename ($fileId), type: $type");
-        
-        // Store chunk temporarily in local storage
+        $fileId = preg_replace('/[^a-zA-Z0-9_-]/', '_', $request->input('fileId'));
         $chunksPath = storage_path('app/chunks');
-        if (!file_exists($chunksPath)) {
-            mkdir($chunksPath, 0755, true);
+
+        if (!is_dir($chunksPath) && !mkdir($chunksPath, 0775, true) && !is_dir($chunksPath)) {
+            return response()->json(['success' => false, 'message' => 'Unable to create chunk directory'], 500);
         }
-        
-        $chunkPath = $chunksPath . '/' . $fileId . '_part_' . $index;
+
         $chunk->move($chunksPath, $fileId . '_part_' . $index);
-        Log::info("Chunk saved to: $chunkPath, size: " . filesize($chunkPath) . " bytes");
-        
+
         return response()->json([
             'success' => true,
             'message' => 'Chunk uploaded',
             'index' => $index,
-            'totalChunks' => $totalChunks
         ]);
     }
 
@@ -329,89 +321,106 @@ class GeneralUploadsController extends Controller
      */
     public function mergeChunks(Request $request)
     {
-        $fileName = $request->filename;
-        $fileId = $request->fileId;
-        $type = $request->type;
-        $totalChunks = $request->totalChunks;
-        
+        @set_time_limit(600);
+
+        $request->validate([
+            'filename' => 'required|string',
+            'fileId' => 'required|string',
+            'totalChunks' => 'required|integer|min:1',
+        ]);
+
+        $fileName = $request->input('filename');
+        $fileId = preg_replace('/[^a-zA-Z0-9_-]/', '_', $request->input('fileId'));
+        $totalChunks = (int) $request->input('totalChunks');
         $chunksPath = storage_path('app/chunks');
-        $uploadsPath = storage_path('app/uploads');
-        if (!file_exists($uploadsPath)) {
-            mkdir($uploadsPath, 0755, true);
-        }
-        
-        $finalPath = $uploadsPath . '/' . $fileName;
-        $output = fopen($finalPath, 'ab');
-        
+        $chunkPaths = [];
+
         for ($i = 0; $i < $totalChunks; $i++) {
-            $chunkPath = $chunksPath . '/' . $fileId . '_part_' . $i;
-            
-            if (!file_exists($chunkPath)) {
+            $chunkPath = $chunksPath . DIRECTORY_SEPARATOR . $fileId . '_part_' . $i;
+            if (!is_file($chunkPath)) {
+                $this->deleteChunkFiles($chunkPaths);
                 return response()->json(['status' => 'error', 'message' => 'Chunk ' . $i . ' not found'], 400);
             }
-            
-            $chunk = fopen($chunkPath, 'rb');
-            stream_copy_to_stream($chunk, $output);
-            fclose($chunk);
-            unlink($chunkPath);
+            $chunkPaths[] = $chunkPath;
         }
-        
-        fclose($output);
-        
-        // Upload to S3
+
+        $originalName = pathinfo($fileName, PATHINFO_FILENAME);
+        $sanitizedName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $originalName);
+        $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        $finalFileName = $sanitizedName . '_' . uniqid() . ($extension !== '' ? '.' . $extension : '');
+        $mergedStream = fopen('php://temp', 'w+b');
+        $posterPath = null;
+
         try {
-            $originalName = pathinfo($fileName, PATHINFO_FILENAME);
-            $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
-            $finalFileName = $sanitizedName . '_' . uniqid() . '.' . pathinfo($fileName, PATHINFO_EXTENSION);
-            
+            foreach ($chunkPaths as $chunkPath) {
+                $chunk = fopen($chunkPath, 'rb');
+                stream_copy_to_stream($chunk, $mergedStream);
+                fclose($chunk);
+            }
+
+            rewind($mergedStream);
+
             $s3Client = new \Aws\S3\S3Client([
                 'version' => 'latest',
                 'region' => 'nyc3',
                 'endpoint' => 'https://nyc3.digitaloceanspaces.com',
                 'credentials' => [
-                    'key' => 'DO00RP9FA3QZTA3JV637',
-                    'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
+                    'key' => env('DO_SPACES_KEY', 'DO00RP9FA3QZTA3JV637'),
+                    'secret' => env('DO_SPACES_SECRET', 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk'),
                 ],
             ]);
-            
-            $result = $s3Client->putObject([
-                'Bucket' => 'wfssystem',
-                'Key' => $finalFileName,
-                'Body' => fopen($finalPath, 'r'),
-                'ACL' => 'public-read',
+
+            $uploader = new \Aws\S3\MultipartUploader($s3Client, $mergedStream, [
+                'bucket' => 'wfssystem',
+                'key' => $finalFileName,
+                'acl' => 'public-read',
+                'concurrency' => 1,
+                'params' => [
+                    'ContentType' => 'application/octet-stream',
+                ],
             ]);
-            
-            unlink($finalPath);
-            
-            // Handle poster upload
-            $posterPath = null;
+            $uploader->upload();
+
             if ($request->hasFile('poster')) {
                 $poster = $request->file('poster');
                 $posterOriginalName = pathinfo($poster->getClientOriginalName(), PATHINFO_FILENAME);
-                $posterSanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $posterOriginalName);
-                $posterFinalFileName = 'posters/' . $posterSanitizedName . '_' . uniqid() . '.' . $poster->getClientOriginalExtension();
-                
-                $posterResult = $s3Client->putObject([
+                $posterSanitizedName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $posterOriginalName);
+                $posterKey = 'posters/' . $posterSanitizedName . '_' . uniqid() . '.' . $poster->getClientOriginalExtension();
+
+                $s3Client->putObject([
                     'Bucket' => 'wfssystem',
-                    'Key' => $posterFinalFileName,
+                    'Key' => $posterKey,
                     'Body' => fopen($poster->getPathname(), 'r'),
                     'ACL' => 'public-read',
+                    'ContentType' => $poster->getMimeType(),
                 ]);
-                
-                $posterPath = $posterResult['ObjectURL'];
+
+                $posterPath = 'https://wfssystem.nyc3.digitaloceanspaces.com/' . $posterKey;
             }
-            
-            return response()->json([
-                'status' => 'file merged',
-                'filePath' => $result['ObjectURL'],
-                'fileName' => $fileName,
-                'posterPath' => $posterPath
-            ]);
-            
-        } catch (\Aws\Exception\AwsException $e) {
+        } catch (\Throwable $e) {
             Log::error('S3 Upload Error: ' . $e->getMessage());
-            unlink($finalPath);
             return response()->json(['status' => 'error', 'message' => 'Failed to upload to S3'], 500);
+        } finally {
+            if (is_resource($mergedStream)) {
+                fclose($mergedStream);
+            }
+            $this->deleteChunkFiles($chunkPaths);
+        }
+
+        return response()->json([
+            'status' => 'file merged',
+            'filePath' => 'https://wfssystem.nyc3.digitaloceanspaces.com/' . $finalFileName,
+            'fileName' => $fileName,
+            'posterPath' => $posterPath,
+        ]);
+    }
+
+    private function deleteChunkFiles(array $chunkPaths)
+    {
+        foreach ($chunkPaths as $chunkPath) {
+            if (is_file($chunkPath)) {
+                unlink($chunkPath);
+            }
         }
     }
 

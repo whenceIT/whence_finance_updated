@@ -6,7 +6,7 @@
     <title>@yield('title', 'Whence Learn')</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
-    <link rel="icon" type="image/jpeg" href="/images/wlh.jpg">
+    <link rel="icon" type="image/jpeg" href="/images/wlh.png">
     
     <!-- Bootstrap 3.3.6 -->
     <link rel="stylesheet" href="{{ asset('assets/plugins/bootstrap/css/bootstrap.min.css') }}">
@@ -41,7 +41,7 @@
                         <i class="fa fa-bars"></i>
                     </button>
                     <a href="{{ url('/learning') }}" class="learning-logo" id="learning-logo">
-                        <img src="/images/wlh.jpg" alt="Whence Training Hub" class="learning-logo-img">
+                        <img src="/images/wlh.png" alt="Whence Training Hub" class="learning-logo-img">
                         <div class="logo-text">
                             <span class="logo-main">Whence<br>Training Hub</span>
                         </div>
@@ -49,7 +49,7 @@
                 </div>
                   
                 <!-- Search Field with Animated Placeholder (Desktop - opens modal) -->
-                <div class="search-container desktop-search" style="margin-left: 20px; position: relative; display: flex; align-items: center;">
+                <div class="search-container desktop-search" style="top:12px; margin-left: 20px; position: relative; display: flex; align-items: center;">
                     <i class="fa fa-search" style="color: rgba(255,255,255,0.7); font-size: 16px; margin-right: 8px;"></i>
                     <input type="text" id="learning-search" name="q" class="form-control search-input-click" placeholder="Search topics and resources..." readonly style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 6px 10px; border-radius: 4px; font-size: 14px; width: 550px; outline: none; cursor: pointer;">
                 </div>
@@ -57,18 +57,22 @@
                 <!-- Right-aligned actions -->
                 <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
                     <!-- Search Button (Mobile) -->
-                    <button class="mobile-search-btn" id="mobile-search-toggle" type="button" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.7); padding: 6px 12px; border-radius: 4px; font-size: 14px; display: none; align-items: center; gap: 8px;">
+                    <button class="mobile-search-btn" id="mobile-search-toggle" type="button" style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255, 255, 255, 0); color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 15px; display: none; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: all .2s ease;">
                         <i class="fa fa-search"></i>
                     </button>
 
                     <!-- Back to Main Button (Mobile only) -->
-                    <a href="{{ url('/') }}" class="mobile-back-main-btn" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.7); padding: 6px 12px; border-radius: 4px; font-size: 14px; display: none; align-items: center; gap: 8px; text-decoration: none;">
-                        <i class="fa fa-arrow-left"></i>
+                    <a href="{{ url('/') }}" title="Go back to the LMS" class="mobile-back-main-btn" style="background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); padding: 5px 12px; border-radius: 5px; font-size: 14px; display: none; align-items: center; gap: 8px; text-decoration: none;">
+                        Back
+                    </a>
+                    <!-- Back to Main Button (Desktop) -->
+                    <a href="{{ url('/') }}" title="Go back to the LMS" class="desktop-back-main-btn" style="background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); padding: 5px 12px; border-radius: 4px; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
+                        Back
                     </a>
                     @if(($user && $user->istrainer == 1) || ($role && in_array($role->id, ['1'])))
                     <!-- Navigation -->
                     <div class="dropdown">
-                    <button type="button" class="btn btn" id="learning-menu-toggle" style="background: rgba(255,255,255,0.15); border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer;">
+                    <button type="button" class="btn btn" id="learning-menu-toggle" style="background: rgba(255,255,255,0.15); border: none; color: white; padding: 9px 12px; border-radius: 6px; cursor: pointer;">
                         <i class="fa fa-th"></i>
                     </button>
                     <div class="dropdown-menu" id="learning-dropdown" style="display: none; position: absolute; top: 100%; left: 0; background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); min-width: 220px; z-index: 1001; overflow: hidden;">
@@ -413,7 +417,7 @@
     <div id="loader">
         <div class="loader-content">
              <div class="loader-logo">
-                 <img style="border-radius: 40px; background: rgba(255, 255, 255, 0.2);" src="{{ asset('images/wlh.jpg') }}" alt="Whence Learn" width="200" style="width: 100px; height: auto;">
+                 <img style="border-radius: 40px; background: rgba(255, 255, 255, 0.2);" src="{{ asset('images/wlh.png') }}" alt="Whence Learn" width="200" style="width: 100px; height: auto;">
              </div>
             <div class="loader-text">Whence Training Hub</div>
             <div class="loader-subtext">Loading your learning experience...</div>
@@ -421,6 +425,12 @@
                 <div class="loader-progress-bar"></div>
             </div>
         </div>
+    </div>
+
+    <!-- Mini Preloader Overlay for Link Clicks -->
+    <div id="mini-preloader" class="mini-preloader">
+        <div class="mini-preloader-spinner"></div>
+        <div class="mini-preloader-text">Loading...</div>
     </div>
 
     <!-- Scripts -->
@@ -773,6 +783,66 @@
             
             // Initialize cookie consent on page load
             initCookieConsent();
+
+            // Mini Preloader for Link Clicks
+            (function() {
+                var $miniPreloader = $('#mini-preloader');
+                var preloaderTimer = null;
+
+                function showMiniPreloader() {
+                    $miniPreloader.addClass('active');
+                }
+
+                function hideMiniPreloader() {
+                    $miniPreloader.removeClass('active');
+                }
+
+                $(document).on('click', 'a', function(e) {
+                    var $link = $(this);
+                    var href = $link.attr('href');
+                    var target = $link.attr('target');
+
+                    // Skip if:
+                    // - No href or javascript: links
+                    // - Anchor links (#)
+                    // - Opens in new tab/window
+                    // - Has data-no-preloader attribute
+                    // - Is a modal trigger (data-toggle="modal")
+                    // - Is a dropdown toggle
+                    // - Is inside a modal
+                    if (!href ||
+                        href.startsWith('javascript:') ||
+                        href.startsWith('#') ||
+                        target === '_blank' ||
+                        $link.data('no-preloader') ||
+                        $link.attr('data-toggle') === 'modal' ||
+                        $link.closest('.dropdown-toggle').length ||
+                        $link.closest('.modal').length ||
+                        $link.closest('[data-toggle="dropdown"]').length) {
+                        return;
+                    }
+
+                    // Show mini preloader with slight delay to avoid flicker on fast navigations
+                    preloaderTimer = setTimeout(showMiniPreloader, 50);
+
+                    // Safety timeout: hide after 10 seconds max
+                    setTimeout(hideMiniPreloader, 100000);
+                });
+
+                // Hide preloader on page load (handles back/forward navigation)
+                $(window).on('pageshow', function(e) {
+                    if (e.originalEvent.persisted) {
+                        hideMiniPreloader();
+                        clearTimeout(preloaderTimer);
+                    }
+                });
+
+                // Hide preloader when page finishes loading
+                $(window).on('load', function() {
+                    clearTimeout(preloaderTimer);
+                    hideMiniPreloader();
+                });
+            })();
         });
     </script>
     
@@ -1008,6 +1078,51 @@
             .mobile-back-main-btn {
                 display: inline-flex !important;
             }
+        }
+
+        /* Mini Preloader Styles */
+        .mini-preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(2px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            pointer-events: none;
+        }
+
+        .mini-preloader.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .mini-preloader-spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #e0e0e0;
+            border-top-color: var(--primary-color, #4a90e2);
+            border-radius: 50%;
+            animation: mini-preloader-spin 0.8s linear infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes mini-preloader-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .mini-preloader-text {
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
         }
     </style>
     <script>

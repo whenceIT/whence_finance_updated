@@ -24,43 +24,37 @@
 
     <!-- Categories Grid -->
     @if(count($categories) > 0)
-    <div class="categories-grid" style="display: flex; flex-wrap: wrap; gap: 16px; margin-top: 20px;">
+    <div class="categories-grid">
         @foreach($categories as $category)
-        <a href="{{ url('learning/courses?category=' . urlencode($category->name)) }}" class="category-card-link" style="text-decoration: none; color: inherit; display: block;">
-        <div class="category-card" style="background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden; width: 280px; flex-shrink: 0; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;">
-            <div style="padding: 12px 15px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #eee;">
-                <span style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 6px; background: {{ $category->color ? $category->color . '20' : '#4a90e220' }};">
-                    <i class="fa {{ $category->icon }}" style="font-size: 16px; color: {{ $category->color ?: 'var(--primary-color)' }};"></i>
+        <a href="{{ url('learning/courses?category=' . urlencode($category->name)) }}" class="category-card-link">
+        <div class="category-card">
+            <div class="category-card-header">
+                <span class="category-icon" style="background: {{ $category->color ? $category->color . '20' : '#4a90e220' }};">
+                    <i class="fa {{ $category->icon }}" style="color: {{ $category->color ?: 'var(--primary-color)' }};"></i>
                 </span>
-                <div style="flex: 1; min-width: 0;">
-                    <h4 style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin: 0 0 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $category->name }}</h4>
+                <div class="category-info">
+                    <h4>{{ $category->name }}</h4>
                     @if($category->is_active)
-                    <span style="display: inline-block; background: rgba(80, 200, 120, 0.15); color: #2e7d32; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600;">
-                        Active
-                    </span>
+                    <span class="status-badge status-active">Active</span>
                     @else
-                    <span style="display: inline-block; background: rgba(255, 107, 107, 0.15); color: #c62828; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600;">
-                        Inactive
-                    </span>
+                    <span class="status-badge status-inactive">Inactive</span>
                     @endif
                 </div>
             </div>
-            <div style="padding: 12px 15px;">
-                <p style="color: var(--text-secondary); font-size: 12px; margin: 0 0 12px 0; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            <div class="category-card-body">
+                <p class="category-description">
                     {{ !empty($category->description) ? $category->description : 'No description available' }}
                 </p>
-                <span style="color: var(--primary-color); font-size: 12px; font-weight: 500;">
-                    <i class="fa fa-arrow-right"></i> View Courses
-                </span>
+                <span class="view-courses-link"><i class="fa fa-arrow-right"></i> View Courses</span>
                 @if($isAdmin)
-                <div style="display: flex; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #eee;" onclick="event.preventDefault(); event.stopPropagation();">
-                    <a href="{{ url('course-categories/' . $category->id . '/edit') }}" class="btn btn-default btn-xs" style="flex: 1; padding: 5px 10px; font-size: 11px; border: 1px solid #ddd; border-radius: 4px; text-align: center;" onclick="event.stopPropagation();">
+                <div class="category-actions" onclick="event.preventDefault(); event.stopPropagation();">
+                    <a href="{{ url('course-categories/' . $category->id . '/edit') }}" class="btn btn-default btn-xs" onclick="event.stopPropagation();">
                         <i class="fa fa-edit" style="color: var(--primary-color);"></i> Edit
                     </a>
-                    <form action="{{ url('course-categories/' . $category->id . '/toggle-status') }}" method="POST" style="flex: 1;">
+                    <form action="{{ url('course-categories/' . $category->id . '/toggle-status') }}" method="POST" style="display: inline;">
                         @csrf
                         @method('POST')
-                        <button type="submit" class="btn btn-default btn-xs" style="width: 100%; padding: 5px 10px; font-size: 11px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;" onclick="event.stopPropagation(); return confirm('Are you sure?')">
+                        <button type="submit" class="btn btn-default btn-xs" onclick="event.stopPropagation(); return confirm('Are you sure?')">
                             @if($category->is_active)
                             <i class="fa fa-eye-slash" style="color: #f44336;"></i> Hide
                             @else
@@ -68,10 +62,10 @@
                             @endif
                         </button>
                     </form>
-                    <form action="{{ url('course-categories/' . $category->id) }}" method="POST">
+                    <form action="{{ url('course-categories/' . $category->id) }}" method="POST" style="display: inline;">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn btn-default btn-xs" style="padding: 5px 10px; font-size: 11px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;" onclick="event.stopPropagation(); return confirm('Are you sure?')">
+                        <button type="submit" class="btn btn-default btn-xs" onclick="event.stopPropagation(); return confirm('Are you sure?')">
                             <i class="fa fa-trash" style="color: #f44336;"></i>
                         </button>
                     </form>
@@ -108,11 +102,108 @@
     width: 100%;
 }
 .category-card-link {
-    display: inline-block;
+    display: block;
+    text-decoration: none;
+    color: inherit;
+}
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+.category-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 .category-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.category-card-header {
+    padding: 12px 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid #eee;
+}
+.category-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+.category-icon i {
+    font-size: 16px;
+}
+.category-info {
+    flex: 1;
+    min-width: 0;
+}
+.category-info h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 4px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.status-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+}
+.status-active {
+    background: rgba(80, 200, 120, 0.15);
+    color: #2e7d32;
+}
+.status-inactive {
+    background: rgba(255, 107, 107, 0.15);
+    color: #c62828;
+}
+.category-card-body {
+    padding: 12px 15px;
+}
+.category-description {
+    color: var(--text-secondary);
+    font-size: 12px;
+    margin: 0 0 12px 0;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.view-courses-link {
+    color: var(--primary-color);
+    font-size: 12px;
+    font-weight: 500;
+}
+.category-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #eee;
+    flex-wrap: wrap;
+}
+.category-actions .btn {
+    flex: 1;
+    min-width: 70px;
+    padding: 5px 10px;
+    font-size: 11px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-align: center;
 }
 .btn-primary {
     background: var(--primary-color) !important;
@@ -125,6 +216,67 @@
 }
 .btn-default:hover {
     background: #e9ecef;
+}
+
+/* Mobile Responsive - List View */
+@media (max-width: 599px) {
+    .categories-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    .category-card {
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .category-card:hover {
+        transform: none;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+    .category-card-header {
+        padding: 14px 16px;
+    }
+    .category-info h4 {
+        font-size: 15px;
+        margin-bottom: 6px;
+    }
+    .category-card-body {
+        padding: 14px 16px;
+    }
+    .category-description {
+        font-size: 13px;
+        -webkit-line-clamp: 3;
+        margin-bottom: 14px;
+    }
+    .view-courses-link {
+        font-size: 13px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .category-actions {
+        flex-direction: column;
+        gap: 6px;
+    }
+    .category-actions .btn {
+        width: 100%;
+        flex: none;
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+}
+
+/* Small tablet - 2 columns */
+@media (min-width: 600px) and (max-width: 899px) {
+    .categories-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Desktop - 3+ columns */
+@media (min-width: 900px) {
+    .categories-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
 }
 </style>
 
