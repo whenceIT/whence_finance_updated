@@ -331,6 +331,285 @@
         </div>
 
 
+
+{{-- ========================================================= --}}
+{{-- PAYROLL PERIOD COMPARISON                                 --}}
+{{-- ========================================================= --}}
+
+@if($previousCycle)
+
+    @php
+        $previousCycleLabel = \Carbon\Carbon::parse($previousCycle)->format('d M Y');
+
+        $grossChange = $comparisonMetrics['gross_pay']['change'];
+        $grossPercentage = $comparisonMetrics['gross_pay']['percentage'];
+
+        $changeClass = $grossChange > 0
+            ? 'text-danger'
+            : ($grossChange < 0 ? 'text-success' : 'text-muted');
+
+        $changeIcon = $grossChange > 0
+            ? 'fa-arrow-up'
+            : ($grossChange < 0 ? 'fa-arrow-down' : 'fa-minus');
+    @endphp
+
+    <div class="box box-info">
+
+        <div class="box-header with-border">
+            <h3 class="box-title">
+                <i class="fa fa-line-chart"></i>
+                Payroll Period Comparison
+            </h3>
+        </div>
+
+        <div class="box-body">
+
+            <p class="text-muted">
+                Comparing the selected payroll cycle against the
+                previous available cycle beginning
+                <strong>{{ $previousCycleLabel }}</strong>.
+            </p>
+
+            {{-- Overall movement --}}
+            <div class="row">
+
+                <div class="col-md-4">
+                    <div class="payroll-summary-card">
+                        <div class="summary-label">Gross Payroll Movement</div>
+
+                        <div class="summary-value {{ $changeClass }}">
+                            <i class="fa {{ $changeIcon }}"></i>
+                            K{{ number_format(abs($grossChange), 2) }}
+                        </div>
+
+                        <small class="{{ $changeClass }}">
+                            @if($grossPercentage !== null)
+                                {{ number_format(abs($grossPercentage), 2) }}%
+                            @else
+                                No previous baseline
+                            @endif
+
+                            {{ $payrollDirection }}
+                        </small>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="payroll-summary-card">
+                        <div class="summary-label">Previous Gross Payroll</div>
+
+                        <div class="summary-value">
+                            K{{ number_format($previousTotals['gross_pay'], 2) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="payroll-summary-card">
+                        <div class="summary-label">Current Gross Payroll</div>
+
+                        <div class="summary-value">
+                            K{{ number_format($totals['gross_pay'], 2) }}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            {{-- Comparison table --}}
+            <h4>Financial Breakdown</h4>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+
+                    <thead>
+                        <tr>
+                            <th>Payroll Component</th>
+                            <th>Previous Cycle</th>
+                            <th>Current Cycle</th>
+                            <th>Change</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @foreach($comparisonMetrics as $metric)
+
+                            @php
+                                $change = $metric['change'];
+
+                                $class = $change > 0
+                                    ? 'text-danger'
+                                    : ($change < 0 ? 'text-success' : 'text-muted');
+                            @endphp
+
+                            <tr>
+                                <td>
+                                    <strong>{{ $metric['label'] }}</strong>
+                                </td>
+
+                                <td>
+                                    @if($metric['label'] === 'Number of Employees')
+                                        {{ number_format($metric['previous']) }}
+                                    @else
+                                        K{{ number_format($metric['previous'], 2) }}
+                                    @endif
+                                </td>
+
+                                <td>
+                                    @if($metric['label'] === 'Number of Employees')
+                                        {{ number_format($metric['current']) }}
+                                    @else
+                                        K{{ number_format($metric['current'], 2) }}
+                                    @endif
+                                </td>
+
+                                <td class="{{ $class }}">
+                                    <strong>
+                                        {{ $change > 0 ? '+' : '' }}
+
+                                        @if($metric['label'] === 'Number of Employees')
+                                            {{ number_format($change) }}
+                                        @else
+                                            K{{ number_format($change, 2) }}
+                                        @endif
+                                    </strong>
+                                </td>
+
+                                <td class="{{ $class }}">
+                                    @if($metric['percentage'] !== null)
+                                        {{ number_format($metric['percentage'], 2) }}%
+                                    @elseif($change > 0)
+                                        New
+                                    @else
+                                        —
+                                    @endif
+                                </td>
+                            </tr>
+
+                        @endforeach
+
+                    </tbody>
+
+                </table>
+            </div>
+
+            <hr>
+
+            {{-- Employee-level explanation --}}
+            <h4>
+                <i class="fa fa-users"></i>
+                Employees Responsible for Payroll Changes
+            </h4>
+
+            <p class="text-muted">
+                Employees are listed according to the size of their
+                gross payroll movement between the two cycles.
+            </p>
+
+            @if($employeeChanges->isNotEmpty())
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Change Type</th>
+                                <th>Salary Change</th>
+                                <th>Allowance Change</th>
+                                <th>Gross Pay Change</th>
+                                <th>Net Pay Change</th>
+                                <th>Possible Causes</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach($employeeChanges as $change)
+
+                                @php
+                                    $grossClass = $change['gross_change'] > 0
+                                        ? 'text-danger'
+                                        : ($change['gross_change'] < 0 ? 'text-success' : 'text-muted');
+                                @endphp
+
+                                <tr>
+                                    <td>
+                                        <strong>{{ $change['employee_name'] }}</strong>
+                                        <br>
+                                        <small class="text-muted">
+                                            ID: {{ $change['user_id'] }}
+                                        </small>
+                                    </td>
+
+                                    <td>
+                                        {{ $change['change_type'] }}
+                                    </td>
+
+                                    <td>
+                                        K{{ number_format($change['salary_change'], 2) }}
+                                    </td>
+
+                                    <td>
+                                        K{{ number_format($change['allowance_change'], 2) }}
+                                    </td>
+
+                                    <td class="{{ $grossClass }}">
+                                        <strong>
+                                            {{ $change['gross_change'] > 0 ? '+' : '' }}
+                                            K{{ number_format($change['gross_change'], 2) }}
+                                        </strong>
+                                    </td>
+
+                                    <td>
+                                        {{ $change['net_change'] > 0 ? '+' : '' }}
+                                        K{{ number_format($change['net_change'], 2) }}
+                                    </td>
+
+                                    <td>
+                                        @forelse($change['reasons'] as $reason)
+                                            <span class="label label-default"
+                                                  style="display:inline-block; margin:2px;">
+                                                {{ $reason }}
+                                            </span>
+                                        @empty
+                                            <span class="text-muted">No significant change</span>
+                                        @endforelse
+                                    </td>
+                                </tr>
+
+                            @endforeach
+
+                        </tbody>
+
+                    </table>
+                </div>
+
+            @else
+
+                <div class="alert alert-success">
+                    No individual employee payroll changes were detected
+                    between these two cycles.
+                </div>
+
+            @endif
+
+        </div>
+    </div>
+
+@else
+
+    <div class="alert alert-warning">
+        <i class="fa fa-info-circle"></i>
+        There is no earlier payroll cycle available for comparison.
+    </div>
+
+@endif
+
+
+
         @if(
     $isBranchManager &&
     $wageBills->isNotEmpty() &&

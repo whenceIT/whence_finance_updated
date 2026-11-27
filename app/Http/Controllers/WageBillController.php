@@ -270,7 +270,230 @@ public function index(Request $request)
         'advance_deductions' => $allWageBills->sum('advance_deductions'),
 
         'net_pay' => $allWageBills->sum('net_pay'),
+
     ];
+
+
+/*
+|--------------------------------------------------------------------------
+| Previous Payroll Cycle Comparison
+|--------------------------------------------------------------------------
+*/
+
+// Find the immediately preceding available cycle.
+$previousCycle = null;
+
+if ($selectedCycle) {
+    $previousCycle = $cycles->first(function ($cycle) use ($selectedCycle) {
+        return $cycle < $selectedCycle;
+    });
+}
+
+$previousWageBills = collect();
+
+if ($previousCycle) {
+
+    // Retrieve previous branch payroll using the same branch filters.
+    if ($includeBranchPayroll) {
+        $previousBranchBills = WageBill::with([
+            'employee',
+            'branch',
+        ])
+            ->whereIn('branch_id', $branchIdsForPayroll)
+            ->when($selectedBranchId, function ($query) use ($selectedBranchId) {
+                $query->where('branch_id', $selectedBranchId);
+            })
+            ->whereDate('cycle_start', $previousCycle)
+            ->get();
+
+        $previousWageBills = $previousWageBills->merge($previousBranchBills);
+    }
+
+    // Retrieve previous departmental payroll when applicable.
+    if ($includeDepartmental) {
+        $previousDepartmentalBills = DepartmentalWageBill::with([
+            'employee',
+        ])
+            ->whereDate('cycle_start', $previousCycle)
+            ->get();
+
+        $departmentalOffice = Office::find(67);
+
+        foreach ($previousDepartmentalBills as $bill) {
+            $bill->predicted_salary = $bill->basic_salary;
+            $bill->branch_id = 67;
+
+            $bill->setRelation('branch', $departmentalOffice);
+        }
+
+        $previousWageBills = $previousWageBills->merge(
+            $previousDepartmentalBills
+        );
+    }
+}
+
+// Calculate previous period totals.
+$previousTotals = [
+    'employees' => $previousWageBills->count(),
+    'predicted_salary' => $previousWageBills->sum('predicted_salary'),
+    'gross_pay' => $previousWageBills->sum('gross_pay'),
+    'paye' => $previousWageBills->sum('paye'),
+    'napsa' => $previousWageBills->sum('napsa'),
+    'nhima' => $previousWageBills->sum('nhima'),
+    'allowances' => $previousWageBills->sum('allowances'),
+    'advance_deductions' => $previousWageBills->sum('advance_deductions'),
+    'net_pay' => $previousWageBills->sum('net_pay'),
+];
+
+// Calculate changes between the two periods.
+$comparisonMetrics = [];
+
+$metricLabels = [
+    'employees' => 'Number of Employees',
+    'predicted_salary' => 'Predicted / Basic Salaries',
+    'gross_pay' => 'Gross Payroll',
+    'allowances' => 'Allowances',
+    'paye' => 'PAYE',
+    'napsa' => 'NAPSA',
+    'nhima' => 'NHIMA',
+    'advance_deductions' => 'Advance Deductions',
+    'net_pay' => 'Net Pay',
+];
+
+foreach ($metricLabels as $key => $label) {
+
+    $current = (float) ($totals[$key] ?? 0);
+    $previous = (float) ($previousTotals[$key] ?? 0);
+
+    $change = $current - $previous;
+
+    $percentage = $previous != 0
+        ? ($change / abs($previous)) * 100
+        : null;
+
+    $comparisonMetrics[$key] = [
+        'label' => $label,
+        'current' => $current,
+        'previous' => $previous,
+        'change' => $change,
+        'percentage' => $percentage,
+    ];
+}
+
+/*
+|--------------------------------------------------------------------------
+| Identify Individual Employee Payroll Changes
+|--------------------------------------------------------------------------
+*/
+
+$currentEmployees = $allWageBills->keyBy('user_id');
+$previousEmployees = $previousWageBills->keyBy('user_id');
+
+$employeeIds = $currentEmployees->keys()
+    ->merge($previousEmployees->keys())
+    ->unique();
+
+$employeeChanges = collect();
+
+foreach ($employeeIds as $employeeId) {
+
+    $current = $currentEmployees->get($employeeId);
+    $previous = $previousEmployees->get($employeeId);
+
+    $currentSalary = (float) ($current->predicted_salary ?? 0);
+    $previousSalary = (float) ($previous->predicted_salary ?? 0);
+
+    $currentAllowances = (float) ($current->allowances ?? 0);
+    $previousAllowances = (float) ($previous->allowances ?? 0);
+
+    $currentGross = (float) ($current->gross_pay ?? 0);
+    $previousGross = (float) ($previous->gross_pay ?? 0);
+
+    $currentNet = (float) ($current->net_pay ?? 0);
+    $previousNet = (float) ($previous->net_pay ?? 0);
+
+    $salaryChange = $currentSalary - $previousSalary;
+    $allowanceChange = $currentAllowances - $previousAllowances;
+    $grossChange = $currentGross - $previousGross;
+    $netChange = $currentNet - $previousNet;
+
+    $reasons = [];
+
+    if (!$previous) {
+        $changeType = 'New Employee';
+        $reasons[] = 'Employee added to payroll';
+    } elseif (!$current) {
+        $changeType = 'Removed Employee';
+        $reasons[] = 'Employee no longer appears on payroll';
+    } else {
+        $changeType = 'Payroll Changed';
+
+        if (abs($salaryChange) > 0.005) {
+            $reasons[] = $salaryChange > 0
+                ? 'Salary increased'
+                : 'Salary decreased';
+        }
+
+        if (abs($allowanceChange) > 0.005) {
+            $reasons[] = $allowanceChange > 0
+                ? 'Allowances increased'
+                : 'Allowances decreased';
+        }
+
+        if (
+            abs((float) ($current->paye ?? 0) - (float) ($previous->paye ?? 0)) > 0.005 ||
+            abs((float) ($current->napsa ?? 0) - (float) ($previous->napsa ?? 0)) > 0.005 ||
+            abs((float) ($current->nhima ?? 0) - (float) ($previous->nhima ?? 0)) > 0.005
+        ) {
+            $reasons[] = 'Statutory deductions changed';
+        }
+
+        if (
+            abs((float) ($current->advance_deductions ?? 0) -
+                (float) ($previous->advance_deductions ?? 0)) > 0.005
+        ) {
+            $reasons[] = 'Advance deductions changed';
+        }
+    }
+
+    // Only include employees whose payroll actually changed.
+    if (
+        !$previous ||
+        !$current ||
+        abs($salaryChange) > 0.005 ||
+        abs($allowanceChange) > 0.005 ||
+        abs($grossChange) > 0.005 ||
+        abs($netChange) > 0.005
+    ) {
+        $employee = $current ? $current->employee : $previous->employee;
+
+        $employeeChanges->push([
+            'user_id' => $employeeId,
+            'employee_name' => optional($employee)->full_name ?? 'Unknown Employee',
+            'change_type' => $changeType,
+            'reasons' => $reasons,
+            'salary_change' => $salaryChange,
+            'allowance_change' => $allowanceChange,
+            'gross_change' => $grossChange,
+            'net_change' => $netChange,
+        ]);
+    }
+}
+
+// Show employees with the largest gross payroll changes first.
+$employeeChanges = $employeeChanges
+    ->sortByDesc(function ($employee) {
+        return abs($employee['gross_change']);
+    })
+    ->values();
+
+// Overall wage bill direction.
+$grossPayrollChange = $comparisonMetrics['gross_pay']['change'];
+
+$payrollDirection = $grossPayrollChange > 0
+    ? 'increased'
+    : ($grossPayrollChange < 0 ? 'decreased' : 'unchanged');
+
 
     /*
      * Paginate the combined collection.
@@ -296,16 +519,21 @@ public function index(Request $request)
         ]
     );
 
-    return view('wage_bills.index', compact(
-        'offices',
-        'cycles',
-        'selectedBranchId',
-        'selectedCycle',
-        'wageBills',
-        'totals',
-        'isAdminOrRisk',
-        'isBranchManager'
-    ));
+return view('wage_bills.index', compact(
+    'offices',
+    'cycles',
+    'selectedBranchId',
+    'selectedCycle',
+    'wageBills',
+    'totals',
+    'isAdminOrRisk',
+    'isBranchManager',
+    'previousCycle',
+    'previousTotals',
+    'comparisonMetrics',
+    'employeeChanges',
+    'payrollDirection'
+));
 }
 
 
