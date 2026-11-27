@@ -199,6 +199,244 @@ function totalAmount($transactions) {
 
 </div>
 
+
+{{-- ======================================== --}}
+{{-- BRANCH TARGET ACHIEVEMENTS --}}
+{{-- ======================================== --}}
+
+<div style="
+    margin:15px 0 20px;
+    border-radius:10px;
+    overflow:hidden;
+    background:linear-gradient(110deg,#173b75,#284fc0);
+    color:white;
+    box-shadow:0 3px 12px rgba(23,59,117,0.18);
+">
+
+    {{-- COLLAPSED HEADER --}}
+    <div onclick="toggleBranchTargetAchievements()"
+         style="padding:14px 18px;cursor:pointer;">
+
+        <div class="row" style="display:flex;align-items:center;flex-wrap:wrap;">
+
+            <div class="col-md-3 col-sm-12" style="margin-bottom:8px;">
+                <div style="display:flex;align-items:center;">
+                    <span style="font-size:28px;margin-right:10px;">🏆</span>
+                    <div>
+                        <div style="font-size:16px;font-weight:800;">
+                            BRANCH TARGETS
+                        </div>
+                        <small style="color:#dbeafe;">
+                            Targets achieved by your team
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-2 col-xs-4 text-center">
+                <div style="font-size:25px;font-weight:800;">
+                    {{ $branchTargetSummary['total'] }}
+                </div>
+                <small style="color:#dbeafe;">TOTAL ACHIEVED</small>
+            </div>
+
+            <div class="col-md-2 col-xs-4 text-center">
+                <div style="font-size:22px;font-weight:800;">
+                    {{ $branchTargetSummary['regular'] }}
+                </div>
+                <small style="color:#dbeafe;">🎯 REGULAR</small>
+            </div>
+
+            <div class="col-md-2 col-xs-4 text-center">
+                <div style="font-size:22px;font-weight:800;color:#fde68a;">
+                    {{ $branchTargetSummary['double'] }}
+                </div>
+                <small style="color:#fde68a;">🥈 DOUBLE</small>
+            </div>
+
+            <div class="col-md-2 col-xs-4 text-center">
+                <div style="font-size:22px;font-weight:800;color:#fcd34d;">
+                    {{ $branchTargetSummary['triple'] }}
+                </div>
+                <small style="color:#fcd34d;">👑 TRIPLE</small>
+            </div>
+
+            <div class="col-md-1 col-xs-2 text-center">
+                <i id="branchTargetArrow"
+                   class="fa fa-chevron-down"
+                   style="font-size:17px;"></i>
+            </div>
+
+        </div>
+    </div>
+
+    {{-- EXPANDED CONTENT --}}
+    <div id="branchTargetAchievementsBody"
+         style="display:none;background:white;color:#333;border-top:3px solid #facc15;">
+
+        <div style="padding:18px;">
+
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:15px;">
+
+                <strong style="font-size:15px;">
+                    <i class="fa fa-trophy" style="color:#d4a017;"></i>
+                    Consultant Achievement Breakdown
+                </strong>
+
+                <small class="text-muted">
+                    {{ date('d M Y', strtotime($start_date)) }}
+                    -
+                    {{ date('d M Y', strtotime($end_date)) }}
+                </small>
+
+            </div>
+
+            @forelse($branchTargetConsultants as $consultant)
+
+                <div style="
+                    border:1px solid #e8edf3;
+                    border-radius:9px;
+                    margin-bottom:12px;
+                    overflow:hidden;
+                ">
+
+                    {{-- CONSULTANT SUMMARY --}}
+                    <div style="padding:13px;background:#f8fafc;">
+
+                        <div class="row" style="display:flex;align-items:center;flex-wrap:wrap;">
+
+                            <div class="col-md-3 col-xs-12">
+                                <strong style="font-size:14px;">
+                                    <i class="fa fa-user-circle" style="color:#284fc0;"></i>
+                                    {{ $consultant['name'] }}
+                                </strong>
+                            </div>
+
+                            <div class="col-md-2 col-xs-3 text-center">
+                                <strong style="font-size:18px;">
+                                    {{ $consultant['total'] }}
+                                </strong>
+                                <div style="font-size:10px;color:#888;">TOTAL</div>
+                            </div>
+
+                            <div class="col-md-2 col-xs-3 text-center">
+                                <strong style="color:#16834b;">
+                                    {{ $consultant['regular'] }}
+                                </strong>
+                                <div style="font-size:10px;color:#888;">REGULAR</div>
+                            </div>
+
+                            <div class="col-md-2 col-xs-3 text-center">
+                                <strong style="color:#b8860b;">
+                                    {{ $consultant['double'] }}
+                                </strong>
+                                <div style="font-size:10px;color:#888;">DOUBLE</div>
+                            </div>
+
+                            <div class="col-md-2 col-xs-3 text-center">
+                                <strong style="color:#d97706;">
+                                    {{ $consultant['triple'] }}
+                                </strong>
+                                <div style="font-size:10px;color:#888;">TRIPLE</div>
+                            </div>
+
+                            <div class="col-md-1 col-xs-12 text-right">
+                                <a href="{{ url('user/' . $consultant['user_id'] . '/staff_info') }}"
+                                   class="btn btn-xs btn-primary">
+                                    View
+                                </a>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    {{-- INDIVIDUAL TARGET HISTORY --}}
+                    <div style="padding:12px 15px;">
+
+                        <div style="font-size:12px;font-weight:bold;color:#777;margin-bottom:8px;">
+                            ACHIEVEMENT HISTORY
+                        </div>
+
+                        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+
+                            @foreach($consultant['targets'] as $target)
+
+                                <div style="
+                                    display:inline-flex;
+                                    align-items:center;
+                                    padding:7px 11px;
+                                    border-radius:6px;
+                                    background:#f0fdf4;
+                                    border:1px solid #d1fae5;
+                                    font-size:12px;
+                                ">
+
+                                    @if($target->target_level == 40000)
+                                        🎯
+                                        <strong style="color:#16834b;margin-left:5px;">
+                                            Regular
+                                        </strong>
+                                    @elseif($target->target_level == 80000)
+                                        🥈
+                                        <strong style="color:#b8860b;margin-left:5px;">
+                                            Double
+                                        </strong>
+                                    @elseif($target->target_level == 120000)
+                                        👑
+                                        <strong style="color:#d97706;margin-left:5px;">
+                                            Triple
+                                        </strong>
+                                    @endif
+
+                                    <span style="margin-left:7px;color:#555;">
+                                        {{ date('d M Y', strtotime($target->date)) }}
+                                    </span>
+
+                                    <i class="fa fa-check-circle"
+                                       style="color:#16a34a;margin-left:7px;"></i>
+
+                                </div>
+
+                            @endforeach
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            @empty
+
+                <div class="text-center" style="padding:25px;color:#888;">
+                    <div style="font-size:35px;">🎯</div>
+                    <strong>No targets achieved during this period.</strong>
+                    <p style="margin-top:5px;">
+                        Your team's next achievement could be just around the corner!
+                    </p>
+                </div>
+
+            @endforelse
+
+            <div style="
+                text-align:center;
+                padding:12px;
+                background:#fffbeb;
+                color:#a16207;
+                border-radius:7px;
+                font-weight:bold;
+                margin-top:15px;
+            ">
+                🎉 Great work, team! Every achievement counts.
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
 <!-- ================= DAILY PERFORMANCE CARD ================= -->
 <div class="card shadow-sm" style="border-radius:12px; overflow:hidden; border:0;">
     <div style="padding:14px 18px; border-bottom:1px solid #f1f1f1; background:#fff;">
@@ -1008,6 +1246,34 @@ if (body.style.display === 'none') {
 }
 
 }
+
+
+function toggleBranchTargetAchievements() {
+
+    const body = document.getElementById('branchTargetAchievementsBody');
+    const arrow = document.getElementById('branchTargetArrow');
+
+    if (!body || !arrow) {
+        return;
+    }
+
+    if (body.style.display === 'none') {
+
+        body.style.display = 'block';
+
+        arrow.classList.remove('fa-chevron-down');
+        arrow.classList.add('fa-chevron-up');
+
+    } else {
+
+        body.style.display = 'none';
+
+        arrow.classList.remove('fa-chevron-up');
+        arrow.classList.add('fa-chevron-down');
+
+    }
+}
+
 
 </script>
 @endsection

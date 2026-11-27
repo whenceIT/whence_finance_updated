@@ -1793,6 +1793,8 @@ public function create()
     ///////////////////////////////////////
     public function create_client_loan(Request $request,$client, $loan_product)
     {
+
+       $user = Sentinel::getUser()->id;
         $userBranch = Sentinel::getUser()->office_id;
         if (!Sentinel::hasAccess('loans.create')) {
             Flash::warning("Permission Denied");
@@ -1821,7 +1823,7 @@ $amount = $request->query('amount');
            $this->auditorService->logCreateClientLoan(Sentinel::getUser(), request(), $client);
             return view(
                 'loan.create_client_loan',
-                compact('client', 'loan_product', 'userBranch','number','amount')
+                compact('client', 'loan_product', 'userBranch','number','amount','user')
             );
         }
     }

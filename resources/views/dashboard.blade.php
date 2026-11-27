@@ -188,6 +188,175 @@
                 </div>
             @else
 
+
+
+{{-- TARGET ACHIEVEMENTS --}}
+@php
+    $regularTargets = $myTargets->where('target_level', 40000)->count();
+    $doubleTargets = $myTargets->where('target_level', 80000)->count();
+    $tripleTargets = $myTargets->where('target_level', 120000)->count();
+
+    $totalTargets = $regularTargets + $doubleTargets + $tripleTargets;
+@endphp
+
+<div style="margin:15px 0 20px 0;">
+
+    <div style="
+        background:linear-gradient(110deg,#173b75,#284fc0);
+        border-radius:10px;
+        color:white;
+        box-shadow:0 3px 12px rgba(23,59,117,0.2);
+        overflow:hidden;
+    ">
+
+        {{-- COLLAPSED HEADER --}}
+        <div data-toggle="collapse"
+             data-target="#targetAchievements"
+             aria-expanded="false"
+             style="padding:13px 18px;cursor:pointer;">
+
+            <div class="row" style="display:flex;align-items:center;flex-wrap:wrap;">
+
+                <div class="col-md-3 col-sm-12" style="margin-bottom:8px;">
+                    <div style="display:flex;align-items:center;">
+                        <span style="font-size:27px;margin-right:10px;">🏆</span>
+                        <div>
+                            <div style="font-size:16px;font-weight:800;">
+                                TARGETS MET
+                            </div>
+                            <small style="color:#dbeafe;">
+                                Your hard work deserves recognition!
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-2 col-xs-4 text-center">
+                    <div style="font-size:24px;font-weight:800;">
+                        {{ $totalTargets }}
+                    </div>
+                    <small style="color:#dbeafe;">TOTAL MET</small>
+                </div>
+
+                <div class="col-md-2 col-xs-4 text-center">
+                    <div style="font-size:21px;font-weight:800;">
+                        {{ $regularTargets }}
+                    </div>
+                    <small style="color:#dbeafe;">🎯 REGULAR</small>
+                </div>
+
+                <div class="col-md-2 col-xs-4 text-center">
+                    <div style="font-size:21px;font-weight:800;color:#fde68a;">
+                        {{ $doubleTargets }}
+                    </div>
+                    <small style="color:#fde68a;">🥈 DOUBLE</small>
+                </div>
+
+                <div class="col-md-2 col-xs-4 text-center">
+                    <div style="font-size:21px;font-weight:800;color:#fcd34d;">
+                        {{ $tripleTargets }}
+                    </div>
+                    <small style="color:#fcd34d;">👑 TRIPLE</small>
+                </div>
+
+                <div class="col-md-1 col-xs-2 text-center">
+                    <i class="fa fa-chevron-down"
+                       style="font-size:18px;"></i>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- EXPANDED CONTENT --}}
+        <div id="targetAchievements" class="collapse">
+
+            <div style="
+                background:#fff;
+                color:#333;
+                padding:18px;
+                border-top:3px solid #facc15;
+            ">
+
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:12px;">
+                    <strong style="font-size:15px;">
+                        <i class="fa fa-trophy" style="color:#d4a017;"></i>
+                        Achievement History
+                    </strong>
+
+                    <small class="text-muted">
+                        {{ date('d M Y', strtotime($start)) }}
+                        -
+                        {{ date('d M Y', strtotime($end)) }}
+                    </small>
+                </div>
+
+                @forelse($myTargets as $target)
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:center;
+                        padding:10px 12px;
+                        border-bottom:1px solid #eee;
+                        flex-wrap:wrap;
+                    ">
+
+                        <div>
+                            <strong>
+                                @if($target->target_level == 40000)
+                                    🎯 Regular Target
+                                @elseif($target->target_level == 80000)
+                                    🥈 Double Target
+                                @elseif($target->target_level == 120000)
+                                    👑 Triple Target
+                                @else
+                                    Target Achieved
+                                @endif
+                            </strong>
+
+                            <div style="font-size:12px;color:#888;margin-top:3px;">
+                                {{ date('d M Y', strtotime($target->date)) }}
+                            </div>
+                        </div>
+
+                        <span style="
+                            background:#e8f8ed;
+                            color:#218838;
+                            padding:6px 12px;
+                            border-radius:20px;
+                            font-weight:bold;
+                            font-size:13px;
+                        ">
+                            K{{ number_format($target->target_level) }}
+                            <i class="fa fa-check-circle"></i>
+                        </span>
+
+                    </div>
+
+                @empty
+
+                    <div class="text-center" style="padding:20px;color:#888;">
+                        🎯 No targets achieved in this cycle yet.
+                    </div>
+
+                @endforelse
+
+                <div style="
+                    text-align:center;
+                    padding:12px 0 0;
+                    color:#b8860b;
+                    font-weight:bold;
+                ">
+                    🎉 Keep pushing. Your next achievement awaits!
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
                 <!-- first row -->
                 <div class="row">
 
@@ -556,6 +725,7 @@ These are the balances of all your loans as of  {{ date("jS M, Y", strtotime($st
                 </div>
                 <!--second row-->
              
+                
 
 
                 <!-- Short cut tools to: Loans, Collateral, Clients -->
