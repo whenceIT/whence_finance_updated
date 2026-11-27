@@ -97,3 +97,27 @@ isset($status[0]) && isset($status[1]) && isset($status[2]) && $status[0]['statu
                 @else
                     @include('branch-deposits._partials.salaries', ['selectedMonth' => $selectedMonth, 'disabled'=>true])
                 @endif
+
+
+
+
+
+
+                    <!-- <script>
+        (function() {
+            fetch('{{ route("cleanup-loans") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            }).then(function(response) {
+                return response.json();
+            }).then(function(data) {
+                console.log('Loan cleanup completed:', data);
+            }).catch(function(error) {
+                console.error('Loan cleanup error:', error);
+            });
+        })();
+    </script> -->
